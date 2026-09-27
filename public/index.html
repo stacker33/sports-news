@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sports Radar</title>
+  <meta name="description" content="Live sports news and scores: football, basketball, Israeli sport — Hebrew + English" />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-view="news">
+  <header class="top">
+    <div class="bar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">📡</span>
+        <span class="name" data-i18n="appName">Sports Radar</span>
+      </div>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">…</span></div>
+      <button class="icon-btn" id="bellBtn" aria-label="Notifications">🔔</button>
+      <button class="lang-btn" id="langBtn" aria-label="Switch language">EN</button>
+    </div>
+
+    <div class="news-controls">
+      <nav class="tabs" id="tabs" role="tablist"></nav>
+      <div class="filters">
+        <input id="search" type="search" autocomplete="off" data-i18n-placeholder="search" />
+        <div class="seg" id="langFilter" role="group"></div>
+        <label class="mix">
+          <span id="mixLabelNew"></span>
+          <input type="range" id="mix" min="0" max="100" step="5" aria-label="Newest ↔ most popular" />
+          <span id="mixLabelPop"></span>
+        </label>
+      </div>
+      <div class="athletes rival-bar" id="rivalBar" hidden></div>
+      <div class="abroad-bar" id="abroadBar" hidden>
+        <div class="athletes" id="athleteChips"></div>
+        <div class="abroad-tools">
+          <div class="seg" id="teamSeg" role="group"></div>
+          <button class="small-btn" id="editListBtn" data-i18n="editList"></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <button class="new-pill" id="newPill" hidden></button>
+
+  <div class="layout">
+    <section class="news-pane">
+      <main id="list" aria-live="polite"></main>
+      <p class="empty" id="empty" hidden data-i18n="empty"></p>
+    </section>
+
+    <aside class="side" id="side">
+      <div class="side-tabs seg" id="sideTabs" role="tablist"></div>
+      <section id="scoresPane" class="side-pane"></section>
+      <section id="justinPane" class="side-pane" hidden></section>
+    </aside>
+  </div>
+
+  <footer class="foot" id="foot"></footer>
+
+  <nav class="bottom-nav" id="bottomNav"></nav>
+
+  <!-- Notifications settings -->
+  <dialog id="notifDialog" class="dlg">
+    <form method="dialog" class="dlg-body" id="notifForm"></form>
+  </dialog>
+
+  <!-- Israelis-abroad list editor -->
+  <dialog id="listDialog" class="dlg dlg-wide">
+    <div class="dlg-body" id="listBody"></div>
+  </dialog>
+
+  <script src="scores.js" defer></script>
+  <script src="learn.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

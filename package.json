@@ -1,0 +1,15 @@
+{
+  "name": "sports-news",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live sports news radar: football, basketball, Israeli sport. Hebrew + English.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "collect": "node src/collect.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.0"
+  }
+}

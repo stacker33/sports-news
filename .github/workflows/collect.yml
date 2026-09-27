@@ -1,0 +1,67 @@
+# Runs the collector on GitHub's servers every ~5 minutes and publishes the app to GitHub Pages.
+# Free for public repositories. The previous run's state is downloaded from the live site,
+# so nothing is committed to the repo on each run.
+name: Collect news
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Restore previous state from the live site
+        run: |
+          mkdir -p public/data
+          curl -sfL "${{ steps.pages.outputs.base_url }}/data/state.json" -o public/data/state.json \
+            || echo "No previous state (first run)"
+          curl -sfL "${{ steps.pages.outputs.base_url }}/data/entities.json" -o public/data/entities.json \
+            || echo "No topic knowledge base yet (built over the first runs)"
+
+      - name: Collect
+        run: node src/collect.js
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      # GitHub pauses scheduled workflows after 60 days without repo activity; re-enabling resets that.
+      - name: Keep schedule alive
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/collect.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
