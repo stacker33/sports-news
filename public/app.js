@@ -78,7 +78,7 @@ const T = {
     pc: {
       last: 'משחק אחרון', next: 'הבא', season: 'העונה', news: 'חדשות', vs: 'נגד', at: 'אצל',
       didntPlay: 'לא שיחק', notSince: (d) => `לא שיחק מאז ${d}`, ofGames: (a, b) => `שיחק ב-${a} מתוך ${b} משחקים`, missed: (h, a) => `לא שיחק ב${h}–${a}`, rating: 'ציון', games: 'משחקים', goals: 'שערים', assists: 'בישולים',
-      title: 'שחקנים', expand: '▾ הרחב', collapse: '▴ כווץ', football: '⚽ כדורגל', basketball: '🏀 כדורסל', today: 'היום',
+      viewNews: '📰 חדשות', viewPlayers: '👤 שחקנים', football: '⚽ כדורגל', basketball: '🏀 כדורסל', today: 'היום',
       place: (p, n) => `מקום ${p} מתוך ${n}`, contract: 'חוזה עד', loading: 'טוען נתונים…', all: 'כל השחקנים', minutes: 'דק׳',
     },
     scoresError: 'לא הצלחנו לטעון תוצאות',
@@ -186,7 +186,7 @@ const T = {
     pc: {
       last: 'Last game', next: 'Next', season: 'Season', news: 'News', vs: 'vs', at: 'at',
       didntPlay: "didn't play", notSince: (d) => `hasn't played since ${d}`, ofGames: (a, b) => `played ${a} of ${b} games`, missed: (h, a) => `didn't play in ${h}–${a}`, rating: 'rating', games: 'games', goals: 'goals', assists: 'assists',
-      title: 'Players', expand: '▾ Expand', collapse: '▴ Collapse', football: '⚽ Football', basketball: '🏀 Basketball', today: 'Today',
+      viewNews: '📰 News', viewPlayers: '👤 Players', football: '⚽ Football', basketball: '🏀 Basketball', today: 'Today',
       place: (p, n) => `${p}${['th', 'st', 'nd', 'rd'][p % 10 > 3 || Math.floor(p / 10) === 1 ? 0 : p % 10]} of ${n}`, contract: 'contract until', loading: 'loading…', all: 'All players', minutes: 'min',
     },
     scoresError: "Couldn't load scores",
@@ -240,7 +240,7 @@ const state = {
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   rival: null,
   mix: Number(store.get('mix', 40)),
-  cardsOpen: store.get('cardsOpen', false), // Israelis-abroad player cards: compact row (false) or full cards (true) // 0 = newest … 100 = most popular
+  abroadView: store.get('abroadView', 'news') === 'players' ? 'players' : 'news', // Israelis abroad: 📰 news | 👤 players // 0 = newest … 100 = most popular
   affinity: null,
   tag: null, // topic filter (clicked tag)
   sort: null, // null = tab default
@@ -616,8 +616,10 @@ function playerCardsHtml() {
   };
   const all = [...players].sort((a, b) => rank(a) - rank(b)).map(build);
   const groups = ['football', 'basketball'].map((sp) => [sp, all.filter((x) => (x.a.sport || 'football') === sp)]).filter(([, list]) => list.length);
-  const head = `<div class="pcards-bar"><span class="pc-title">👤 ${esc(L.title)}</span><button type="button" class="small-btn" id="cardsToggle">${esc(state.cardsOpen ? L.collapse : L.expand)}</button></div>`;
-  if (!state.cardsOpen) {
+  const head = `<div class="seg abroad-view">${['news', 'players']
+    .map((v) => `<button type="button" data-av="${v}" aria-pressed="${state.abroadView === v}">${esc(v === 'news' ? L.viewNews : L.viewPlayers)}</button>`)
+    .join('')}</div>`;
+  if (state.abroadView === 'news') {
     return `<div class="pcards-wrap">${head}<div class="pminis">${groups
       .map(([sp, list]) => `<span class="pmini-label">${esc(L[sp])}</span>${list.map((x) => x.mini).join('')}`)
       .join('')}</div></div>`;
@@ -635,8 +637,9 @@ function renderList(freshIds = new Set()) {
     ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
     : '');
   const cardsRow = state.tab === 'abroad' ? playerCardsHtml() : '';
-  $('list').innerHTML = cardsRow + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('');
-  $('empty').hidden = list.length > 0;
+  const playersOnly = state.tab === 'abroad' && state.abroadView === 'players';
+  $('list').innerHTML = cardsRow + (playersOnly ? '' : banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join(''));
+  $('empty').hidden = list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players');
 }
 
 // ---------- rendering: just in ----------
@@ -1074,14 +1077,25 @@ function recordOpen(e) {
 }
 $('list').addEventListener('click', recordOpen);
 $('list').addEventListener('click', (e) => {
-  if (e.target.id === 'cardsToggle') {
-    state.cardsOpen = !state.cardsOpen;
-    store.set('cardsOpen', state.cardsOpen);
+  const av = e.target.closest('[data-av]');
+  if (av) {
+    state.abroadView = av.dataset.av;
+    store.set('abroadView', state.abroadView);
     renderList();
     return;
   }
   const card = e.target.closest('.pcard, .pmini');
   if (!card || e.target.closest('a')) return;
+  if (card.classList.contains('pcard')) {
+    // from the players screen → that player's news
+    state.athlete = card.dataset.ath;
+    state.abroadView = 'news';
+    store.set('abroadView', 'news');
+    renderChrome();
+    renderList();
+    window.scrollTo({ top: 0 });
+    return;
+  }
   state.athlete = state.athlete === card.dataset.ath ? null : card.dataset.ath;
   renderChrome();
   renderList();
