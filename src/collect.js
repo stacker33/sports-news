@@ -37,6 +37,8 @@ const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
 
+const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote)\b/i;
+
 const itemId = (link, title) => {
   let key = link;
   try {
@@ -130,6 +132,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     for (const raw of r.value) {
       // Skip navigation junk (e.g. 'News / EuroLeague / Leagues') and tiny titles
       if (raw.title.length < 12 || raw.title.split(' / ').length > 2) continue;
+      // betting / odds / live-score widget pages (any language) are not news
+      if (JUNK_TITLE.test(raw.title)) continue;
 
       const id = itemId(raw.link, raw.title);
       const prev = known.get(id);
@@ -226,6 +230,12 @@ export async function collect({ log = console.log, force = false } = {}) {
       return true;
     });
     for (const e of keep) entById.set(e.id, e);
+    // a foreign article about Maccabi / Hapoel / Beitar… → Israeli sport tabs too
+    const ilTeam = keep.find((e) => e.k === 'team' && (edb.teams[e.id.slice(1)]?.comps || []).some((x) => x === 42 || x === 43 || x === 47));
+    if (ilTeam) {
+      it.israel = true;
+      if (it.sport === 'other' && ilTeam.sport) it.sport = ilTeam.sport;
+    }
     it.ents = [...new Set(keep.map((e) => e.id))];
     delete it._ents;
   }
@@ -261,7 +271,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     // Israelis abroad from your list come first among players
     const ilPlayers = [...new Set(members.flatMap((m) => m.athletes || []))].map((name) => ({ k: 'player', id: `a:${name}`, en: name, he: heOfAthlete.get(name) || name, il: true }));
     const players = [...ilPlayers, ...ents.filter((e) => e.k === 'player' && !ilPlayers.some((p) => p.en === e.en)).sort(byN)].slice(0, 3);
-    return [...comps, ...teams.map((e) => ({ ...e, il: isIl(e) || undefined })), ...players].map(({ k, id, en, he, il }) => ({ k, id, en, he, ...(il ? { il: true } : {}) }));
+    const seenName = new Set(); // same name in two sports (Real Madrid football + basketball) → show once
+    return [...comps, ...teams.map((e) => ({ ...e, il: isIl(e) || undefined })), ...players].filter((e) => !seenName.has(e.k + e.en) && seenName.add(e.k + e.en)).map(({ k, id, en, he, il }) => ({ k, id, en, he, ...(il ? { il: true } : {}) }));
   }
 
   const stories = clusterItems(items.filter((i) => !i.hidden))
