@@ -78,6 +78,7 @@ const T = {
     pc: {
       last: 'משחק אחרון', next: 'הבא', season: 'העונה', news: 'חדשות', vs: 'נגד', at: 'אצל',
       didntPlay: 'לא שיחק', notSince: (d) => `לא שיחק מאז ${d}`, ofGames: (a, b) => `שיחק ב-${a} מתוך ${b} משחקים`, missed: (h, a) => `לא שיחק ב${h}–${a}`, rating: 'ציון', games: 'משחקים', goals: 'שערים', assists: 'בישולים',
+      title: 'שחקנים', expand: '▾ הרחב', collapse: '▴ כווץ', football: '⚽ כדורגל', basketball: '🏀 כדורסל', today: 'היום',
       place: (p, n) => `מקום ${p} מתוך ${n}`, contract: 'חוזה עד', loading: 'טוען נתונים…', all: 'כל השחקנים', minutes: 'דק׳',
     },
     scoresError: 'לא הצלחנו לטעון תוצאות',
@@ -185,6 +186,7 @@ const T = {
     pc: {
       last: 'Last game', next: 'Next', season: 'Season', news: 'News', vs: 'vs', at: 'at',
       didntPlay: "didn't play", notSince: (d) => `hasn't played since ${d}`, ofGames: (a, b) => `played ${a} of ${b} games`, missed: (h, a) => `didn't play in ${h}–${a}`, rating: 'rating', games: 'games', goals: 'goals', assists: 'assists',
+      title: 'Players', expand: '▾ Expand', collapse: '▴ Collapse', football: '⚽ Football', basketball: '🏀 Basketball', today: 'Today',
       place: (p, n) => `${p}${['th', 'st', 'nd', 'rd'][p % 10 > 3 || Math.floor(p / 10) === 1 ? 0 : p % 10]} of ${n}`, contract: 'contract until', loading: 'loading…', all: 'All players', minutes: 'min',
     },
     scoresError: "Couldn't load scores",
@@ -237,7 +239,8 @@ const state = {
   tab: TABS.includes(store.get('tab')) ? store.get('tab') : 'top',
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   rival: null,
-  mix: Number(store.get('mix', 40)), // 0 = newest … 100 = most popular
+  mix: Number(store.get('mix', 40)),
+  cardsOpen: store.get('cardsOpen', false), // Israelis-abroad player cards: compact row (false) or full cards (true) // 0 = newest … 100 = most popular
   affinity: null,
   tag: null, // topic filter (clicked tag)
   sort: null, // null = tab default
@@ -555,8 +558,9 @@ function playerCardsHtml() {
   const cards = state.athletes?.cards || {};
   const newsOf = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name)).sort((a, b) => b.first - a.first)[0];
   const rank = (a) => (cards[a.name]?.next?.start ?? Infinity); // next to play first
-  const html = [...players].sort((a, b) => rank(a) - rank(b)).map((a) => {
+  const build = (a) => {
     const k = cards[a.name];
+    let statusText = '';
     const name = he && a.name_he ? a.name_he : a.name;
     const team = he && a.team_he ? a.team_he : a.team;
     const lines = [];
@@ -565,12 +569,16 @@ function playerCardsHtml() {
       const g = { startTime: new Date(k.next.start).toISOString(), statusGroup: k.next.live ? 3 : 2 };
       const st = window.Scores?.playerStatus(a, g, gi[k.next.id], ctx, state.ui);
       if (st) lines.push(`<div class="pc-status">${esc(st)}</div>`);
+      statusText = st || '';
     }
     if (k?.last) {
       const l = k.last;
       const score = `${pick(l.home)} ${l.score[0]}–${l.score[1]} ${pick(l.away)}`;
       const me = l.played ? [l.minutes && `${l.minutes} ${L.minutes}`, l.rating && `${L.rating} ${l.rating}`].filter(Boolean).join(' · ') : L.didntPlay;
-      if (l.played && Date.now() - l.start > 21 * 86400e3) lines.push(`<div class="pc-status">⏸️ ${esc(L.notSince(day(l.start)))} <span class="muted">(${esc(score)})</span></div>`);
+      if (l.played && Date.now() - l.start > 21 * 86400e3) {
+        lines.push(`<div class="pc-status">⏸️ ${esc(L.notSince(day(l.start)))} <span class="muted">(${esc(score)})</span></div>`);
+        statusText ||= '⏸️';
+      }
       else lines.push(`<div><b>${esc(L.last)}:</b> ${esc(score)} <span class="muted">(${esc(day(l.start))})</span> · ${esc(me)}</div>`);
       if (l.missed) lines.push(`<div class="muted">${esc(L.missed(pick(l.missed.home), pick(l.missed.away)))}</div>`);
     }
@@ -591,13 +599,32 @@ function playerCardsHtml() {
     if (n) lines.push(`<div class="pc-news">📰 <a href="${esc(disp(n).link)}" target="_blank" rel="noopener" dir="auto">${esc(disp(n).title)}</a> <span class="muted">· ${timeEl(n.first)}</span></div>`);
     if (!k) lines.push(`<div class="muted">${esc(L.loading)}</div>`);
     const table = k?.table ? ` · ${L.place(k.table.pos, k.table.of)}` : '';
-    return `<article class="pcard${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}">
+    const full = `<article class="pcard${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}">
       <header><span class="pc-name">${esc(name)}</span><span class="pc-pos">${esc(pick(k?.position) || '')}</span></header>
       <div class="pc-club">${a.sport === 'basketball' ? '🏀' : '⚽'} ${esc(team)}<span class="muted">${esc(table)}</span></div>
       ${lines.join('')}
     </article>`;
-  });
-  return `<div class="pcards">${html.join('')}</div>`;
+    // compact chip: status icon + name + next game (or "live")
+    const icon = (statusText.match(/^(🇮🇱|🤕|🟥|⏸️)/u) || [])[1] || (k?.next?.live ? '🟢' : '');
+    const nextShort = k?.next
+      ? (new Date(k.next.start).toDateString() === new Date().toDateString()
+          ? `${L.today} ${new Date(k.next.start).toLocaleTimeString(he ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}`
+          : new Date(k.next.start).toLocaleString(he ? 'he-IL' : 'en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' }))
+      : '';
+    const mini = `<button type="button" class="pmini${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}" title="${esc(statusText)}">${icon ? `<span>${icon}</span>` : ''}<b>${esc(name)}</b>${nextShort ? `<small>${esc(nextShort)}</small>` : ''}</button>`;
+    return { a, full, mini };
+  };
+  const all = [...players].sort((a, b) => rank(a) - rank(b)).map(build);
+  const groups = ['football', 'basketball'].map((sp) => [sp, all.filter((x) => (x.a.sport || 'football') === sp)]).filter(([, list]) => list.length);
+  const head = `<div class="pcards-bar"><span class="pc-title">👤 ${esc(L.title)}</span><button type="button" class="small-btn" id="cardsToggle">${esc(state.cardsOpen ? L.collapse : L.expand)}</button></div>`;
+  if (!state.cardsOpen) {
+    return `<div class="pcards-wrap">${head}<div class="pminis">${groups
+      .map(([sp, list]) => `<span class="pmini-label">${esc(L[sp])}</span>${list.map((x) => x.mini).join('')}`)
+      .join('')}</div></div>`;
+  }
+  return `<div class="pcards-wrap">${head}${groups
+    .map(([sp, list]) => `<h4 class="pgroup">${esc(L[sp])} <span class="muted">(${list.length})</span></h4><div class="pcards">${list.map((x) => x.full).join('')}</div>`)
+    .join('')}</div>`;
 }
 
 function renderList(freshIds = new Set()) {
@@ -1047,7 +1074,13 @@ function recordOpen(e) {
 }
 $('list').addEventListener('click', recordOpen);
 $('list').addEventListener('click', (e) => {
-  const card = e.target.closest('.pcard');
+  if (e.target.id === 'cardsToggle') {
+    state.cardsOpen = !state.cardsOpen;
+    store.set('cardsOpen', state.cardsOpen);
+    renderList();
+    return;
+  }
+  const card = e.target.closest('.pcard, .pmini');
   if (!card || e.target.closest('a')) return;
   state.athlete = state.athlete === card.dataset.ath ? null : card.dataset.ath;
   renderChrome();

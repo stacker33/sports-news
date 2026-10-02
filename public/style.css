@@ -386,3 +386,20 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 }
 
 .athletes[hidden] { display: none; }
+
+/* v11: collapsible player cards, football / basketball groups */
+.pcards-wrap { display: grid; gap: 8px; }
+.pcards-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pc-title { font-weight: 800; font-size: 14px; }
+.pminis { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; align-items: center; }
+.pminis::-webkit-scrollbar { display: none; }
+.pmini-label { flex: none; font-size: 12px; font-weight: 800; color: var(--muted); padding-inline: 4px 2px; }
+.pmini {
+  flex: none; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap;
+}
+.pmini b { font-weight: 700; }
+.pmini small { color: var(--muted); font-size: 11.5px; }
+.pmini:hover { border-color: var(--il); }
+.pmini.on { background: var(--il-soft); border-color: var(--il); color: var(--il); }
+.pgroup { margin: 6px 0 0; font-size: 14px; }
