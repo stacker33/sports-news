@@ -152,6 +152,7 @@ export async function collect({ log = console.log, force = false } = {}) {
         teams: tags.teams,
         breaking: tags.breaking,
         rival: src.rival || prev?.rival || null,
+        social: !!raw.social, // a reporter's own post (Telegram / Bluesky)
       };
       if (!prev) fresh++;
       known.set(id, item);

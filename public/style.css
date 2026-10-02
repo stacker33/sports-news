@@ -354,3 +354,7 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 .sug-box li { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
 .sug-btns { display: flex; gap: 6px; }
 #editListBtn.has-updates { border-color: var(--il); color: var(--il); font-weight: 800; }
+
+/* v8: reporters' live posts */
+.badge.social { background: #ede7ff; color: #5b3cc4; }
+@media (prefers-color-scheme: dark) { .badge.social { background: #2a2050; color: #b9a6ff; } }

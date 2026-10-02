@@ -97,11 +97,99 @@ function parseSport5(html) {
   return [...best.values()].map((a) => ({ ...a, summary: '', published: null, image: null, publisher: 'ספורט 5' }));
 }
 
+// ---------- direct sources without RSS ----------
+
+// ESPN's public JSON news feed (per league)
+function parseEspn(j, source) {
+  return (j.articles || [])
+    .filter((a) => a.type !== 'Media' && a.links?.web?.href) // skip video clips
+    .map((a) => ({
+      title: cleanText(a.headline),
+      link: a.links.web.href,
+      summary: cleanText(a.description || '').slice(0, 280),
+      published: parseDate(a.published),
+      image: a.images?.[0]?.url || null,
+      publisher: source.name,
+    }));
+}
+
+// WordPress sites expose their posts as JSON (e.g. sport1)
+function parseWordPress(j, source) {
+  return (Array.isArray(j) ? j : []).map((p) => ({
+    title: cleanText(p.title?.rendered || ''),
+    link: p.link,
+    summary: cleanText(p.excerpt?.rendered || '').slice(0, 280),
+    published: parseDate(p.date_gmt ? p.date_gmt + 'Z' : p.date),
+    image: null,
+    publisher: source.name,
+  }));
+}
+
+// Social posts read as headlines: first line / first ~180 characters
+function postTitle(text) {
+  const t = cleanText(String(text || '').replace(/\n+/g, ' \n ')).replace(/\s*\n\s*/g, ' — ');
+  if (t.length <= 180) return t;
+  const cut = t.slice(0, 180);
+  const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf(' — '));
+  return (end > 80 ? cut.slice(0, end + 1) : cut.replace(/\s+\S*$/, '')) + '…';
+}
+
+// Bluesky public API (no account needed): a reporter's latest posts
+function parseBluesky(j, source) {
+  return (j.feed || [])
+    .filter((x) => !x.reason && x.post?.record?.text) // own posts only, not reposts
+    .map(({ post }) => {
+      const rkey = post.uri.split('/').pop();
+      const embed = post.embed?.external || post.embed?.media?.external;
+      const img = post.embed?.images?.[0]?.thumb || embed?.thumb || null;
+      return {
+        title: postTitle(post.record.text),
+        link: `https://bsky.app/profile/${post.author.handle}/post/${rkey}`,
+        summary: post.record.text.length > 180 ? cleanText(post.record.text).slice(0, 280) : '',
+        published: parseDate(post.record.createdAt),
+        image: img,
+        publisher: source.name,
+        social: true,
+      };
+    })
+    .filter((p) => p.title.length >= 20);
+}
+
+// Public Telegram channel preview page (t.me/s/<channel>)
+function parseTelegram(html, source) {
+  const out = [];
+  const blocks = html.split('<div class="tgme_widget_message_wrap').slice(1);
+  for (const b of blocks) {
+    const post = b.match(/data-post="([^"]+)"/)?.[1];
+    const text = b.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/)?.[1];
+    const time = b.match(/<time datetime="([^"]+)"/)?.[1];
+    if (!post || !text) continue;
+    const plain = cleanText(text.replace(/<br\s*\/?>/gi, '\n'));
+    out.push({
+      title: postTitle(text.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')),
+      link: `https://t.me/${post}`,
+      summary: plain.length > 180 ? plain.slice(0, 280) : '',
+      published: parseDate(time),
+      image: b.match(/background-image:url\('([^']+)'\)/)?.[1] || null,
+      publisher: source.name,
+      social: true,
+    });
+  }
+  return out.filter((p) => p.title.length >= 20);
+}
+
 export async function fetchFeed(source, timeoutMs = 15000) {
   if (source.parser === 'sport5') {
     const res = await fetch(source.url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return parseSport5(await res.text());
+  }
+  if (['espn', 'wordpress', 'bluesky', 'telegram'].includes(source.parser)) {
+    const res = await fetch(source.url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (source.parser === 'telegram') return parseTelegram(await res.text(), source);
+    const j = await res.json();
+    return source.parser === 'espn' ? parseEspn(j, source) : source.parser === 'wordpress' ? parseWordPress(j, source) : parseBluesky(j, source);
   }
   const res = await fetch(source.url, {
     headers: { 'user-agent': UA, accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' },

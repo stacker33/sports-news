@@ -72,7 +72,7 @@ export const SOURCES = [
   { id: 'israelhayom', name: 'ישראל היום', url: 'https://www.israelhayom.co.il/rss.xml', lang: 'he', weight: 2, mixed: true },
   { id: 'sport5-home', name: 'ספורט 5', url: 'https://www.sport5.co.il/', lang: 'he', weight: 3, parser: 'sport5', noDates: true },
   { id: 'sport5', name: 'ספורט 5', url: gnews('site:sport5.co.il when:1d', 'he'), lang: 'he', weight: 3, google: true },
-  { id: 'sport1', name: 'ספורט 1', url: gnews('site:sport1.maariv.co.il when:1d', 'he'), lang: 'he', weight: 3, google: true },
+  { id: 'sport1', name: 'ספורט 1', url: 'https://sport1.maariv.co.il/wp-json/wp/v2/posts?per_page=50&_fields=id,date_gmt,link,title,excerpt', lang: 'he', weight: 3, parser: 'wordpress' },
   { id: 'kan-sport', name: 'כאן ספורט', url: gnews('site:kan.org.il ספורט when:1d', 'he'), lang: 'he', weight: 2, google: true, mixed: true },
   { id: 'gn-he-sports', name: 'Google News ספורט', url: 'https://news.google.com/rss/headlines/section/topic/SPORTS?hl=he&gl=IL&ceid=IL:he', lang: 'he', weight: 2, google: true, top: true },
 
@@ -90,7 +90,13 @@ export const SOURCES = [
   { id: 'sky-news', name: 'Sky Sports', url: 'https://www.skysports.com/rss/12040', lang: 'en', weight: 3 },
   { id: 'sky-transfers', name: 'Sky Sports', url: 'https://www.skysports.com/rss/12691', lang: 'en', weight: 3, sport: 'football' },
   { id: 'telegraph-football', name: 'The Telegraph', url: 'https://www.telegraph.co.uk/football/rss.xml', lang: 'en', weight: 3, sport: 'football' },
-  { id: 'espn', name: 'ESPN', url: gnews('site:espn.com (NBA OR soccer OR football OR EuroLeague) when:1d'), lang: 'en', weight: 3, google: true },
+  { id: 'espn-epl', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'football' },
+  { id: 'espn-laliga', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'football', every: 2 },
+  { id: 'espn-seriea', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'football', every: 3 },
+  { id: 'espn-bundes', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'football', every: 3 },
+  { id: 'espn-ucl', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'football', every: 2 },
+  { id: 'espn-soccer', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/news?limit=50', lang: 'en', weight: 3, parser: 'espn' },
+  { id: 'espn-nba', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'basketball' },
   { id: 'athletic', name: 'The Athletic', url: gnews('site:nytimes.com/athletic (football OR soccer OR NBA) when:1d'), lang: 'en', weight: 3, google: true, every: 5 },
   { id: 'independent-football', name: 'The Independent', url: 'https://www.independent.co.uk/sport/football/rss', lang: 'en', weight: 2, sport: 'football' },
   { id: 'standard-football', name: 'Evening Standard', url: 'https://www.standard.co.uk/sport/football/rss', lang: 'en', weight: 2, sport: 'football' },
@@ -100,10 +106,13 @@ export const SOURCES = [
   { id: 'fourfourtwo', name: 'FourFourTwo', url: 'https://www.fourfourtwo.com/feeds.xml', lang: 'en', weight: 1, sport: 'football' },
   { id: 'transfermarkt', name: 'Transfermarkt', url: 'https://www.transfermarkt.com/rss/news', lang: 'en', weight: 1, sport: 'football' },
 
-  // ---------- Top reporters (their scoops as picked up by the press) ----------
-  { id: 'romano', name: 'Fabrizio Romano (via press)', url: gnews('"Fabrizio Romano" when:1d'), lang: 'en', weight: 2, google: true, sport: 'football', every: 5 },
-  { id: 'ornstein', name: 'David Ornstein (via press)', url: gnews('"David Ornstein" when:1d'), lang: 'en', weight: 2, google: true, sport: 'football', every: 5 },
-  { id: 'shams', name: 'Shams Charania (via press)', url: gnews('"Shams Charania" when:1d'), lang: 'en', weight: 2, google: true, sport: 'basketball', every: 5 },
+  // ---------- ⚡ Reporters & outlets posting live (minutes, not hours) ----------
+  { id: 'tg-romano', name: 'Fabrizio Romano', url: 'https://t.me/s/fabrizioromano', lang: 'en', weight: 3, parser: 'telegram', sport: 'football' },
+  { id: 'bs-shams', name: 'Shams Charania', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=shamsbot.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'basketball' },
+  { id: 'bs-ornstein', name: 'David Ornstein', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=david-ornstein.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', every: 2 },
+  { id: 'bs-jacobs', name: 'Ben Jacobs', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=jacobsben.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 2, parser: 'bluesky', sport: 'football', every: 2 },
+  { id: 'bs-athletic', name: 'The Athletic', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=theathleticfc.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football' },
+  { id: 'bs-bbcsport', name: 'BBC Sport', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=bbcsport.xmirror.bot&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky' },
 
   // ---------- World basketball (English) ----------
   { id: 'bbc-basket', name: 'BBC Sport', url: 'https://feeds.bbci.co.uk/sport/basketball/rss.xml', lang: 'en', weight: 3, sport: 'basketball' },

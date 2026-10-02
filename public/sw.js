@@ -1,5 +1,5 @@
 // Service worker: app shell works offline; news data always network-first.
-const CACHE = 'sports-radar-v8';
+const CACHE = 'sports-radar-v9';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'scores.js', 'learn.js', 'manifest.webmanifest', 'icon.svg'];
 
 // Clicking a notification opens the story (or focuses the app)

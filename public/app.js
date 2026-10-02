@@ -70,6 +70,7 @@ const T = {
     editList: '✏️ עריכת רשימה',
     updatesCount: (n) => ` · ${n} עדכונים`,
     sumBtn: '📝 תקציר',
+    socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
     sumTranslated: 'תורגם אוטומטית',
     scoresLoading: 'טוען תוצאות…',
     noGames: 'אין משחקים ביום הזה',
@@ -171,6 +172,7 @@ const T = {
     editList: '✏️ Edit list',
     updatesCount: (n) => ` · ${n} updates`,
     sumBtn: '📝 Summary',
+    socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
     sumTranslated: 'machine-translated',
     scoresLoading: 'Loading scores…',
     noGames: 'No games on this day',
@@ -414,6 +416,7 @@ function cardHtml(s, fresh) {
     <div class="body">
       <div class="badges">
         ${isHot ? `<span class="badge hot">${esc(t().hot)}</span>` : ''}
+        ${s.social?.length ? `<span class="badge social" title="${esc(L.socialTip)}">⚡ ${esc(s.social.join(', '))}</span>` : ''}
         ${s.sourceCount > 1 ? `<span class="badge src">${esc(t().sources(s.sourceCount))}</span>` : ''}
         ${s.israel && !state.tab.startsWith('il') ? `<span class="badge il">${esc(t().il)}</span>` : ''}
         ${s.langs?.length >= 3 ? `<span class="badge world" title="${esc(s.langs.join(', '))}">${esc(L.languages(s.langs.length))}</span>` : ''}
