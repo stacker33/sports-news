@@ -19,6 +19,7 @@ import { fillSummaries } from './summaries.js';
 import { athleteSuggestions } from './suggest.js';
 import { translateTexts } from './translate.js';
 import { loadGameInfo } from './gameinfo.js';
+import { loadPlayerCards } from './playercards.js';
 
 // The entity index is rebuilt only when the knowledge base changes
 let entityCache = { key: '', index: null };
@@ -92,6 +93,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   // "with the national team" when an Israeli abroad misses a club game during an international window
   // Israelis abroad in their club games (lineups, goals, injuries, TV) for the scoreboard
   const gameInfo = await loadGameInfo(athletes, teamCache, state.gameInfo, now).catch(() => state.gameInfo || { games: {} });
+
+  // Player cards (club, league position, last / next game, season stats), a few players per run
+  const cards = await loadPlayerCards(athletes, teamCache, state.cards, now).catch(() => state.cards || { cards: {} });
 
   let ilSquad = state.ilSquad || { at: 0, names: [] };
   if (force || now - ilSquad.at > 24 * 3600e3) {
@@ -310,11 +314,12 @@ export async function collect({ log = console.log, force = false } = {}) {
   await writeJson(join(DATA, 'athletes.json'), {
     countries: Object.fromEntries(Object.entries(COUNTRIES).map(([k, v]) => [k, v.label])),
     nationalSquad: ilSquad.names,
+    cards: cards.cards,
     suggestions: athleteSuggestions(athletes, teamCache, edb, await readJson(join(ROOT, 'private', 'ignored.json'), [])),
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   await writeJson(join(DATA, 'sources.json'), { generatedAt: now, health });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, sums, signals: { ...signals, wiki: undefined }, wiki, tr, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

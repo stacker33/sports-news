@@ -75,6 +75,11 @@ const T = {
     scoresLoading: 'טוען תוצאות…',
     noGames: 'אין משחקים ביום הזה',
     abroadGames: 'משחקי הישראלים בחו"ל',
+    pc: {
+      last: 'משחק אחרון', next: 'הבא', season: 'העונה', news: 'חדשות', vs: 'נגד', at: 'אצל',
+      didntPlay: 'לא שיחק', notSince: (d) => `לא שיחק מאז ${d}`, ofGames: (a, b) => `שיחק ב-${a} מתוך ${b} משחקים`, missed: (h, a) => `לא שיחק ב${h}–${a}`, rating: 'ציון', games: 'משחקים', goals: 'שערים', assists: 'בישולים',
+      place: (p, n) => `מקום ${p} מתוך ${n}`, contract: 'חוזה עד', loading: 'טוען נתונים…', all: 'כל השחקנים', minutes: 'דק׳',
+    },
     scoresError: 'לא הצלחנו לטעון תוצאות',
     notif: {
       title: 'התראות',
@@ -177,6 +182,11 @@ const T = {
     scoresLoading: 'Loading scores…',
     noGames: 'No games on this day',
     abroadGames: 'Israelis abroad — games',
+    pc: {
+      last: 'Last game', next: 'Next', season: 'Season', news: 'News', vs: 'vs', at: 'at',
+      didntPlay: "didn't play", notSince: (d) => `hasn't played since ${d}`, ofGames: (a, b) => `played ${a} of ${b} games`, missed: (h, a) => `didn't play in ${h}–${a}`, rating: 'rating', games: 'games', goals: 'goals', assists: 'assists',
+      place: (p, n) => `${p}${['th', 'st', 'nd', 'rd'][p % 10 > 3 || Math.floor(p / 10) === 1 ? 0 : p % 10]} of ${n}`, contract: 'contract until', loading: 'loading…', all: 'All players', minutes: 'min',
+    },
     scoresError: "Couldn't load scores",
     notif: {
       title: 'Notifications',
@@ -489,6 +499,7 @@ function renderChrome() {
     const label = (a) => (state.ui === 'he' && a.name_he ? a.name_he : a.name);
     const teamLabel = (a) => (state.ui === 'he' && a.team_he ? a.team_he : a.team);
     const sorted = [...players].sort((a, b) => (n[b.name] || 0) - (n[a.name] || 0));
+    $('athleteChips').hidden = true; // replaced by the player cards
     $('athleteChips').innerHTML =
       `<button class="chip" data-ath="" aria-pressed="${!state.athlete}">${esc(t().allAthletes)}</button>` +
       sorted
@@ -530,6 +541,65 @@ function renderStatus() {
   $('foot').textContent = t().feeds(d.sources.ok, d.sources.total);
 }
 
+// ✈️ Player cards: everything about each Israeli abroad at a glance; click a card to see only his news
+function playerCardsHtml() {
+  const players = state.athletes?.athletes || [];
+  if (!players.length) return '';
+  const he = state.ui === 'he';
+  const L = t().pc;
+  const pick = (o) => (o && typeof o === 'object' ? (he ? o.he || o.en : o.en || o.he) : o);
+  const when = (ts) => new Date(ts).toLocaleString(he ? 'he-IL' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const day = (ts) => new Date(ts).toLocaleDateString(he ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' });
+  const gi = state.data?.gameInfo || {};
+  const ctx = { nationalSquad: state.athletes?.nationalSquad || [], natGames: (state.data?.rivals || []).filter((g) => g.national), stories: state.data?.stories || [] };
+  const cards = state.athletes?.cards || {};
+  const newsOf = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name)).sort((a, b) => b.first - a.first)[0];
+  const rank = (a) => (cards[a.name]?.next?.start ?? Infinity); // next to play first
+  const html = [...players].sort((a, b) => rank(a) - rank(b)).map((a) => {
+    const k = cards[a.name];
+    const name = he && a.name_he ? a.name_he : a.name;
+    const team = he && a.team_he ? a.team_he : a.team;
+    const lines = [];
+    // status (injured / national team / starting…) for the next or current game
+    if (k?.next) {
+      const g = { startTime: new Date(k.next.start).toISOString(), statusGroup: k.next.live ? 3 : 2 };
+      const st = window.Scores?.playerStatus(a, g, gi[k.next.id], ctx, state.ui);
+      if (st) lines.push(`<div class="pc-status">${esc(st)}</div>`);
+    }
+    if (k?.last) {
+      const l = k.last;
+      const score = `${pick(l.home)} ${l.score[0]}–${l.score[1]} ${pick(l.away)}`;
+      const me = l.played ? [l.minutes && `${l.minutes} ${L.minutes}`, l.rating && `${L.rating} ${l.rating}`].filter(Boolean).join(' · ') : L.didntPlay;
+      if (l.played && Date.now() - l.start > 21 * 86400e3) lines.push(`<div class="pc-status">⏸️ ${esc(L.notSince(day(l.start)))} <span class="muted">(${esc(score)})</span></div>`);
+      else lines.push(`<div><b>${esc(L.last)}:</b> ${esc(score)} <span class="muted">(${esc(day(l.start))})</span> · ${esc(me)}</div>`);
+      if (l.missed) lines.push(`<div class="muted">${esc(L.missed(pick(l.missed.home), pick(l.missed.away)))}</div>`);
+    }
+    if (k?.next) {
+      const n = k.next;
+      const home = n.home.id === k.clubId;
+      const opp = pick(home ? n.away : n.home);
+      const tv = gi[n.id]?.tv?.length ? ` · 📺 ${gi[n.id].tv.join(', ')}` : '';
+      lines.push(`<div><b>${esc(L.next)}:</b> ${esc(when(n.start))} ${esc(home ? L.vs : L.at)} ${esc(opp)} <span class="muted">· ${esc(pick(n.comp))}${esc(tv)}</span></div>`);
+    }
+    if (k?.season) {
+      const s = k.season;
+      const apps = String(s.apps || '').split('/');
+      const bits = [s.apps && (apps.length === 2 ? L.ofGames(apps[0], apps[1]) : `${s.apps} ${L.games}`), s.goals != null && `${s.goals} ${L.goals}`, s.assists != null && `${s.assists} ${L.assists}`, s.rating && `${L.rating} ${s.rating}`].filter(Boolean);
+      if (bits.length) lines.push(`<div><b>${esc(L.season)}</b> <span class="muted">(${esc(pick(s.comp))})</span>: ${esc(bits.join(' · '))}</div>`);
+    }
+    const n = newsOf(a.name);
+    if (n) lines.push(`<div class="pc-news">📰 <a href="${esc(disp(n).link)}" target="_blank" rel="noopener" dir="auto">${esc(disp(n).title)}</a> <span class="muted">· ${timeEl(n.first)}</span></div>`);
+    if (!k) lines.push(`<div class="muted">${esc(L.loading)}</div>`);
+    const table = k?.table ? ` · ${L.place(k.table.pos, k.table.of)}` : '';
+    return `<article class="pcard${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}">
+      <header><span class="pc-name">${esc(name)}</span><span class="pc-pos">${esc(pick(k?.position) || '')}</span></header>
+      <div class="pc-club">${a.sport === 'basketball' ? '🏀' : '⚽'} ${esc(team)}<span class="muted">${esc(table)}</span></div>
+      ${lines.join('')}
+    </article>`;
+  });
+  return `<div class="pcards">${html.join('')}</div>`;
+}
+
 function renderList(freshIds = new Set()) {
   const list = visibleStories();
   const tagInfo = state.tag && state.data?.stories.flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
@@ -537,7 +607,8 @@ function renderList(freshIds = new Set()) {
   const banner = tagBar + (state.tab === 'foryou'
     ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
     : '');
-  $('list').innerHTML = banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('');
+  const cardsRow = state.tab === 'abroad' ? playerCardsHtml() : '';
+  $('list').innerHTML = cardsRow + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('');
   $('empty').hidden = list.length > 0;
 }
 
@@ -975,6 +1046,13 @@ function recordOpen(e) {
   if (s) Learn.record(s);
 }
 $('list').addEventListener('click', recordOpen);
+$('list').addEventListener('click', (e) => {
+  const card = e.target.closest('.pcard');
+  if (!card || e.target.closest('a')) return;
+  state.athlete = state.athlete === card.dataset.ath ? null : card.dataset.ath;
+  renderChrome();
+  renderList();
+});
 $('list').addEventListener('click', (e) => {
   const trBtn = e.target.closest('.tr-btn, .sum-btn');
   if (trBtn) {

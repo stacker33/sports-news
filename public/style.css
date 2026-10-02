@@ -363,3 +363,26 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 .star { display: block; line-height: 1.45; }
 .star .pst { font-weight: 600; color: var(--text); }
 .tv { grid-column: 2 / -1; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+
+/* v10: player cards (Israelis abroad) */
+.pcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
+.pcard {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px 14px; display: grid; gap: 4px; font-size: 13.5px; line-height: 1.45; cursor: pointer;
+}
+.pcard:hover { border-color: var(--il); }
+.pcard.on { border-color: var(--il); box-shadow: 0 0 0 2px var(--il-soft); }
+.pcard header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.pc-name { font-weight: 800; font-size: 16px; }
+.pc-pos { font-size: 12px; color: var(--muted); }
+.pc-club { font-weight: 700; color: var(--il); }
+.pc-club .muted { font-weight: 500; }
+.pc-status { font-weight: 700; }
+.pc-news a { text-decoration: none; font-weight: 600; unicode-bidi: plaintext; }
+.pc-news a:hover { text-decoration: underline; }
+@media (max-width: 700px) {
+  .pcards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
+  .pcard { flex: 0 0 85%; scroll-snap-align: start; }
+}
+
+.athletes[hidden] { display: none; }
