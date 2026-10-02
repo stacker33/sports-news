@@ -2,14 +2,18 @@
 
 Live sports news and scores in one place, in Hebrew and English.
 
+**Live site:** https://stacker33.github.io/sports-news/ (updates about every 5 minutes)
+
 **News tabs**
 - 🔥 Top
 - 🇮🇱 Israeli football · 🇮🇱 Israeli basketball · 🇮🇱 Olympic & more
-- ✈️ Israelis abroad: a button per player, plus optional news about their clubs
+- ✈️ Israelis abroad, with two inner tabs:
+  - 📰 **News**: a row of small player cards for filtering (status icon, name, next game), with the news below
+  - 👤 **Players**: a full card for each player, grouped ⚽ Football / 🏀 Basketball: club and league position, status (🤕 injured / 🟥 suspended / 🇮🇱 with the national team), last game played (minutes, rating) or "hasn't played since…", next game with the TV channel, season stats in his club's league, and his latest news. Tapping a card opens that player's news.
 - ⚽ World football · 🏀 World basketball · 🏆 Other sports (biggest stories only)
 
 **Side panel** (on a phone it's the bottom menu)
-- 📊 **Live scores:** today, yesterday or tomorrow. Covers the Israeli leagues (football and basketball), the European cups, the top-5 leagues, the NBA and EuroLeague. Games of clubs with an Israeli player are pinned at the top with a ⭐. Data comes from 365Scores' public feed.
+- 📊 **Live scores:** today, yesterday or tomorrow. Covers the Israeli leagues (football and basketball), the European cups, the top-5 leagues, the NBA and EuroLeague. Games of clubs with an Israeli player are pinned at the top with a ⭐, with a line for each player: starting / on the bench / came on 63' / subbed off, ⚽ goals, 🅰️ assists, 🟨🟥 cards, rating, or why he's missing (injury with expected return, suspension, national team), plus 📺 the Israeli TV channel. Data comes from 365Scores: the scores are read by the browser, the game details by the collector.
 - ⚡ **Just in:** every new story the moment it's collected.
 
 **Notifications (🔔):** choose which stories alert you: Israelis abroad, Israeli sport, big or breaking stories, goals and results for Israelis' clubs, or everything. They work while the app is open, including in the background.
@@ -17,7 +21,8 @@ Live sports news and scores in one place, in Hebrew and English.
 **Sources:** about 100 feeds.
 - Israeli: ONE, Walla, Ynet, Sport5, Sport1, Haaretz, Maariv, Israel Hayom, Kan, JPost.
 - World: BBC, Sky, Guardian, Telegraph, ESPN, The Athletic, Yahoo, CBS, RealGM, Eurohoops, Marca, AS, Gazzetta, L'Équipe, kicker and more.
-- Top reporters: Fabrizio Romano, David Ornstein and Shams Charania, via the outlets that report their scoops.
+- Direct, without Google's delay: ESPN (7 leagues, JSON feed), sport1 (WordPress feed), Sport5 (homepage).
+- ⚡ Reporters posting live: Fabrizio Romano (Telegram), Shams Charania, David Ornstein, Ben Jacobs, The Athletic and BBC Sport (Bluesky). Stories they post about get a purple ⚡ badge.
 - Automatically, for each player abroad: Google News searches in English and Hebrew, their club's local press in its own language, and a BBC club feed for English clubs.
 
 Stories that many outlets report are merged into one card and ranked higher.
@@ -27,6 +32,8 @@ Stories that many outlets report are merged into one card and ranked higher.
 - The same story is merged across languages. For example, English, Hebrew, Greek and Dutch articles about Israel–Ireland become one card.
 - **Opponents' press:** before and after every game of Israel's national teams, and of Israeli clubs in Europe, the app automatically searches the opponent's own media, in its own language. For example, Irish press for Israel–Ireland, Turkish press for Maccabi–Beşiktaş. Filter it with the 🆚 buttons in the Israeli tabs.
 - **Biggest sports stories in 10 other countries:** Spain, Italy, Germany, France, Portugal, Brazil, Argentina, Turkey, Greece and the Netherlands.
+- **Israeli clubs in the world press:** ongoing searches in 10 countries, in each language and spelling (e.g. Μακάμπι, Makabi). Any article tagged with an Israeli club joins the Israeli tabs.
+- Betting, odds and live-score widget pages are filtered out in all languages.
 
 **Ranking ("🔥 Top")** combines:
 - how many outlets report the story, weighted by reliability
@@ -77,7 +84,10 @@ The list lives in `config/athletes.json`.
 
 ## Cloud version (GitHub, free, 24/7)
 
-See `.github/workflows/collect.yml`. GitHub Actions collects news every ~5 minutes and GitHub Pages hosts the app. The cloud version can't save list edits from the app, so edit the list on the PC version and push it, or edit `config/athletes.json` on github.com.
+See `.github/workflows/collect.yml`. GitHub Actions collects news and GitHub Pages hosts the app.
+
+- **Every 5 minutes:** GitHub's own schedule is unreliable (it ran about every 4.5 hours), so an external free timer at cron-job.org starts the collection every 5 minutes through GitHub's "run workflow" API. It uses a GitHub key limited to this project's Actions, stored only at cron-job.org. GitHub's schedule stays as a backup.
+- **Typical delay from publication to the site:** about 2 minutes for reporters, about 11 minutes for direct sites, and longer (hours) for anything that comes through Google News. The cloud version can't save list edits from the app, so edit the list on the PC version and push it, or edit `config/athletes.json` on github.com.
 
 ## Customize
 
