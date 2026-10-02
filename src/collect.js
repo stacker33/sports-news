@@ -37,7 +37,7 @@ const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
 
-const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote)\b/i;
+const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|in diretta)\b/i;
 
 const itemId = (link, title) => {
   let key = link;
@@ -204,6 +204,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     const en = it.lang !== 'en' && it.tr?.en ? ' ' + it.tr.en : '';
     const tags = classify({ title: it.title + en, summary: it.summary, link: it.link }, src, ctx);
     if (src.mixed && !tags.looksSport) it.hidden = true; // general-news feeds: sport only
+    it.assist = !!src.assist;
     Object.assign(it, {
       sport: tags.sport, israel: tags.israel, israelOther: tags.israelOther,
       athletes: tags.athletes, teams: tags.teams, breaking: tags.breaking,
@@ -282,6 +283,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
     // Other sports: only the biggest headlines (anything Israeli is always kept)
     .filter((s) => s.sport !== 'other' || s.big || s.israel || s.abroad)
+    // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
+    .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
     .sort((a, b) => b.latest - a.latest)
     .slice(0, MAX_STORIES);
 

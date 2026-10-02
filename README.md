@@ -21,7 +21,8 @@ Live sports news and scores in one place, in Hebrew and English.
 **Sources:** about 100 feeds.
 - Israeli: ONE, Walla, Ynet, Sport5, Sport1, Haaretz, Maariv, Israel Hayom, Kan, JPost.
 - World: BBC, Sky, Guardian, Telegraph, ESPN, The Athletic, Yahoo, CBS, RealGM, Eurohoops, Marca, AS, Gazzetta, L'Équipe, kicker and more.
-- Direct, without Google's delay: ESPN (7 leagues, JSON feed), sport1 (WordPress feed), Sport5 (homepage).
+- Direct, without Google's delay: ESPN (8 leagues incl. MLS, JSON feed), The Athletic, sport1 (WordPress feed), Sport5 (homepage).
+- Direct national outlets: Corriere dello Sport, A Bola, Record, ge (Brazil), Olé, Fotomaç, Novasports, Voetbal International, NU.nl, Gazeta Sporturilor. Their purely local stories appear only when they involve a known team or player or an Israeli angle, or join a story other outlets carry, so they speed things up without clutter.
 - ⚡ Reporters posting live: Fabrizio Romano (Telegram), Shams Charania, David Ornstein, Ben Jacobs, The Athletic and BBC Sport (Bluesky). Stories they post about get a purple ⚡ badge.
 - Automatically, for each player abroad: Google News searches in English and Hebrew, their club's local press in its own language, and a BBC club feed for English clubs.
 

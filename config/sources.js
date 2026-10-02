@@ -108,7 +108,8 @@ export const SOURCES = [
   { id: 'espn-ucl', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'football', every: 2 },
   { id: 'espn-soccer', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/news?limit=50', lang: 'en', weight: 3, parser: 'espn' },
   { id: 'espn-nba', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news?limit=50', lang: 'en', weight: 3, parser: 'espn', sport: 'basketball' },
-  { id: 'athletic', name: 'The Athletic', url: gnews('site:nytimes.com/athletic (football OR soccer OR NBA) when:1d'), lang: 'en', weight: 3, google: true, every: 5 },
+  { id: 'athletic', name: 'The Athletic', url: 'https://www.nytimes.com/athletic/rss/news/', lang: 'en', weight: 3, every: 3 },
+  { id: 'espn-mls', name: 'ESPN', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/news?limit=50', lang: 'en', weight: 2, parser: 'espn', sport: 'football', every: 5 },
   { id: 'independent-football', name: 'The Independent', url: 'https://www.independent.co.uk/sport/football/rss', lang: 'en', weight: 2, sport: 'football' },
   { id: 'standard-football', name: 'Evening Standard', url: 'https://www.standard.co.uk/sport/football/rss', lang: 'en', weight: 2, sport: 'football' },
   { id: 'mirror-football', name: 'Mirror', url: 'https://www.mirror.co.uk/sport/football/?service=rss', lang: 'en', weight: 1, sport: 'football' },
@@ -159,4 +160,17 @@ export const SOURCES = [
   { id: 'lequipe', name: "L'Équipe", url: 'https://dwh.lequipe.fr/api/edito/rss?path=/', lang: 'fr', weight: 2 },
   { id: 'rmc-football', name: 'RMC Sport', url: 'https://rmcsport.bfmtv.com/rss/football/', lang: 'fr', weight: 2, sport: 'football' },
   { id: 'kicker', name: 'kicker', url: 'https://newsfeed.kicker.de/news/aktuell', lang: 'de', weight: 2 },
+
+  // Direct national outlets: minutes instead of Google's hours. "assist" = local stories show only when they
+  // involve a known team/player, something Israeli, or join a story other outlets carry (no local clutter).
+  { id: 'cds', name: 'Corriere dello Sport', url: 'https://www.corrieredellosport.it/rss/calcio', lang: 'it', country: 'Italy', weight: 2, sport: 'football', assist: true, every: 2 },
+  { id: 'abola', name: 'A Bola', url: 'https://www.abola.pt/rss-articles.xml', lang: 'pt', country: 'Portugal', weight: 2, assist: true, every: 3, max: 60 },
+  { id: 'record', name: 'Record', url: 'https://www.record.pt/rss', lang: 'pt', country: 'Portugal', weight: 2, assist: true, every: 3 },
+  { id: 'ge-globo', name: 'ge', url: 'https://ge.globo.com/rss/ge/', lang: 'pt', country: 'Brazil', weight: 2, assist: true, every: 3, max: 60 },
+  { id: 'ole', name: 'Olé', url: 'https://www.ole.com.ar/rss/ultimas-noticias/', lang: 'es', country: 'Argentina', weight: 2, assist: true, every: 3 },
+  { id: 'fotomac', name: 'Fotomaç', url: 'https://www.fotomac.com.tr/rss/anasayfa.xml', lang: 'tr', country: 'Turkey', weight: 2, assist: true, every: 3 },
+  { id: 'novasports', name: 'Novasports', url: 'https://www.novasports.gr/rss', lang: 'el', country: 'Greece', weight: 2, assist: true, every: 3 },
+  { id: 'vi-nl', name: 'Voetbal International', url: 'https://www.vi.nl/rss', lang: 'nl', country: 'Netherlands', weight: 2, sport: 'football', assist: true, every: 3 },
+  { id: 'nu-voetbal', name: 'NU.nl', url: 'https://www.nu.nl/rss/Voetbal', lang: 'nl', country: 'Netherlands', weight: 1, sport: 'football', assist: true, every: 3 },
+  { id: 'gsp', name: 'Gazeta Sporturilor', url: 'https://www.gsp.ro/rss.xml', lang: 'ro', country: 'Romania', weight: 1, assist: true, every: 5, max: 40 },
 ];

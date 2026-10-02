@@ -21,13 +21,17 @@ const text = (x) => {
   return String(x['#text'] ?? '');
 };
 
+const ACCENTS = { grave: '\u0300', acute: '\u0301', circ: '\u0302', tilde: '\u0303', uml: '\u0308', cedil: '\u0327', ring: '\u030A' };
 const ENTITIES = {
   amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”',
-  ndash: '–', mdash: '—', hellip: '…', euro: '€', pound: '£', eacute: 'é', aacute: 'á', iacute: 'í', oacute: 'ó', uacute: 'ú', ntilde: 'ñ',
+  ndash: '–', mdash: '—', hellip: '…', euro: '€', pound: '£',
 };
 export function decodeEntities(s) {
   return String(s || '').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => {
     if (ENTITIES[e.toLowerCase()]) return ENTITIES[e.toLowerCase()];
+    // accented letters: &agrave; &Eacute; &ccedil; &ouml; …
+    const acc = e.match(/^([a-z])(grave|acute|circ|tilde|uml|cedil|ring)$/i);
+    if (acc) return (acc[1] + ACCENTS[acc[2].toLowerCase()]).normalize('NFC');
     if (e[0] === '#') {
       const code = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
       return Number.isFinite(code) ? String.fromCodePoint(code) : m;
@@ -38,7 +42,7 @@ export function decodeEntities(s) {
 
 export function cleanText(s) {
   // decode → strip tags → decode again (some feeds escape their HTML, some double-escape &amp;)
-  return decodeEntities(decodeEntities(String(s || '')).replace(/<[^>]*>/g, ' '))
+  return decodeEntities(decodeEntities(String(s || '')).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]*>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -197,7 +201,7 @@ export async function fetchFeed(source, timeoutMs = 15000) {
     redirect: 'follow',
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const xml = await res.text();
+  const xml = await readText(res);
   const doc = parser.parse(xml);
 
   const rssItems = arr(doc?.rss?.channel?.item ?? doc?.['rdf:RDF']?.item);
@@ -221,7 +225,7 @@ export async function fetchFeed(source, timeoutMs = 15000) {
     }
     out.push({
       title,
-      link: decodeEntities(text(it.link) || text(it.guid)).trim(),
+      link: decodeEntities(text(it.link) || text(it.guid) || arr(it['atom:link'])[0]?.['@href'] || '').trim(),
       summary: source.google ? '' : cleanText(text(it.description)).slice(0, 280),
       published: source.noDates ? null : parseDate(text(it.pubDate) || text(it['dc:date']), source.tz),
       image: findImage(it),
@@ -240,7 +244,21 @@ export async function fetchFeed(source, timeoutMs = 15000) {
       publisher: source.name,
     });
   }
-  return out.filter((i) => i.title && i.link);
+  const ok = out.filter((i) => i.title && i.link);
+  // big feeds (hundreds of items): keep only the newest
+  return source.max ? ok.sort((a, b) => (b.published || 0) - (a.published || 0)).slice(0, source.max) : ok;
+}
+
+// Body as text in the feed's own encoding (some sites still use ISO-8859-1 / windows-1252)
+async function readText(res) {
+  const buf = Buffer.from(await res.arrayBuffer());
+  const head = buf.subarray(0, 200).toString('latin1');
+  const cs = ((res.headers.get('content-type') || '').match(/charset=([\w-]+)/i) || head.match(/encoding=["']([\w-]+)["']/i) || [])[1];
+  try {
+    return new TextDecoder(cs && !/utf-?8/i.test(cs) ? cs : 'utf-8').decode(buf);
+  } catch {
+    return buf.toString('utf8');
+  }
 }
 
 // Run async tasks with limited concurrency
