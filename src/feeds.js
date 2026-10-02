@@ -131,7 +131,12 @@ function parseWordPress(j, source) {
 
 // Social posts read as headlines: first line / first ~180 characters
 function postTitle(text) {
-  const t = cleanText(String(text || '').replace(/\n+/g, ' \n ')).replace(/\s*\n\s*/g, ' — ');
+  const t = cleanText(String(text || '').replace(/\n+/g, ' \n '))
+    .replace(/[​-‍﻿]/g, '') // invisible joiners some channels start posts with
+    .replace(/\s*—\s*[^\n—]{1,40}\(@\w+\)[\s\S]*$/, '') // tweet-embed signature: "— Name (@handle) Oct 2, 2026"
+    .replace(/\s*(>{2,}|»)?\s*https?:\/\/\S+/g, '') // "click for more >>> https://…"
+    .replace(/(\s*\n\s*)+$/, '')
+    .replace(/\s*\n\s*/g, ' — ');
   if (t.length <= 180) return t;
   const cut = t.slice(0, 180);
   const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf(' — '));

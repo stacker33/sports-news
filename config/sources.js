@@ -120,6 +120,7 @@ export const SOURCES = [
 
   // ---------- ⚡ Reporters & outlets posting live (minutes, not hours) ----------
   { id: 'tg-romano', name: 'Fabrizio Romano', url: 'https://t.me/s/fabrizioromano', lang: 'en', weight: 3, parser: 'telegram', sport: 'football' },
+  { id: 'tg-sport5', name: 'ספורט 5', url: 'https://t.me/s/sport5israel', lang: 'he', weight: 3, parser: 'telegram' },
   { id: 'bs-shams', name: 'Shams Charania', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=shamsbot.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'basketball' },
   { id: 'bs-ornstein', name: 'David Ornstein', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=david-ornstein.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', every: 2 },
   { id: 'bs-jacobs', name: 'Ben Jacobs', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=jacobsben.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 2, parser: 'bluesky', sport: 'football', every: 2 },
@@ -133,6 +134,7 @@ export const SOURCES = [
   { id: 'yahoo-nba', name: 'Yahoo Sports', url: 'https://sports.yahoo.com/nba/rss/', lang: 'en', weight: 2, sport: 'basketball' },
   { id: 'realgm', name: 'RealGM', url: 'https://basketball.realgm.com/rss/wiretap/0/0.xml', lang: 'en', weight: 2, sport: 'basketball' },
   { id: 'eurohoops', name: 'Eurohoops', url: 'https://www.eurohoops.net/en/feed/', lang: 'en', weight: 2, sport: 'basketball' },
+  { id: 'hoopsrumors', name: 'Hoops Rumors', url: 'https://www.hoopsrumors.com/feed', lang: 'en', weight: 2, sport: 'basketball', every: 2 },
   { id: 'sportando', name: 'Sportando', url: 'https://www.sportando.basketball/en/feed/', lang: 'en', weight: 1, sport: 'basketball' },
 
   // ---------- Top sports headlines (Google News) ----------
