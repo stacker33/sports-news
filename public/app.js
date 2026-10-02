@@ -571,6 +571,13 @@ function renderScores() {
     lang: state.ui,
     players: state.athletes?.athletes || [],
     labels: { loading: t().scoresLoading, noGames: t().noGames, abroad: t().abroadGames },
+    // to explain a missing player: Israel's squad + Israel's games, and fresh injury reports
+    ctx: {
+      nationalSquad: state.athletes?.nationalSquad || [],
+      natGames: (state.data?.rivals || []).filter((g) => g.national),
+      gameInfo: state.data?.gameInfo || {},
+      stories: state.data?.stories || [],
+    },
   });
 }
 

@@ -18,6 +18,7 @@ import { loadEntityDb, refreshEntityDb, buildEntityIndex, findEntities } from '.
 import { fillSummaries } from './summaries.js';
 import { athleteSuggestions } from './suggest.js';
 import { translateTexts } from './translate.js';
+import { loadGameInfo } from './gameinfo.js';
 
 // The entity index is rebuilt only when the knowledge base changes
 let entityCache = { key: '', index: null };
@@ -84,6 +85,18 @@ export async function collect({ log = console.log, force = false } = {}) {
   if (force || now - rivals.at > 30 * 60000) {
     try {
       rivals = { at: now, games: await findRivalGames(now) };
+    } catch {}
+  }
+
+  // Israel national team squads (football + basketball), refreshed daily: lets the scoreboard say
+  // "with the national team" when an Israeli abroad misses a club game during an international window
+  // Israelis abroad in their club games (lineups, goals, injuries, TV) for the scoreboard
+  const gameInfo = await loadGameInfo(athletes, teamCache, state.gameInfo, now).catch(() => state.gameInfo || { games: {} });
+
+  let ilSquad = state.ilSquad || { at: 0, names: [] };
+  if (force || now - ilSquad.at > 24 * 3600e3) {
+    try {
+      ilSquad = { at: now, names: await nationalSquad() };
     } catch {}
   }
 
@@ -289,17 +302,19 @@ export async function collect({ log = console.log, force = false } = {}) {
     tookMs: Date.now() - started,
     sources: { total: sources.length, ok: okCount, fetched: due.length },
     rivals: rivals.games,
+    gameInfo: gameInfo.games,
     wikiAthletes: wiki.athletes || {},
     stories,
   });
   // For the app: athlete list (+ 365Scores team ids for the scoreboard)
   await writeJson(join(DATA, 'athletes.json'), {
     countries: Object.fromEntries(Object.entries(COUNTRIES).map(([k, v]) => [k, v.label])),
+    nationalSquad: ilSquad.names,
     suggestions: athleteSuggestions(athletes, teamCache, edb, await readJson(join(ROOT, 'private', 'ignored.json'), [])),
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   await writeJson(join(DATA, 'sources.json'), { generatedAt: now, health });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, sums, signals: { ...signals, wiki: undefined }, wiki, tr, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, sums, signals: { ...signals, wiki: undefined }, wiki, tr, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
@@ -367,6 +382,19 @@ const overlap = (a, b) => {
   for (const x of a) if (b.has(x)) n++;
   return n;
 };
+
+async function nationalSquad() {
+  const names = [];
+  for (const id of [5034, 1728]) {
+    const res = await fetch(`https://webws.365scores.com/web/squads/?appTypeId=5&langId=1&timezoneName=UTC&userCountryId=6&competitors=${id}`, {
+      headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error('365 squads HTTP ' + res.status);
+    for (const a of (await res.json()).squads?.[0]?.athletes || []) names.push(a.name);
+  }
+  return names;
+}
 
 // CLI
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
