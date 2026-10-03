@@ -6,17 +6,17 @@ const FOOTBALL = [
   'champions league', 'europa league', 'conference league', 'fifa', 'uefa', 'world cup', 'euro 2028', 'fa cup',
   'carabao', 'mls', 'striker', 'midfielder', 'goalkeeper', 'winger', 'hat-trick',
   'arsenal', 'chelsea', 'liverpool', 'man city', 'man utd', 'manchester city', 'manchester united', 'tottenham',
-  'newcastle', 'aston villa', 'everton', 'west ham', 'brighton', 'barcelona', 'real madrid', 'atletico',
-  'juventus', 'inter milan', 'ac milan', 'napoli', 'roma', 'bayern', 'dortmund', 'psg', 'paris saint-germain',
+  'newcastle', 'aston villa', 'everton', 'west ham', 'brighton', 'atletico',
+  'juventus', 'inter milan', 'ac milan', 'napoli', 'roma', 'dortmund', 'psg', 'paris saint-germain',
   'ajax', 'benfica', 'porto', 'celtic', 'rangers', 'mbappe', 'mbappé', 'haaland', 'messi', 'ronaldo', 'salah',
   'guardiola', 'ancelotti', 'zidane', 'here we go',
   // Spanish / Italian / French / German
   'fútbol', 'futbol', 'calcio', 'fichaje', 'mercato', 'fußball', 'fussball', 'golazo', 'bundesliga',
   // Hebrew
-  'כדורגל', 'ליגת העל', 'הליגה הלאומית', 'פרמייר ליג', 'ליגת האלופות', 'הליגה האירופית', 'ליגת הקונפרנס',
+  'כדורגל', 'הליגה הלאומית', 'פרמייר ליג', 'ליגת האלופות', 'הליגה האירופית', 'ליגת הקונפרנס',
   'לה ליגה', 'סרייה א', 'בונדסליגה', 'גביע המדינה', 'גביע הטוטו', 'מונדיאל', 'שוער', 'חלוץ',
-  'פנדל', 'שער ', 'שערים', 'נבחרת', 'פגרת נבחרות', 'מוקדמות', 'ליגת האומות', 'ברצלונה', 'ריאל מדריד', 'ליברפול', 'ארסנל', "צ'לסי", "מנצ'סטר", 'טוטנהאם',
-  'יובנטוס', 'באיירן', "פ.ס.ז'", 'אינטר מילאן', 'מילאן', 'נאפולי', 'אמבפה', 'הולאנד', 'ליאו מסי', 'רונאלדו',
+  'פנדל', 'שער ', 'שערים', 'נבחרת', 'פגרת נבחרות', 'מוקדמות', 'ליגת האומות', 'ליברפול', 'ארסנל', "צ'לסי", "מנצ'סטר", 'טוטנהאם',
+  'יובנטוס', "פ.ס.ז'", 'אינטר מילאן', 'מילאן', 'נאפולי', 'אמבפה', 'הולאנד', 'ליאו מסי', 'רונאלדו',
 ];
 
 const BASKETBALL = [
@@ -24,13 +24,12 @@ const BASKETBALL = [
   'lakers', 'celtics', 'warriors', 'knicks', 'trail blazers', 'blazers', 'bucks', 'nuggets', 'mavericks',
   'clippers', 'timberwolves', 'cavaliers', 'pelicans', 'grizzlies', 'raptors', '76ers', 'sixers', 'hornets',
   'pistons', 'rockets', 'san antonio spurs', 'pacers', 'hawks', 'bulls', 'wizards', 'miami heat', 'orlando magic',
-  'sacramento kings', 'utah jazz', 'phoenix suns', 'oklahoma city thunder', 'brooklyn nets', 'fenerbahce',
-  'olympiacos', 'panathinaikos', 'partizan', 'zalgiris', 'lebron', 'curry', 'doncic', 'dončić', 'jokic', 'giannis',
+  'sacramento kings', 'utah jazz', 'phoenix suns', 'oklahoma city thunder', 'brooklyn nets', 'zalgiris', 'lebron', 'curry', 'doncic', 'dončić', 'jokic', 'giannis',
   'wembanyama', 'point guard', 'rebounds', 'triple-double', 'three-pointer',
   // Hebrew
   'כדורסל', 'יורוליג', 'יורוקאפ', 'ווינר', 'אן.בי.איי', 'ליגת ווינר', 'ליגת העל בכדורסל', 'שלשה', 'שלשות', 'ריבאונד',
-  'לייקרס', 'סלטיקס', 'ווריורס', 'ניקס', 'בלייזרס', 'פורטלנד', 'פנרבחצ\'ה', 'אולימפיאקוס', 'פנאתינייקוס',
-  'פרטיזן', 'ז\'לגיריס', 'לברון', 'דונצ\'יץ\'', 'יוקיץ\'', 'יאניס', 'טריפל דאבל', 'פיינל פור', 'פלייאוף',
+  'לייקרס', 'סלטיקס', 'ווריורס', 'ניקס', 'בלייזרס', 'פורטלנד', 'ז\'לגיריס', 'לברון', 'דונצ\'יץ\'', 'יוקיץ\'', 'יאניס', 'טריפל דאבל', 'פיינל פור', 'פלייאוף',
+  " נק' ", ' נק` ', " ריב' ", ' ריב` ', " אס' ", ' אס` ','ריבאונדים', 'אסיסטים', 'פרקט', 'גארד', 'פורוורד', 'סנטר ',
 ];
 
 const FOOTBALL_US = FOOTBALL.filter((k) => k !== 'football');
@@ -40,6 +39,7 @@ const OTHER = [
   'nfl', 'quarterback', 'touchdown', 'super bowl', 'college football', 'ncaaf', 'mlb', 'baseball', 'nhl', 'hockey',
   'cricket', 'golf', 'pga', 'ryder cup', 'presidents cup', 'grand final', 'rugby league', 'rhinos', 'test match', 'formula 1', 'formula one', ' f1 ', 'grand prix', 'motogp', 'ufc', 'boxing',
   'wimbledon', 'roland garros', 'atp', 'wta', 'tennis', 'rugby', 'cycling', 'tour de france', 'nascar', 'olympic',
+  'handball', 'volleyball', 'futsal', 'water polo', 'כדוריד', 'כדורעף', 'פוטסל', 'כדורמים', 'כדורשת', 'טריאתלון', 'פאדל',
   'פוטבול', 'בייסבול', 'הוקי', 'אקרובטיקה', 'התעמלות', "ג'ודו", 'שחייה', 'טניס', 'פורמולה', 'אגרוף', 'גולף', 'רוגבי', 'אופניים', 'אולימפי',
 ];
 
@@ -68,6 +68,7 @@ const IL_FOOTBALL = [
 // Olympic / other Israeli sport (only relevant together with Israeli context)
 const ISRAEL_OTHER = [
   'judo', 'gymnast', 'olympic', 'windsurf', 'sailing', 'swimm', 'marathon', 'athletics', 'tennis',
+  'handball', 'volleyball', 'כדוריד', 'כדורעף', 'טריאתלון', 'פאדל',
   "ג'ודו", 'התעמלות', 'מתעמל', 'אקרובטיקה', 'טאקוונדו', 'שייט', 'אולימפי', 'אולימפיאדה', 'גלישה', 'שחיי', 'אתלטיקה', 'מרתון', 'טניס', 'אופניים',
 ];
 
@@ -85,24 +86,51 @@ const BREAKING = [
 const lower = (s) => (s || '').toLowerCase();
 const hits = (text, list) => list.reduce((n, k) => (text.includes(k) ? n + 1 : n), 0);
 
-// Many sites put the sport in the URL path: /sport/rugby-league/..., /football/..., /nba/...
-function sportFromUrl(link) {
-  let path = '';
+// Sport5 article folders (FolderID in the link) → section
+const SPORT5_FOLDERS = {
+  basketball: [405, 274, 409, 1420, 11840, 10842],
+  football: [285, 64, 8573, 127, 394, 252, 401, 398, 378, 609, 1397, 4022, 1504, 10838, 11798],
+  other: [413, 12176, 616, 11342, 7747, 4169, 11158],
+  drop: [7186, 7207, 12341, 11160], // cars, lifestyle, travel
+};
+const FOLDER = new Map(Object.entries(SPORT5_FOLDERS).flatMap(([s, ids]) => ids.map((id) => [String(id), s])));
+
+const SEG_FOOTBALL = /^(football|soccer|futbol|calcio|fussball|israeli-soccer|world-soccer|soccer-israel|soccer-international|israeli-football|world-football)$/;
+const SEG_BASKETBALL = /^(basketball|nba|euroleague|baloncesto|basket|israeli-basketball|world-basketball|basketball-israel|basketball-international)$/;
+const SEG_OTHER = /^(rugby[a-z-]*|cricket|golf|tennis|formula1|f1|motorsport|boxing|mma|athletics|cycling|nfl|mlb|nhl|american-football|horse-racing|snooker|darts|other|other-sports|olympics)$/;
+const SEG_DROP = /^(cars?|auto|motors|lifestyle|food|travel|tech|real-estate|economy|business|politics)$/;
+
+// Many sites put the sport in the URL path (/sport/rugby-league/…, /israeli-soccer/…, /nba/…) or a folder id
+function sectionFromUrl(link) {
+  let u;
   try {
-    path = new URL(link).pathname.toLowerCase();
+    u = new URL(link);
   } catch {
     return null;
   }
-  if (/\/(football|soccer|futbol|calcio|fussball)(\/|-)/.test(path)) return 'football';
-  if (/\/(basketball|nba|euroleague|baloncesto|basket)(\/|-)/.test(path)) return 'basketball';
-  if (/\/(rugby[a-z-]*|cricket|golf|tennis|formula1|f1|motorsport|boxing|mma|athletics|cycling|nfl|mlb|nhl|american-football|horse-racing|snooker|darts)(\/|-)/.test(path)) return 'other';
+  if (/sport5\.co\.il$/.test(u.hostname)) return FOLDER.get(u.searchParams.get('FolderID')) || null;
+  // only section-like path segments (not long article slugs)
+  const segs = u.pathname.toLowerCase().split('/').filter((s) => s && s.split('-').length <= 3);
+  for (const s of segs) {
+    if (SEG_FOOTBALL.test(s) || /^(football|soccer)-/.test(s)) return 'football';
+    if (SEG_BASKETBALL.test(s)) return 'basketball';
+    if (SEG_OTHER.test(s)) return 'other';
+    if (SEG_DROP.test(s)) return 'drop';
+  }
   return null;
 }
+const sportFromUrl = (link) => {
+  const s = sectionFromUrl(link);
+  return s === 'drop' ? null : s;
+};
 
 // ctx = { matchers: { players(text), teams(text) }, athleteSport: { name: sport } }
+// places that share a club's name
+const NOT_CLUBS = /beitar illit|ביתר עילית|בית"ר עילית|maccabi games|מכביה/g;
+
 export function classify(item, source, ctx) {
-  const text = ' ' + lower(`${item.title} ${item.summary}`) + ' ';
-  const titleText = ' ' + lower(item.title) + ' ';
+  const text = (' ' + lower(`${item.title} ${item.summary}`) + ' ').replace(NOT_CLUBS, ' ');
+  const titleText = (' ' + lower(item.title) + ' ').replace(NOT_CLUBS, ' ');
 
   const athletes = ctx.matchers.players(text);
   // Team tag: only when the team is actually named in the headline
@@ -110,13 +138,14 @@ export function classify(item, source, ctx) {
   const athleteSport = athletes.length ? ctx.athleteSport[athletes[0]] : null;
 
   // Priority: URL path > other-sport keywords > feed hint > football/basketball keywords
+  const section = sectionFromUrl(item.link);
   let sport = sportFromUrl(item.link);
+  // American sources: 'football' means American football (soccer needs soccer words)
+  const FB = source.usa ? FOOTBALL_US : FOOTBALL;
+  const f = hits(text, FB) + hits(titleText, FB); // title counts twice
+  const b = hits(text, BASKETBALL) + hits(titleText, BASKETBALL);
+  const o = hits(text, OTHER) + hits(titleText, OTHER) + (source.usa && titleText.includes('football') ? 2 : 0);
   if (!sport) {
-    // American sources: 'football' means American football (soccer needs soccer words)
-    const FB = source.usa ? FOOTBALL_US : FOOTBALL;
-    const f = hits(text, FB) + hits(titleText, FB); // title counts twice
-    const b = hits(text, BASKETBALL) + hits(titleText, BASKETBALL);
-    const o = hits(text, OTHER) + hits(titleText, OTHER) + (source.usa && titleText.includes('football') ? 2 : 0);
     if (o > 0 && o > Math.max(f, b)) sport = 'other';
     else if (source.sport) sport = source.sport;
     else if (athleteSport && f === 0 && b === 0) sport = athleteSport;
@@ -133,7 +162,7 @@ export function classify(item, source, ctx) {
   // Mixed feeds (general news sites): drop items that don't look like sport at all
   // (decided before the fallback below, so e.g. a food article mentioning Israel isn't treated as football)
   const looksSport =
-    sport !== 'other' || israelOther || ib + ifb > 0 || /\/(sport|sports|deportes|futbol|calcio|basket)/i.test(item.link || '');
+    section !== 'drop' && (sport !== 'other' || israelOther || ib + ifb > 0 || /\/(sport|sports|deportes|futbol|calcio|basket)/i.test(item.link || ''));
 
   // Israeli story without a sport word: decide by club/league names, default football
   if (israel && sport === 'other' && !israelOther && !sportFromUrl(item.link)) {
@@ -142,5 +171,17 @@ export function classify(item, source, ctx) {
 
   const breaking = hits(titleText, BREAKING);
 
-  return { sport, israel, israelOther, athletes, teams, breaking, looksSport };
+  // evidence for the triage (src/triage.js decides the final sport)
+  const ev = {
+    url: section && section !== 'drop' ? section : null,
+    section,
+    source: source.sport || null,
+    kw: { f, b, o },
+    athleteSport,
+    israel,
+    israelOther,
+    ib,
+    ifb,
+  };
+  return { sport, israel, israelOther, athletes, teams, breaking, looksSport, ev };
 }

@@ -35,6 +35,7 @@ Stories that many outlets report are merged into one card and ranked higher.
 - **Biggest sports stories in 10 other countries:** Spain, Italy, Germany, France, Portugal, Brazil, Argentina, Turkey, Greece and the Netherlands.
 - **Israeli clubs in the world press:** ongoing searches in 10 countries, in each language and spelling (e.g. Μακάμπι, Makabi). Any article tagged with an Israeli club joins the Israeli tabs.
 - Betting, odds and live-score widget pages are filtered out in all languages.
+- **Sorting by sport** uses the strongest evidence first: the site's own section (URL path, Sport5 folder), a sport-specific feed, names from the 365Scores knowledge base that exist in one sport only (a basketball player, Hapoel Holon, EuroLeague), clear keywords, a basketball-range score (98:102), then a small word model trained every run on the articles whose sport is certain. Clubs that exist in both sports (Maccabi / Hapoel Tel Aviv, Real Madrid) follow what they're in the news for that day. Non-sport sections (cars, lifestyle) are dropped. Stories never mix football and basketball, and an article must match a story's first articles to join it.
 
 **Ranking ("🔥 Top")** combines:
 - how many outlets report the story, weighted by reliability

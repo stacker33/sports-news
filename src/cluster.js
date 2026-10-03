@@ -14,9 +14,13 @@ const STOP = new Set(
 );
 const HE_PREFIX = /^[הובלמשכ]/;
 
+// two-word place/club names → one token
+const COMPOUND = /\b(tel) (aviv)\b|\b(petah|petach) (tikva|tikvah|tiqva)\b|\b(beer|be'er|beersheba) (sheva)\b|\b(kiryat) (shmona)\b|\b(real) (madrid)\b|\b(new) (york|england|orleans|jersey)\b|\b(los) (angeles)\b|\b(san) (antonio|francisco|diego|jose)\b|\b(golden) (state)\b|\b(manchester) (united|city)\b|\b(aston) (villa)\b|\b(west) (ham|brom)\b|\b(crystal) (palace)\b|\b(saint|st) (germain|etienne)\b|\b(red) (star|bull)\b|\b(tel)-(aviv)\b|תל אביב|פתח תקווה|פתח תקוה|באר שבע|ריאל מדריד/g;
+
 export function tokens(title) {
   const words = title
     .toLowerCase()
+    .replace(COMPOUND, (m) => m.replace(/[\s-]+/g, ''))
     .replace(/[֑-ׇ]/g, '') // Hebrew niqqud
     .replace(/['"׳״`’‘“”]/g, '')
     .split(/[^\p{L}\p{N}]+/u)
@@ -43,6 +47,8 @@ function similar(a, b) {
 }
 
 const WINDOW = 20 * 3600 * 1000; // same story must appear within 20h
+const CORE = 8; // a new article must match one of the story's first 8 articles
+const SPORTY = new Set(['football', 'basketball']);
 
 export function clusterItems(items) {
   const sorted = [...items].sort((a, b) => a.published - b.published);
@@ -62,16 +68,21 @@ export function clusterItems(items) {
     for (const [c] of [...candidates].sort((x, y) => y[1] - x[1]).slice(0, 25)) {
       const cl = clusters[c];
       if (cl.key !== it._key || it.published - cl.last > WINDOW) continue;
-      if (cl.items.some((m) => similar(m._tok, it._tok))) {
+      // never mix football and basketball in one story (Hapoel Tel Aviv vs Real Madrid exists in both)
+      if (cl.sport && it.sportSure && SPORTY.has(it.sport) && it.sport !== cl.sport) continue;
+      // compare with the story's core (its first articles), not its newest member, so it can't drift
+      // article by article into another story
+      if (cl.items.slice(0, CORE).some((m) => similar(m._tok, it._tok))) {
         found = c;
         break;
       }
     }
     if (found === -1) {
       found = clusters.length;
-      clusters.push({ key: it._key, items: [], last: it.published });
+      clusters.push({ key: it._key, items: [], last: it.published, sport: null });
     }
     const cl = clusters[found];
+    if (!cl.sport && it.sportSure && SPORTY.has(it.sport)) cl.sport = it.sport;
     cl.items.push(it);
     cl.last = Math.max(cl.last, it.published);
     for (const t of it._tok) {
@@ -105,11 +116,14 @@ export function buildStory(members, now) {
   const first = Math.min(...timed.map((m) => m.published));
   const latest = Math.max(...timed.map((m) => m.published));
   // Sport = weighted majority of members that have a known sport
+  // (members whose sport is certain decide; the rest only when none is)
   const counts = {};
-  for (const m of members) if (m.sport !== 'other') counts[m.sport] = (counts[m.sport] || 0) + m.weight;
+  const sure = members.filter((m) => m.sportSure && m.sport !== 'other');
+  for (const m of sure.length ? sure : members) if (m.sport !== 'other') counts[m.sport] = (counts[m.sport] || 0) + m.weight;
   const sport = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'other';
 
-  const israel = members.some((m) => m.israel);
+  // Israeli story: enough of its articles are (one Israeli mention in a 20-article world story isn't)
+  const israel = members.filter((m) => m.israel).length >= Math.max(1, Math.ceil(members.length * 0.2));
   const israelOther = members.some((m) => m.israelOther);
   const athletes = [...new Set(members.flatMap((m) => m.athletes))];
   const teams = [...new Set(members.flatMap((m) => m.teams || []))];

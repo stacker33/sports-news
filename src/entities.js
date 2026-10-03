@@ -15,6 +15,17 @@ const LEAGUES = {
   basketball: [47, 569, 329, 103], // Winner League, EuroLeague, EuroCup, NBA
 };
 
+// Sport of each competition; some names are shared with another sport's competition ("ליגת העל", "World Cup",
+// "Champions", "גביע המדינה") so they don't count as evidence of the sport on their own
+const COMP_SPORT = {
+  'c-ucl': 'football', 'c-uel': 'football', 'c-uecl': 'football', 'c-unl': 'football', 'c-wc': 'football', 'c-epl': 'football',
+  'c-laliga': 'football', 'c-seriea': 'football', 'c-bundes': 'football', 'c-ligue1': 'football', 'c-ligat': 'football',
+  'c-leumit': 'football', 'c-statecup': 'football', 'c-toto': 'football', 'c-mls': 'football',
+  'c-euroleague': 'basketball', 'c-eurocup': 'basketball', 'c-nba': 'basketball', 'c-winner': 'basketball', 'c-wcup': 'basketball',
+  'c-f1': 'other',
+};
+const COMP_NO_EVIDENCE = new Set(['c-ucl', 'c-wc', 'c-ligat', 'c-statecup']);
+
 // Competitions: names/aliases as written in headlines
 const COMPETITIONS = [
   { id: 'c-ucl', en: 'Champions League', he: 'ליגת האלופות', aliases: ['UCL', 'Champions League', 'Ligue des champions', 'Liga de Campeones', 'Champions', 'ליגת האלופות'] },
@@ -41,6 +52,32 @@ const COMPETITIONS = [
 ];
 
 // Headline nicknames for big clubs (365Scores name → extra names)
+// Israeli clubs as Hebrew headlines write them (by the club's Hebrew name in 365Scores). A name shared by the
+// football and basketball clubs (הפועל ב"ש) then counts for both and isn't taken as evidence of either sport.
+const HE_TEAM_ALIASES = {
+  'מכבי תל אביב': ['מכבי ת"א', "מכבי ת''א"],
+  'הפועל תל אביב': ['הפועל ת"א', "הפועל ת''א"],
+  'הפועל ירושלים': ['הפועל י-ם'],
+  'בית"ר ירושלים': ['בית"ר י-ם', 'ביתר ירושלים'],
+  'מכבי פתח תקוה': ['מכבי פ"ת', 'מכבי פתח תקווה'],
+  'הפועל פתח תקוה': ['הפועל פ"ת', 'הפועל פתח תקווה'],
+  'הפועל באר שבע': ['הפועל ב"ש'],
+  'הפועל באר שבע/דימונה': ['הפועל באר שבע', 'הפועל ב"ש'],
+  'עירוני קרית שמונה': ['עירוני ק"ש', 'קריית שמונה', 'עירוני קריית שמונה'],
+  'מכבי ראשון לציון': ['מכבי ראשל"צ'],
+  'הפועל ראשון לציון': ['הפועל ראשל"צ'],
+  'מכבי עירוני רמת גן': ['מכבי ר"ג', 'מכבי רמת גן'],
+  'הפועל רמת גן': ['הפועל ר"ג'],
+  'מכבי אשדוד/באר טוביה': ['מכבי אשדוד'],
+  'מ.ס. אשדוד': ['מ.ס אשדוד'],
+  'הפועל עירוני אילת': ['הפועל אילת'],
+  'הפועל כפר-שלם': ['הפועל כפר שלם'],
+  'בני יהודה ת"א': ['בני יהודה'],
+  'עירוני קרית אתא': ['עירוני קריית אתא'],
+  'הפועל גליל עליון': ['גליל עליון'],
+  'מכבי בני ריינה': ['בני ריינה'],
+};
+
 const TEAM_ALIASES = {
   'Manchester City': ['Man City'], 'Manchester United': ['Man Utd', 'Man United'], 'Tottenham Hotspur': ['Tottenham', 'Spurs'], Tottenham: ['Spurs'],
   PSG: ['Paris Saint-Germain', 'Paris SG', "פ.ס.ז'", 'פריז סן ז׳רמן'], 'FC Barcelona': ['Barcelona', 'Barca', 'Barça', 'ברצלונה'],
@@ -177,12 +214,12 @@ export function buildEntityIndex(db) {
   };
 
   for (const c of COMPETITIONS) {
-    const e = { k: 'comp', id: c.id, en: c.en, he: c.he };
+    const e = { k: 'comp', id: c.id, en: c.en, he: c.he, sport: COMP_SPORT[c.id], ...(COMP_NO_EVIDENCE.has(c.id) ? { noEvidence: true } : {}) };
     for (const a of c.aliases) add(a, e, { single: true });
   }
   for (const t of Object.values(db.teams || {})) {
     const e = { k: 'team', id: `t${t.id}`, en: t.en, he: t.he || t.en, sport: t.sport };
-    const names = [t.en, t.he, ...(TEAM_ALIASES[t.en] || [])];
+    const names = [t.en, t.he, ...(TEAM_ALIASES[t.en] || []), ...(HE_TEAM_ALIASES[t.he] || [])];
     // "Manchester X" → "Man X", "X FC"/"FC X" → "X", "X United" → "X"
     const m = t.en.match(/^(?:FC |KK |BC |AC |AS |SS |SC |CF )?(.+?)(?: FC| CF| AFC| SC| BC)?$/);
     if (m && m[1] !== t.en) names.push(m[1]);
@@ -230,6 +267,8 @@ export function findEntities(index, text, sport) {
         // same name in two sports (Barcelona, Real Madrid…) → prefer the story's sport
         const pick = ok.find((x) => !x.entity.sport || x.entity.sport === sport) || ok[0];
         hit = { ...pick.entity, single: pick.oneWord };
+        // the same name exists in two sports (Maccabi Tel Aviv, Real Madrid…) → no evidence of the sport
+        if (new Set(ok.map((x) => x.entity.sport).filter(Boolean)).size > 1) hit.amb = true;
         // surname only and several players share it → hand all candidates to the collector
         if (pick.oneWord && ok.length > 1) hit.alts = ok.map((x) => x.entity);
         break;

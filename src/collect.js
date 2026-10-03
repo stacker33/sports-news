@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify } from './classify.js';
+import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
@@ -37,7 +38,8 @@ const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
 
-const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|in diretta)\b/i;
+const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*$|אתר ערוץ הספורט/i;
+const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|in diretta|shots on target per 90|stats for [\w ]+ \d{4}\/\d{4})\b/i;
 
 const itemId = (link, title) => {
   let key = link;
@@ -134,6 +136,8 @@ export async function collect({ log = console.log, force = false } = {}) {
       if (raw.title.length < 12 || raw.title.split(' / ').length > 2) continue;
       // betting / odds / live-score widget pages (any language) are not news
       if (JUNK_TITLE.test(raw.title)) continue;
+      // a site's own name/homepage instead of a headline (Google sometimes returns "- sport5.co.il")
+      if (SITE_TITLE.test(raw.title)) continue;
 
       const id = itemId(raw.link, raw.title);
       const prev = known.get(id);
@@ -197,10 +201,11 @@ export async function collect({ log = console.log, force = false } = {}) {
   const entById = new Map();
 
   // (Re-)tag every item: uses the English translation for foreign languages, and picks up list edits immediately
+  // Pass 1: keyword/section evidence + knowledge-base names (sport-neutral)
   for (const it of items) {
     it.tr = tr[it.id] || null;
     const src = srcById.get(it.sourceId) || {};
-    it.hidden = !!it.rival && !rivalRelevant(it);
+    it.hidden = (!!it.rival && !rivalRelevant(it)) || SITE_TITLE.test(it.title) || JUNK_TITLE.test(it.title);
     const en = it.lang !== 'en' && it.tr?.en ? ' ' + it.tr.en : '';
     const tags = classify({ title: it.title + en, summary: it.summary, link: it.link }, src, ctx);
     if (src.mixed && !tags.looksSport) it.hidden = true; // general-news feeds: sport only
@@ -209,8 +214,48 @@ export async function collect({ log = console.log, force = false } = {}) {
       sport: tags.sport, israel: tags.israel, israelOther: tags.israelOther,
       athletes: tags.athletes, teams: tags.teams, breaking: tags.breaking,
     });
-    it._ents = [...findEntities(eindex, it.title, it.sport), ...findEntities(eindex, it.tr?.en, it.sport)];
+    it._ev = tags.ev;
+    const found = [...findEntities(eindex, it.title, null), ...findEntities(eindex, it.tr?.en, null)];
+    it._entSport = entitySport(found);
+    it._amb = [...new Set(found.filter((e) => e.amb && e.k === 'team').map((e) => e.en))]; // clubs in both sports
+    it._feats = features(it);
   }
+  // Pass 2: a word model trained on the articles whose sport is certain (site section, sport feed, or names)
+  const model = trainModel(items.filter((it) => it._ev.url || it._ev.source || it._entSport).map((it) => ({ feats: it._feats, sport: it._ev.url || it._ev.source || it._entSport })));
+  const decisions = items.map((it) => decideSport(it._ev, it._entSport, predict(model, it._feats), it._feats));
+  // What's in the news right now: a club that exists in both sports (Maccabi Tel Aviv, Hapoel Tel Aviv…) is
+  // usually in the news for one of them (EuroLeague week, football's international break). Certain articles
+  // from the last 24h decide unclear ones.
+  const recent = new Map(); // club → { football, basketball }
+  items.forEach((it, i) => {
+    const d = decisions[i];
+    if (!SURE.has(d.why) || now - it.published > 24 * 3600e3 || (d.sport !== 'football' && d.sport !== 'basketball')) return;
+    for (const club of it._amb) {
+      const r = recent.get(club) || recent.set(club, { football: 0, basketball: 0 }).get(club);
+      r[d.sport]++;
+    }
+  });
+  const why = {};
+  items.forEach((it, i) => {
+    let d = decisions[i];
+    if (!SURE.has(d.why) && !d.nonSport && it._amb.length && (d.sport === 'football' || d.sport === 'basketball' || d.why === 'none')) {
+      const r = { football: 0, basketball: 0 };
+      for (const club of it._amb) for (const s of ['football', 'basketball']) r[s] += recent.get(club)?.[s] || 0;
+      const [top, n] = Object.entries(r).sort((a, b) => b[1] - a[1])[0];
+      const other = r[top === 'football' ? 'basketball' : 'football'];
+      if (n >= 3 && n >= 3 * other) d = { sport: top, why: 'in-the-news' };
+    }
+    it.sport = d.sport;
+    it.sportSure = SURE.has(d.why);
+    it.sportWhy = d.why; // kept for debugging the triage
+    if (d.nonSport) it.hidden = true; // cars, politics… in a sports section
+    why[d.why] = (why[d.why] || 0) + 1;
+    it._ents = [...findEntities(eindex, it.title, it.sport), ...findEntities(eindex, it.tr?.en, it.sport)];
+    delete it._ev;
+    delete it._entSport;
+    delete it._feats;
+    delete it._amb;
+  });
   // Double-check names: a surname alone ("Mancini", "George") counts only if that player's full name is in
   // the news somewhere, or their team is in the same headline; players never tag another sport's story (F1, tennis…)
   const fullSeen = new Map(); // player id → how many headlines name them in full
@@ -224,7 +269,7 @@ export async function collect({ log = console.log, force = false } = {}) {
       return ok[0] ? { ...ok[0], single: true } : e;
     });
     const keep = resolved.filter((e) => {
-      if (e.k === 'comp') return true;
+      if (e.k === 'comp') return !e.sport || it.sport === 'other' || e.sport === it.sport;
       if (it.sport === 'other') return false;
       if (e.sport && e.sport !== it.sport) return false;
       if (e.k === 'player' && e.single) return fullSeen.has(e.id) || teamIds.has(e.team);
@@ -337,6 +382,9 @@ export async function collect({ log = console.log, force = false } = {}) {
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
+  );
+  log(
+    `   sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
   );
   results.forEach((r, i) => !r.ok && log(`   ✗ ${due[i].id}: ${String(r.error?.message || r.error).slice(0, 100)}`));
   return { stories: stories.length, fresh };
