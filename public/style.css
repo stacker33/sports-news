@@ -416,3 +416,7 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 .fix-menu button { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
 .fix-menu button:hover { border-color: var(--accent); }
 .toast { position: fixed; inset-inline: 16px; bottom: calc(76px + env(safe-area-inset-bottom)); margin: 0 auto; max-width: 420px; background: var(--text); color: var(--surface); padding: 10px 14px; border-radius: 12px; font-size: 14px; text-align: center; z-index: 50; box-shadow: var(--shadow); }
+
+/* v14: headline in my language + AI summary */
+.title-tr { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--text); opacity: .85; line-height: 1.4; }
+.ai-sum { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--muted); }

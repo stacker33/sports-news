@@ -351,10 +351,25 @@ const langOkFor = langOk;
 // Headline + link to show in the app's language
 function disp(s) {
   const own = s.t?.[state.ui];
-  if (own && !own.from) return own; // a real article in the app's language
-  const other = s.t?.[state.ui === 'he' ? 'en' : 'he'];
-  if (other && !other.from) return other; // a real article in the other language you read
-  return { title: s.title, link: s.link }; // original language
+  if (own && !own.from) return { ...own, lang: state.ui }; // a real article in the app's language
+  const otherLang = state.ui === 'he' ? 'en' : 'he';
+  const other = s.t?.[otherLang];
+  if (other && !other.from) return { ...other, lang: otherLang }; // a real article in the other language you read
+  return { title: s.title, link: s.link, lang: s.lang }; // original language
+}
+
+// Under a headline that isn't in the app's language: the headline in the app's language
+// (written by the language model when available, otherwise machine-translated)
+function titleLine(s, d) {
+  if (d.lang === state.ui) return '';
+  const text = (state.ui === 'he' && s.ai?.he?.title) || (s.t?.[state.ui]?.from ? s.t[state.ui].title : '');
+  return text ? `<p class="title-tr" dir="auto">${state.ui === 'he' ? '🇮🇱' : '🌐'} ${esc(text)}</p>` : '';
+}
+
+// 2–3 sentence summary by the language model, shown in full
+function aiSummaryHtml(s) {
+  const text = s.ai?.[state.ui]?.sum;
+  return text ? `<p class="ai-sum" dir="auto">${esc(text)}</p>` : '';
 }
 // Machine translation of the shown headline (for the bubble), if the headline isn't Hebrew/English
 function translationOf(s, d) {
@@ -380,12 +395,6 @@ function summaryHtml(s) {
   const note = !native && text !== s.sum.text ? `<span class="sum-note">${esc(t().sumTranslated)}</span>` : '';
   return `<button type="button" class="sum-btn" aria-expanded="false">${esc(t().sumBtn)}</button>
     <div class="bubble sum-bubble" hidden><p dir="auto">${esc(text)}</p>${note}</div>`;
-}
-
-function translateToggle(s, d) {
-  const tr = translationOf(s, d);
-  if (!tr) return '';
-  return `<button type="button" class="tr-btn">🌐 ${esc(t().translate)}</button><p class="tr-line" dir="auto" hidden>${esc(tr)}</p>`;
 }
 
 function athleteOk(s) {
@@ -483,8 +492,8 @@ function cardHtml(s, fresh) {
         ${s.wikipedia ? `<span class="badge trend" title="${esc(s.wikipedia.title)}">${esc(L.wiki(s.wikipedia))}</span>` : ''}
       </div>
       <h2 dir="auto"><a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(d.title)}</a></h2>
-      ${translateToggle(s, d)}
-      ${summaryHtml(s)}
+      ${titleLine(s, d)}
+      ${s.ai?.[state.ui]?.sum ? aiSummaryHtml(s) : summaryHtml(s)}
       ${state.tab === 'foryou' && state.affinity?.get(s.id) ? `<p class="why">⭐ ${esc(L.forYou.because)}: ${esc(state.affinity.get(s.id).reasons.map(featLabel).join(' · '))}</p>` : ''}
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
@@ -882,7 +891,7 @@ function notifyStories(data, freshIds, prevGen) {
   }
   for (const s of picks) {
     const who = s.athletes.length ? `👤 ${s.athletes.join(', ')} · ` : '';
-    showNotification(`${catIcon(s)} ${translationOf(s, disp(s)) || disp(s).title}`, `${who}${s.sources[0]?.name || ''}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}`, s.link, s.id);
+    showNotification(`${catIcon(s)} ${(state.ui === 'he' && disp(s).lang !== 'he' && s.ai?.he?.title) || translationOf(s, disp(s)) || disp(s).title}`, `${who}${s.sources[0]?.name || ''}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}`, s.link, s.id);
   }
 }
 
