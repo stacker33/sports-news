@@ -15,7 +15,6 @@ permissions:
   pages: write
   id-token: write
   actions: write
-  models: read # GitHub Models (free tier): Hebrew headlines + summaries, using the workflow's own token
 
 concurrency:
   group: pages
@@ -52,7 +51,11 @@ jobs:
       - name: Collect
         run: node src/collect.js
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Hebrew headlines + summaries (src/ai.js). Add the key under Settings → Secrets and variables → Actions.
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          # optional repository variables to switch provider/model (empty = Gemini Flash-Lite)
+          AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

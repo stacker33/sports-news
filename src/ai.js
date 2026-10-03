@@ -1,16 +1,18 @@
-// Hebrew headline + short summary per story, written by a language model (GitHub Models, free tier).
+// Hebrew headline + short summary per story, written by a language model.
 //
-// - Runs in GitHub Actions with the workflow's own GITHUB_TOKEN (permission `models: read`) — no extra key.
-//   Locally it runs only if GITHUB_TOKEN is set; otherwise stories keep the machine translation / feed blurb.
-// - Free tier ≈ 150 requests a day → one request per run at most, 10 stories per request, a daily cap,
-//   most important stories first (Israeli, Israelis abroad, then by score). Each story is done once, and again
-//   only if it has grown a lot since (more sources = more to summarise).
+// - Any OpenAI-compatible chat API: Google Gemini (default, free tier), Groq, Anthropic… set by environment:
+//   AI_API_KEY (GitHub secret, required — without it nothing is called and stories keep the machine
+//   translation / feed blurb), AI_BASE_URL, AI_MODEL, AI_DAILY_CAP.
+// - One request per run at most, 10 stories per request, a daily cap, most important stories first
+//   (Israeli, Israelis abroad, then by score). Each story is done once, and again only if it has grown a lot
+//   since (more sources = more to summarise).
 // - The model gets only the stories' headlines and descriptions and is told to use nothing else.
 
-const ENDPOINT = 'https://models.github.ai/inference/chat/completions';
-const MODEL = process.env.AI_MODEL || 'openai/gpt-4.1-mini';
+const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/$/, '');
+const ENDPOINT = `${BASE_URL}/chat/completions`;
+const MODEL = process.env.AI_MODEL || 'gemini-flash-lite-latest';
 const PER_REQUEST = 10;
-const DAILY_CAP = 140; // stay under the free tier's ~150/day
+const DAILY_CAP = Number(process.env.AI_DAILY_CAP) || 400; // under the free tier's daily request limit
 const KEEP_DAYS = 3;
 
 const SYSTEM = `You are a sports news editor for an Israeli sports app. For each story you get its headlines and descriptions from one or more outlets, in various languages.
@@ -60,8 +62,15 @@ async function callModel(token, user) {
     signal: AbortSignal.timeout(60000),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 160)}`);
-  const j = await res.json();
-  return JSON.parse(j.choices?.[0]?.message?.content || '{}');
+  const body = await res.text();
+  let j;
+  try {
+    j = JSON.parse(body);
+  } catch {
+    throw new Error(`not JSON from ${ENDPOINT}: ${body.slice(0, 80)}`);
+  }
+  const content = (j.choices?.[0]?.message?.content || '{}').replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, '');
+  return JSON.parse(content);
 }
 
 // prev = { day, used, cooldownUntil, error, res: { key: { title_he, summary_he, summary_en, n, at } } }
@@ -78,7 +87,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
     if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he }, en: { sum: r.summary_en } };
   };
 
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.AI_API_KEY;
   let done = 0;
   if (token && st.used < DAILY_CAP && !(st.cooldownUntil > now)) {
     const need = stories
