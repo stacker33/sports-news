@@ -90,6 +90,24 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
   for (const [k, t] of Object.entries(st.sent)) if (now - t > 3 * 864e5) delete st.sent[k];
   if (!token || !chat) return { tg: { ...st, error: 'no TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT' }, posted: 0 };
 
+  // once per channel: check (without posting) that the bot is an admin that may post there
+  Object.assign(st, { chatOk: prev.chatOk, chatTitle: prev.chatTitle, chatFor: prev.chatFor });
+  if (!(st.chatOk && st.chatFor === chat)) {
+    try {
+      const api = (m, q = '') => fetch(`${API}${token}/${m}${q}`, { signal: AbortSignal.timeout(15000) }).then((r) => r.json());
+      const me = await api('getMe');
+      const info = await api('getChat', `?chat_id=${encodeURIComponent(chat)}`);
+      const member = me.ok && (await api('getChatMember', `?chat_id=${encodeURIComponent(chat)}&user_id=${me.result.id}`));
+      const canPost = member?.ok && (member.result.status === 'creator' || (member.result.status === 'administrator' && member.result.can_post_messages !== false));
+      if (!me.ok) throw new Error(`bot token rejected: ${me.description}`);
+      if (!info.ok) throw new Error(`channel not found / bot not in it: ${info.description}`);
+      if (!canPost) throw new Error(`bot is not an admin with "post messages" in ${chat}`);
+      Object.assign(st, { chatOk: true, chatTitle: info.result.title, chatFor: chat });
+    } catch (e) {
+      return { tg: { ...st, chatOk: false, error: String(e.message).slice(0, 200) }, posted: 0 };
+    }
+  }
+
   const il = ilParts(now);
   if (st.day !== il.day) Object.assign(st, { day: il.day, dayCount: 0 });
   let posted = 0;
