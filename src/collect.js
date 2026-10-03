@@ -12,6 +12,7 @@ import { classify } from './classify.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries } from './ai.js';
+import { telegramPost } from './telegram.js';
 import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
@@ -373,6 +374,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   // Hebrew headline + 2–3 sentence summary by a language model (GitHub Models, free tier; important stories first)
   const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
+  // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
+  const { tg, posted: tgPosted } = await telegramPost(stories, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
   for (const s of stories) {
     if (s.sum) Object.assign(s.sum, { he: sums[s.sum.id]?.he, en: sums[s.sum.id]?.en });
     delete s._members;
@@ -400,13 +403,13 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   await writeJson(join(DATA, 'sources.json'), { generatedAt: now, health });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
   );
   log(
-    `   AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
+    `   Telegram: ${tgPosted} posted${tg.error ? ` (${tg.error})` : ''} · AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
   );
   results.forEach((r, i) => !r.ok && log(`   ✗ ${due[i].id}: ${String(r.error?.message || r.error).slice(0, 100)}`));
   return { stories: stories.length, fresh };

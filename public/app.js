@@ -12,8 +12,8 @@ const T = {
     search: 'חיפוש…',
     empty: 'אין ידיעות להצגה',
     tabs: {
-      top: '🔥 הכי חם', foryou: '⭐ בשבילך', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי', ilOther: '🇮🇱 אולימפי ועוד',
-      abroad: '✈️ ישראלים בחו"ל', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏆 ענפים אחרים',
+      top: '🔥 הכי חם', foryou: '⭐ בשבילך', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
+      abroad: '✈️ ישראלים בחו"ל', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
     langName: { en: 'אנגלית', es: 'ספרדית', it: 'איטלקית', de: 'גרמנית', fr: 'צרפתית', pt: 'פורטוגזית', nl: 'הולנדית', tr: 'טורקית', el: 'יוונית', sr: 'סרבית', ro: 'רומנית', hu: 'הונגרית', pl: 'פולנית', ja: 'יפנית', cs: "צ'כית", he: 'עברית' },
@@ -134,8 +134,8 @@ const T = {
     search: 'Search…',
     empty: 'No stories to show',
     tabs: {
-      top: '🔥 Top', foryou: '⭐ For you', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball', ilOther: '🇮🇱 Olympic & more',
-      abroad: '✈️ Israelis abroad', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏆 Other sports',
+      top: '🔥 Top', foryou: '⭐ For you', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
+      abroad: '✈️ Israelis abroad', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
     },
     langs: { all: '🌍 Whole world (translated)', he: 'Hebrew only', en: 'English only' },
     langName: { he: 'Hebrew', es: 'Spanish', it: 'Italian', de: 'German', fr: 'French', pt: 'Portuguese', nl: 'Dutch', tr: 'Turkish', el: 'Greek', sr: 'Serbian', ro: 'Romanian', hu: 'Hungarian', pl: 'Polish', ja: 'Japanese', cs: 'Czech', en: 'English' },
@@ -252,7 +252,7 @@ const T = {
   },
 };
 
-const TABS = ['top', 'foryou', 'ilFootball', 'ilBasketball', 'ilOther', 'abroad', 'football', 'basketball', 'other'];
+const TABS = ['top', 'foryou', 'ilFootball', 'ilBasketball', 'abroad', 'football', 'basketball', 'other'];
 const LANG_FILTERS = ['all', 'he', 'en'];
 
 // ---------- state (UI prefs remembered per device) ----------
@@ -262,7 +262,7 @@ const store = {
 };
 const state = {
   ui: store.get('ui', 'he'),
-  tab: TABS.includes(store.get('tab')) ? store.get('tab') : 'top',
+  tab: TABS.includes(store.get('tab')) ? store.get('tab') : store.get('tab') === 'ilOther' ? 'other' : 'top',
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   rival: null,
   mix: Number(store.get('mix', 40)),
@@ -442,11 +442,10 @@ function inTab(s, tab) {
     case 'foryou': return true;
     case 'ilFootball': return s.israel && s.sport === 'football';
     case 'ilBasketball': return s.israel && s.sport === 'basketball';
-    case 'ilOther': return s.israel && s.sport === 'other';
     case 'abroad': return s.abroad || (state.teamNews && s.teams?.length > 0);
     case 'football': return !s.israel && s.sport === 'football';
     case 'basketball': return !s.israel && s.sport === 'basketball';
-    case 'other': return !s.israel && s.sport === 'other';
+    case 'other': return s.sport === 'other'; // Olympic & other sports: Israeli and world together
   }
   return true;
 }

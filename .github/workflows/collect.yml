@@ -56,6 +56,9 @@ jobs:
           # optional repository variables to switch provider/model (empty = Gemini Flash-Lite)
           AI_BASE_URL: ${{ vars.AI_BASE_URL }}
           AI_MODEL: ${{ vars.AI_MODEL }}
+          # Telegram channel (src/telegram.js): bot token as a secret, channel ("@name") as a repository variable
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
