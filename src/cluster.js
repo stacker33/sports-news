@@ -148,6 +148,7 @@ export function buildStory(members, now) {
     langs: [...new Set(members.map((m) => m.lang))],
     rival: members.find((m) => m.rival)?.rival || null,
     social: [...new Set(members.filter((m) => m.social).map((m) => m.publisher))],
+    video: members.filter((m) => m.video).sort((a, b) => (a.video === 'press' ? 0 : 1) - (b.video === 'press' ? 0 : 1))[0]?.link || null,
     summary: lead.summary || distinct.find((m) => m.summary)?.summary || '',
     image: lead.image || members.find((m) => m.image)?.image || null,
     lang: lead.lang,

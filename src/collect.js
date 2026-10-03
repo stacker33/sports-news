@@ -180,6 +180,7 @@ export async function collect({ log = console.log, force = false } = {}) {
         breaking: tags.breaking,
         rival: src.rival || prev?.rival || null,
         social: !!raw.social, // a reporter's own post (Telegram / Bluesky)
+        video: raw.video || null, // YouTube: 'press' | 'highlights'
       };
       if (!prev) fresh++;
       known.set(id, item);
@@ -298,6 +299,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     delete it._ents;
   }
   for (const it of items) {
+    // highlights from the big global channels (NBA, EuroLeague…) only when an Israeli club or player is in them
+    if (it.video === 'highlights' && !srcById.get(it.sourceId)?.israel && !it.israel && !it.athletes?.length) it.hidden = true;
     if (it._fix?.israel != null) it.israel = it._fix.israel;
     if (it._fix?.hide) it.hidden = true;
     delete it._fix;

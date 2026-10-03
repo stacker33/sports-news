@@ -1,3 +1,4 @@
+import { ytFeed } from '../src/youtube.js';
 // News sources. Edit freely: add/remove feeds, change weights.
 // (Sources for Israelis abroad + their teams are generated automatically from config/athletes.json.)
 //
@@ -162,6 +163,28 @@ export const SOURCES = [
   { id: 'lequipe', name: "L'Équipe", url: 'https://dwh.lequipe.fr/api/edito/rss?path=/', lang: 'fr', weight: 2 },
   { id: 'rmc-football', name: 'RMC Sport', url: 'https://rmcsport.bfmtv.com/rss/football/', lang: 'fr', weight: 2, sport: 'football' },
   { id: 'kicker', name: 'kicker', url: 'https://newsfeed.kicker.de/news/aktuell', lang: 'de', weight: 2 },
+  // YouTube: official channels only (free channel feeds; see src/youtube.js for what's kept)
+  ...[
+    ['sport5', 'ספורט 5', 'UCyXf5cz6E9IIL40aivg7tOw', 'he', { israel: true }],
+    ['ifa', 'ההתאחדות לכדורגל', 'UC-5AVLhL2v04-lfbVzejRZQ', 'he', { israel: true, sport: 'football' }],
+    ['winner', 'ליגת ווינר', 'UCNWMa_pdt1GIWH_zwbTldEQ', 'he', { israel: true, sport: 'basketball' }],
+    ['mta-fc', 'מכבי תל אביב', 'UC-oWQqnf8B8a_TsmVi0mTUg', 'he', { israel: true, sport: 'football' }],
+    ['mta-bc', 'מכבי תל אביב כדורסל', 'UCqxNoI856R_vgs7aQolQhlg', 'he', { israel: true, sport: 'basketball' }],
+    ['haifa', 'מכבי חיפה', 'UCDZGX5VO_QP03nhbru4PsiA', 'he', { israel: true, sport: 'football' }],
+    ['hbs', 'הפועל באר שבע', 'UCNm-8pzv9gl5N7ioPXfU8_A', 'he', { israel: true, sport: 'football' }],
+    ['hta-fc', 'הפועל תל אביב', 'UCWUw3MyL0wErNjk54vBY8Lw', 'he', { israel: true, sport: 'football' }],
+    ['hta-bc', 'הפועל תל אביב כדורסל', 'UC_NezmJH4nzURv6TSvOarEA', 'he', { israel: true, sport: 'basketball' }],
+    ['euroleague', 'EuroLeague', 'UCGr3nR_XH9r6E5b09ZJAT9w', 'en', { sport: 'basketball' }],
+    ['nba', 'NBA', 'UCWJ2lWNubArHWmf3FIHbfcQ', 'en', { sport: 'basketball' }],
+    ['skynews', 'Sky Sports News', 'UCcw05gGzjLIs5dnxGkQHMvw', 'en', {}],
+    ['blazers', 'Trail Blazers', 'UCXk66yyzXo7-2M1BMqLhltQ', 'en', { sport: 'basketball' }],
+    ['nets', 'Brooklyn Nets', 'UCTenKHt0h3VjdMvRWP6Lbvw', 'en', { sport: 'basketball' }],
+    ['palace', 'Crystal Palace', 'UCWB9N0012fG6bGyj486Qxmg', 'en', { sport: 'football' }],
+    ['westham', 'West Ham United', 'UCCNOsmurvpEit9paBOzWtUg', 'en', { sport: 'football' }],
+    ['saints', 'Southampton FC', 'UCxvXjfiIHQ2O6saVx_ZFqnw', 'en', { sport: 'football' }],
+    ['ajax', 'AFC Ajax', 'UCGpf7WX7R1one-NwOvg_PbQ', 'en', { sport: 'football' }],
+  ].map(([id, name, ch, lang, extra]) => ({ id: `yt-${id}`, name: `${name} · YouTube`, url: ytFeed(ch), lang, weight: 1, parser: 'youtube', assist: true, every: 5, ...extra })),
+
   // Israelis abroad: outlets that follow their clubs closely
   { id: 'netsdaily', name: 'NetsDaily', url: 'https://www.netsdaily.com/rss/index.xml', lang: 'en', weight: 1, sport: 'basketball', every: 3 },
   { id: 'blazersedge', name: "Blazer's Edge", url: 'https://www.blazersedge.com/rss/index.xml', lang: 'en', weight: 1, sport: 'basketball', every: 3 },

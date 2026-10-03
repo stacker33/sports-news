@@ -75,6 +75,7 @@ const T = {
       il: '🇮🇱 ישראלי', notIl: '🌍 לא ישראלי', hide: '🚫 לא רלוונטי', thanks: 'תודה! תוקן — והמערכת תלמד מזה',
     },
     socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
+    video: 'וידאו', videoTip: 'סרטון מהערוץ הרשמי (מסיבת עיתונאים, ראיון או תקציר)',
     sumTranslated: 'תורגם אוטומטית',
     scoresLoading: 'טוען תוצאות…',
     noGames: 'אין משחקים ביום הזה',
@@ -187,6 +188,7 @@ const T = {
       il: '🇮🇱 Israeli', notIl: '🌍 Not Israeli', hide: '🚫 Not relevant', thanks: 'Thanks! Fixed, and the system will learn from it',
     },
     socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
+    video: 'Video', videoTip: 'Video from the official channel (press conference, interview or highlights)',
     sumTranslated: 'machine-translated',
     scoresLoading: 'Loading scores…',
     noGames: 'No games on this day',
@@ -483,6 +485,7 @@ function cardHtml(s, fresh) {
       <div class="badges">
         ${isHot ? `<span class="badge hot">${esc(t().hot)}</span>` : ''}
         ${s.social?.length ? `<span class="badge social" title="${esc(L.socialTip)}">⚡ ${esc(s.social.join(', '))}</span>` : ''}
+        ${s.video && s.video !== d.link ? `<a class="badge video" href="${esc(s.video)}" target="_blank" rel="noopener" title="${esc(L.videoTip)}">🎥 ${esc(L.video)}</a>` : ''}
         ${s.sourceCount > 1 ? `<span class="badge src">${esc(t().sources(s.sourceCount))}</span>` : ''}
         ${s.israel && !state.tab.startsWith('il') ? `<span class="badge il">${esc(t().il)}</span>` : ''}
         ${s.langs?.length >= 3 ? `<span class="badge world" title="${esc(s.langs.join(', '))}">${esc(L.languages(s.langs.length))}</span>` : ''}

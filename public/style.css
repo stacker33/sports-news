@@ -420,3 +420,6 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 /* v14: headline in my language + AI summary */
 .title-tr { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--text); opacity: .85; line-height: 1.4; }
 .ai-sum { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+
+/* v15: 🎥 video badge */
+.badge.video { background: var(--hot-soft); color: var(--hot); text-decoration: none; }

@@ -1,5 +1,6 @@
 // Fetch + parse RSS / Atom feeds into plain items.
 import { XMLParser } from 'fast-xml-parser';
+import { videoKind } from './youtube.js';
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -164,6 +165,29 @@ function parseBluesky(j, source) {
     .filter((p) => p.title.length >= 20);
 }
 
+// YouTube channel feed: news-like videos only (press conferences, interviews, highlights); no Shorts
+function parseYouTube(doc, source) {
+  const out = [];
+  for (const e of arr(doc?.feed?.entry)) {
+    const link = arr(e.link).find((l) => l['@rel'] === 'alternate')?.['@href'] || '';
+    if (!link || /\/shorts\//.test(link)) continue;
+    const title = cleanText(text(e.title));
+    const kind = videoKind(title);
+    if (!kind) continue;
+    const g = e['media:group'] || {};
+    out.push({
+      title,
+      link: decodeEntities(link),
+      summary: cleanText(text(g['media:description'])).slice(0, 280),
+      published: parseDate(text(e.published)),
+      image: g['media:thumbnail']?.['@url'] || null,
+      publisher: source.name,
+      video: kind,
+    });
+  }
+  return out;
+}
+
 // Public Telegram channel preview page (t.me/s/<channel>)
 function parseTelegram(html, source) {
   const out = [];
@@ -209,6 +233,7 @@ export async function fetchFeed(source, timeoutMs = 15000) {
   const xml = await readText(res);
   const doc = parser.parse(xml);
 
+  if (source.parser === 'youtube') return parseYouTube(doc, source);
   const rssItems = arr(doc?.rss?.channel?.item ?? doc?.['rdf:RDF']?.item);
   const atomItems = arr(doc?.feed?.entry);
   const out = [];
