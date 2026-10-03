@@ -116,7 +116,7 @@ export function entitySport(ents) {
 
 // ev = classify(...).ev; ent = entitySport(); pred = predict()
 // Reasons strong enough to settle a whole story's sport (the others are educated guesses)
-export const SURE = new Set(['section', 'url', 'kw-other', 'feed', 'names', 'kw', 'score']);
+export const SURE = new Set(['user', 'section', 'url', 'kw-other', 'feed', 'names', 'kw', 'score']);
 
 export function decideSport(ev, ent, pred, feats = []) {
   if (ev.section === 'drop') return { sport: 'other', nonSport: true, why: 'section' };

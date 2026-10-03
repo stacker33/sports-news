@@ -10,6 +10,7 @@ import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify } from './classify.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
+import { loadCorrections } from './corrections.js';
 import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
@@ -39,7 +40,7 @@ const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
 
 const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*$|אתר ערוץ הספורט/i;
-const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|in diretta|shots on target per 90|stats for [\w ]+ \d{4}\/\d{4})\b/i;
+const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|in diretta|per 90|stats for .{2,40}?\d{4}\/\d{4})\b/i;
 
 const itemId = (link, title) => {
   let key = link;
@@ -200,6 +201,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   const eindex = entityIndex(edb);
   const entById = new Map();
 
+  // Readers' 🏷️ corrections (sport / Israeli / not relevant), per article link
+  const { corrections, added: fixesAdded } = await loadCorrections(state.corrections, now);
+
   // (Re-)tag every item: uses the English translation for foreign languages, and picks up list edits immediately
   // Pass 1: keyword/section evidence + knowledge-base names (sport-neutral)
   for (const it of items) {
@@ -219,10 +223,17 @@ export async function collect({ log = console.log, force = false } = {}) {
     it._entSport = entitySport(found);
     it._amb = [...new Set(found.filter((e) => e.amb && e.k === 'team').map((e) => e.en))]; // clubs in both sports
     it._feats = features(it);
+    it._fix = corrections.byLink[it.link] || null;
   }
   // Pass 2: a word model trained on the articles whose sport is certain (site section, sport feed, or names)
-  const model = trainModel(items.filter((it) => it._ev.url || it._ev.source || it._entSport).map((it) => ({ feats: it._feats, sport: it._ev.url || it._ev.source || it._entSport })));
-  const decisions = items.map((it) => decideSport(it._ev, it._entSport, predict(model, it._feats), it._feats));
+  const samples = items
+    .filter((it) => it._fix?.sport || it._ev.url || it._ev.source || it._entSport)
+    .flatMap((it) => {
+      const s = { feats: it._feats, sport: it._fix?.sport || it._ev.url || it._ev.source || it._entSport };
+      return it._fix?.sport ? [s, s, s] : [s];
+    });
+  const model = trainModel(samples);
+  const decisions = items.map((it) => (it._fix?.sport ? { sport: it._fix.sport, why: 'user' } : decideSport(it._ev, it._entSport, predict(model, it._feats), it._feats)));
   // What's in the news right now: a club that exists in both sports (Maccabi Tel Aviv, Hapoel Tel Aviv…) is
   // usually in the news for one of them (EuroLeague week, football's international break). Certain articles
   // from the last 24h decide unclear ones.
@@ -284,6 +295,11 @@ export async function collect({ log = console.log, force = false } = {}) {
     }
     it.ents = [...new Set(keep.map((e) => e.id))];
     delete it._ents;
+  }
+  for (const it of items) {
+    if (it._fix?.israel != null) it.israel = it._fix.israel;
+    if (it._fix?.hide) it.hidden = true;
+    delete it._fix;
   }
   const liveIds = new Set(items.map((i) => i.id));
   for (const id of Object.keys(tr)) if (!liveIds.has(id)) delete tr[id];
@@ -378,13 +394,13 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   await writeJson(join(DATA, 'sources.json'), { generatedAt: now, health });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
   );
   log(
-    `   sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
+    `   ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
   );
   results.forEach((r, i) => !r.ok && log(`   ✗ ${due[i].id}: ${String(r.error?.message || r.error).slice(0, 100)}`));
   return { stories: stories.length, fresh };

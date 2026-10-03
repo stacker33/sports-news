@@ -70,6 +70,10 @@ const T = {
     editList: '✏️ עריכת רשימה',
     updatesCount: (n) => ` · ${n} עדכונים`,
     sumBtn: '📝 תקציר',
+    fix: {
+      btn: '🏷️', title: 'בקטגוריה הלא נכונה? תקנו', football: '⚽ כדורגל', basketball: '🏀 כדורסל', other: '🏅 ספורט אחר',
+      il: '🇮🇱 ישראלי', notIl: '🌍 לא ישראלי', hide: '🚫 לא רלוונטי', thanks: 'תודה! תוקן — והמערכת תלמד מזה',
+    },
     socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
     sumTranslated: 'תורגם אוטומטית',
     scoresLoading: 'טוען תוצאות…',
@@ -178,6 +182,10 @@ const T = {
     editList: '✏️ Edit list',
     updatesCount: (n) => ` · ${n} updates`,
     sumBtn: '📝 Summary',
+    fix: {
+      btn: '🏷️', title: 'Wrong category? Fix it', football: '⚽ Football', basketball: '🏀 Basketball', other: '🏅 Other sport',
+      il: '🇮🇱 Israeli', notIl: '🌍 Not Israeli', hide: '🚫 Not relevant', thanks: 'Thanks! Fixed, and the system will learn from it',
+    },
     socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
     sumTranslated: 'machine-translated',
     scoresLoading: 'Loading scores…',
@@ -279,6 +287,42 @@ function ago(ts) {
   return rtf.format(Math.round(h / 24), 'day');
 }
 const hhmm = (ts) => new Date(ts).toLocaleTimeString(state.ui === 'he' ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+
+// ---------- category corrections ----------
+// Each fix: { id, links, sport?, israel?, hide?, t }. Applied to the matching story on this device at once, and sent
+// to a public ntfy.sh topic that the collector reads every run (it then trains the sport model on it).
+const FIX_TOPIC = 'https://ntfy.sh/sports-radar-fix-b5e962ea3039dbb3';
+const FIX_DAYS = 3;
+let fixes = store.get('fixes', []).filter((f) => Date.now() - f.t < FIX_DAYS * 864e5);
+
+function fixFor(s) {
+  const links = new Set(s.sources.map((x) => x.link));
+  return fixes.filter((f) => f.id === s.id || f.links.some((l) => links.has(l))).reduce((a, f) => ({ ...a, ...f }), null);
+}
+function applyFixes(stories) {
+  return stories
+    .map((s) => {
+      const f = fixFor(s);
+      if (!f) return s;
+      return { ...s, ...(f.sport ? { sport: f.sport } : {}), ...(f.israel != null ? { israel: f.israel } : {}), hide: !!f.hide };
+    })
+    .filter((s) => !s.hide);
+}
+function sendFix(s, change) {
+  // full correction for this story (earlier choices + this one), so the collector can simply take the latest
+  const prev = fixes.find((f) => f.id === s.id) || {};
+  const fix = { ...prev, id: s.id, links: s.sources.map((x) => x.link).slice(0, 15), ...change, t: Date.now() };
+  fixes = [...fixes.filter((f) => f.id !== s.id), fix];
+  store.set('fixes', fixes);
+  fetch(FIX_TOPIC, { method: 'POST', body: JSON.stringify({ v: 1, ...fix, title: s.title.slice(0, 140) }) }).catch(() => {});
+}
+function toast(text) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+  document.body.append(el);
+  setTimeout(() => el.remove(), 3500);
+}
 
 // ---------- filtering ----------
 
@@ -445,7 +489,12 @@ function cardHtml(s, fresh) {
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
         ${foreignLink ? `<a href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener">🌐 ${esc(L.readOriginal)}</a>` : ''}
+        <button type="button" class="fix-btn" title="${esc(L.fix.title)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
       </div>
+      <div class="fix-menu" hidden>${['football', 'basketball', 'other']
+        .filter((sp) => sp !== s.sport)
+        .map((sp) => `<button type="button" data-fix="${sp}">${esc(L.fix[sp])}</button>`)
+        .join('')}<button type="button" data-fix="${s.israel ? 'notIl' : 'il'}">${esc(s.israel ? L.fix.notIl : L.fix.il)}</button><button type="button" data-fix="hide">${esc(L.fix.hide)}</button></div>
       ${tagsHtml(s)}
     </div>
     ${img}
@@ -703,6 +752,7 @@ async function load({ initial = false } = {}) {
     const res = await fetch(`data/news.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
+    data.stories = applyFixes(data.stories);
     state.lastFetchOk = true;
 
     if (initial || !state.data) {
@@ -1114,6 +1164,25 @@ $('list').addEventListener('click', (e) => {
     renderList();
     window.scrollTo({ top: 0 });
   }
+});
+$('list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.fix-btn');
+  if (btn) {
+    const menu = btn.closest('.card').querySelector('.fix-menu');
+    menu.hidden = !menu.hidden;
+    btn.setAttribute('aria-expanded', String(!menu.hidden));
+    return;
+  }
+  const opt = e.target.closest('[data-fix]');
+  if (!opt) return;
+  const s = state.data?.stories.find((x) => x.id === opt.closest('.card').dataset.id);
+  if (!s) return;
+  const v = opt.dataset.fix;
+  sendFix(s, v === 'hide' ? { hide: true } : v === 'il' ? { israel: true } : v === 'notIl' ? { israel: false } : { sport: v });
+  state.data.stories = applyFixes(state.data.stories);
+  toast(t().fix.thanks);
+  renderChrome();
+  renderList();
 });
 $('list').addEventListener('auxclick', recordOpen); // middle-click / open in new tab
 $('justinPane').addEventListener('click', recordOpen);

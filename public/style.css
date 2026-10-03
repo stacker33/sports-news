@@ -407,3 +407,12 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 /* v12: Israelis abroad inner tabs */
 .abroad-view { display: flex; width: 100%; max-width: 360px; }
 .abroad-view button { flex: 1; font-size: 14px; padding: 6px 10px; }
+
+/* v13: wrong-category button */
+.fix-btn { margin-inline-start: auto; border: 0; background: none; cursor: pointer; font-size: 14px; opacity: .45; padding: 2px 4px; border-radius: 8px; }
+.fix-btn:hover, .fix-btn[aria-expanded="true"] { opacity: 1; background: var(--surface-2); }
+.fix-menu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fix-menu[hidden] { display: none; }
+.fix-menu button { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.fix-menu button:hover { border-color: var(--accent); }
+.toast { position: fixed; inset-inline: 16px; bottom: calc(76px + env(safe-area-inset-bottom)); margin: 0 auto; max-width: 420px; background: var(--text); color: var(--surface); padding: 10px 14px; border-radius: 12px; font-size: 14px; text-align: center; z-index: 50; box-shadow: var(--shadow); }
