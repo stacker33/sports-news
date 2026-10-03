@@ -55,6 +55,11 @@ jobs:
         with:
           path: public
 
+      # actions/deploy-pages can query the Artifacts API before GitHub finishes
+      # indexing the artifact just uploaded above, failing with "No artifacts
+      # named github-pages were found". A short delay avoids that race.
+      - run: sleep 10
+
       - id: deploy
         uses: actions/deploy-pages@v4
 
