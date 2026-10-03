@@ -88,6 +88,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
   };
 
   const token = process.env.AI_API_KEY;
+  if (!token) st.error = 'no AI_API_KEY secret';
   let done = 0;
   if (token && st.used < DAILY_CAP && !(st.cooldownUntil > now)) {
     const need = stories

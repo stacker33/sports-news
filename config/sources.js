@@ -70,6 +70,7 @@ export const SOURCES = [
   { id: 'haaretz-sport', name: 'הארץ', url: 'https://www.haaretz.co.il/srv/sport', lang: 'he', weight: 2 },
   { id: 'maariv-sport', name: 'מעריב', url: 'https://www.maariv.co.il/rss/rssfeedssport', lang: 'he', weight: 2, noDates: true },
   { id: 'israelhayom', name: 'ישראל היום', url: 'https://www.israelhayom.co.il/rss.xml', lang: 'he', weight: 2, mixed: true },
+  { id: 'israelhayom-gn', name: 'ישראל היום', url: gnews('site:israelhayom.co.il/sport when:1d', 'he'), lang: 'he', weight: 2, google: true, every: 5 }, // the direct feed is blocked from GitHub's servers
   { id: 'sport5-home', name: 'ספורט 5', url: 'https://www.sport5.co.il/', lang: 'he', weight: 3, parser: 'sport5', noDates: true },
   { id: 'sport5', name: 'ספורט 5', url: gnews('site:sport5.co.il when:1d', 'he'), lang: 'he', weight: 3, google: true },
   { id: 'sport1', name: 'ספורט 1', url: 'https://sport1.maariv.co.il/wp-json/wp/v2/posts?per_page=50&_fields=id,date_gmt,link,title,excerpt', lang: 'he', weight: 3, parser: 'wordpress' },
@@ -116,7 +117,6 @@ export const SOURCES = [
   { id: 'yahoo-soccer', name: 'Yahoo Sports', url: 'https://sports.yahoo.com/soccer/rss/', lang: 'en', weight: 2, sport: 'football' },
   { id: 'football-italia', name: 'Football Italia', url: 'https://football-italia.net/feed/', lang: 'en', weight: 1, sport: 'football' },
   { id: 'fourfourtwo', name: 'FourFourTwo', url: 'https://www.fourfourtwo.com/feeds.xml', lang: 'en', weight: 1, sport: 'football' },
-  { id: 'transfermarkt', name: 'Transfermarkt', url: 'https://www.transfermarkt.com/rss/news', lang: 'en', weight: 1, sport: 'football' },
 
   // ---------- ⚡ Reporters & outlets posting live (minutes, not hours) ----------
   { id: 'tg-romano', name: 'Fabrizio Romano', url: 'https://t.me/s/fabrizioromano', lang: 'en', weight: 3, parser: 'telegram', sport: 'football' },
@@ -162,6 +162,13 @@ export const SOURCES = [
   { id: 'lequipe', name: "L'Équipe", url: 'https://dwh.lequipe.fr/api/edito/rss?path=/', lang: 'fr', weight: 2 },
   { id: 'rmc-football', name: 'RMC Sport', url: 'https://rmcsport.bfmtv.com/rss/football/', lang: 'fr', weight: 2, sport: 'football' },
   { id: 'kicker', name: 'kicker', url: 'https://newsfeed.kicker.de/news/aktuell', lang: 'de', weight: 2 },
+  // Israelis abroad: outlets that follow their clubs closely
+  { id: 'netsdaily', name: 'NetsDaily', url: 'https://www.netsdaily.com/rss/index.xml', lang: 'en', weight: 1, sport: 'basketball', every: 3 },
+  { id: 'blazersedge', name: "Blazer's Edge", url: 'https://www.blazersedge.com/rss/index.xml', lang: 'en', weight: 1, sport: 'basketball', every: 3 },
+  { id: 'dailyecho-saints', name: 'Daily Echo', url: 'https://www.dailyecho.co.uk/sport/saints/rss/', lang: 'en', weight: 1, sport: 'football', every: 3 },
+  { id: 'zurnal', name: 'Sportski žurnal', url: 'https://www.zurnal.rs/rss', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 3 },
+  { id: 'nortecastilla', name: 'El Norte de Castilla', url: 'https://www.elnortedecastilla.es/rss/2.0/portada', lang: 'es', country: 'Spain', weight: 1, mixed: true, assist: true, every: 5 },
+  { id: 'informacion', name: 'Información', url: 'https://www.informacion.es/rss/', lang: 'es', country: 'Spain', weight: 1, mixed: true, assist: true, noDates: true, every: 5 },
 
   // Direct national outlets: minutes instead of Google's hours. "assist" = local stories show only when they
   // involve a known team/player, something Israeli, or join a story other outlets carry (no local clutter).
