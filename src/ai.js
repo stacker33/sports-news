@@ -21,7 +21,7 @@ Write for each story:
 - "summary_he": 2–3 short, clear Hebrew sentences: what happened, who is involved, and why it matters (result, decision, injury, transfer, quote…). The reader should understand the story without opening it.
 - "summary_en": the same summary in English, 2–3 sentences.
 - "facts_he": 2–4 short Hebrew bullet points an editor can write from: the key numbers (score, fee, contract length, stats, dates), short quotes with who said them ("X: '…'"), and the people/clubs involved. Only what the texts actually say; fewer bullets if there is little. No repetition of the summary.
-Rules: keep the sport right — a basketball story says כדורסל, never כדורגל (and vice versa). Use ONLY facts that appear in the given texts. Never invent scores, numbers, quotes, dates or reasons. Keep attributions ("according to …", "reportedly") when the source only reports a claim. If the texts say very little, write one sentence with what is known. No hashtags, emojis or clickbait.
+Rules: keep the sport right — a basketball story says כדורסל, never כדורגל (and vice versa). Use ONLY facts that appear in the given texts. Never invent scores, numbers, quotes, dates or reasons. Keep attributions ("according to …", "reportedly") when the source only reports a claim. If the texts say very little, write one sentence with what is known. No hashtags, emojis or clickbait. Inside the text never use the " character — write quotes with the Hebrew ״…״ marks (or ' in English) so the JSON stays valid.
 Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"]}]} with every id you were given.`;
 
 const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
@@ -71,7 +71,20 @@ async function callModel(token, user) {
     throw new Error(`not JSON from ${ENDPOINT}: ${body.slice(0, 80)}`);
   }
   const content = (j.choices?.[0]?.message?.content || '{}').replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, '');
-  return JSON.parse(content);
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    // one broken story (an unescaped quote) shouldn't lose the whole batch: keep every story object that parses
+    const stories = [];
+    for (const part of content.split(/(?=\{\s*"id"\s*:)/).slice(1)) {
+      const obj = part.replace(/\s*\]\s*\}\s*$/, '').replace(/\s*,\s*$/, '');
+      try {
+        stories.push(JSON.parse(obj));
+      } catch {}
+    }
+    if (!stories.length) throw e;
+    return { stories, partial: true };
+  }
 }
 
 // prev = { day, used, cooldownUntil, error, res: { key: { title_he, summary_he, summary_en, n, at } } }
