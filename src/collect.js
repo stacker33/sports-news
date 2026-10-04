@@ -12,7 +12,7 @@ import { classify } from './classify.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap } from './ai.js';
-import { telegramPost, adminHealthAlerts } from './telegram.js';
+import { telegramPost, adminHealthAlerts, adminHello } from './telegram.js';
 import { assignStoryIds } from './storyids.js';
 import { addHebrewNames } from './hebrew.js';
 import { sport5Coverage, sport5Probable } from './sport5.js';
@@ -455,7 +455,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   await writeJson(join(DATA, 'rejected.json'), { generatedAt: now, items: rejectedList });
   // Alert the admin (private Telegram chat) about sources down for 2h+ — once a day per source
   const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  const adminGreeted = await adminHello(state.adminGreeted).catch(() => state.adminGreeted || null);
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

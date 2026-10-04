@@ -188,3 +188,12 @@ export async function adminHealthAlerts(health, prev = {}, now = Date.now()) {
   for (const h of down) sent[h.id] = now;
   return sent;
 }
+
+// One-time "alerts connected" message when TELEGRAM_ADMIN_CHAT is first set (or changed); returns the chat greeted
+export async function adminHello(prevChat) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const admin = process.env.TELEGRAM_ADMIN_CHAT;
+  if (!token || !admin || prevChat === admin) return prevChat || null;
+  await send(token, admin, '✅ <b>רדאר ספורט: התראות המערכת מחוברות</b>\nתקבל כאן הודעה אם מקור לא עובד יותר משעתיים או אם ריצת איסוף נכשלת.', false);
+  return admin;
+}
