@@ -393,7 +393,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     }
   }
   // Hebrew headline + 2–3 sentence summary by a language model (GitHub Models, free tier; important stories first)
-  const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
+  const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now, heOfAthlete).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
   const { tg, posted: tgPosted } = await telegramPost(stories, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
   for (const s of stories) {
@@ -414,7 +414,7 @@ export async function collect({ log = console.log, force = false } = {}) {
       ...rest,
       t,
       sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}) })),
-      sum: s.ai ? undefined : s.sum, // the language model's summary replaces the feed blurb
+      sum: s.ai?.he?.sum ? undefined : s.sum, // the language model's summary replaces the feed blurb
     };
   };
   // First screen: the newest 300 + everything Israeli / Israelis abroad; the rest loads right after
@@ -446,7 +446,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   await writeJson(join(DATA, 'sources.json'), {
     generatedAt: now,
     tookMs: Date.now() - started,
-    ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0 },
+    ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0, model: ai.model || null },
     health: sourceHealth,
   });
   // Rejected items of the last 24h (filtered at intake + hidden later), newest first — diagnostics for misses
