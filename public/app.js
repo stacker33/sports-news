@@ -83,6 +83,7 @@ const T = {
       il: '🇮🇱 ישראלי', notIl: '🌍 לא ישראלי', hide: '🚫 לא רלוונטי', thanks: 'תודה! תוקן — והמערכת תלמד מזה',
     },
     socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
+    share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
     video: 'וידאו', videoTip: 'סרטון מהערוץ הרשמי (מסיבת עיתונאים, ראיון או תקציר)',
     sumTranslated: 'תורגם אוטומטית',
     scoresLoading: 'טוען תוצאות…',
@@ -204,6 +205,7 @@ const T = {
       il: '🇮🇱 Israeli', notIl: '🌍 Not Israeli', hide: '🚫 Not relevant', thanks: 'Thanks! Fixed, and the system will learn from it',
     },
     socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
+    share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
     video: 'Video', videoTip: 'Video from the official channel (press conference, interview or highlights)',
     sumTranslated: 'machine-translated',
     scoresLoading: 'Loading scores…',
@@ -615,6 +617,7 @@ function cardHtml(s, fresh) {
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
         ${foreignLink ? `<a href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener">🌐 ${esc(L.readOriginal)}</a>` : ''}
+        <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">📤</button>
         <button type="button" class="fix-btn" title="${esc(L.fix.title)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
       </div>
       <div class="fix-menu" hidden>${['football', 'basketball', 'other']
@@ -635,6 +638,8 @@ function renderChrome() {
   document.body.dataset.view = state.view;
   document.body.dataset.panel = state.panel;
   $('langBtn').textContent = state.ui === 'he' ? 'EN' : 'עב';
+  $('tgLabel').textContent = t().tgLabel;
+  $('tgBtn').title = t().tgTip;
   renderTopics();
   $('bellBtn').classList.toggle('on', !!state.notif.enabled);
   document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t()[el.dataset.i18n]));
@@ -1338,6 +1343,32 @@ $('list').addEventListener('click', (e) => {
   toast(t().fix.thanks);
   renderChrome();
   renderList();
+});
+// 📤 share: the phone's share sheet (WhatsApp, Telegram…) or WhatsApp Web on a computer
+const SITE_URL = 'https://stacker33.github.io/sports-news/';
+function shareText(s) {
+  const he = state.ui === 'he';
+  const d = disp(s);
+  const title = (he && d.lang !== 'he' && s.ai?.he?.title) || (d.lang !== state.ui && s.t?.[state.ui]?.title) || d.title;
+  const sum = s.ai?.[state.ui]?.sum || '';
+  return { title, text: `*${title}*${sum ? `\n${sum}` : ''}\n${d.link}\n\n${t().shareVia}: ${SITE_URL}`, url: d.link };
+}
+$('list').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.share-btn');
+  if (!btn) return;
+  const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
+  if (!s) return;
+  const { title, text } = shareText(s);
+  const touch = matchMedia('(pointer: coarse)').matches;
+  if (touch && navigator.share) {
+    try {
+      await navigator.share({ title, text });
+      return;
+    } catch (err) {
+      if (err?.name === 'AbortError') return; // closed the share sheet
+    }
+  }
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
 });
 $('list').addEventListener('auxclick', recordOpen); // middle-click / open in new tab
 $('justinPane').addEventListener('click', recordOpen);
