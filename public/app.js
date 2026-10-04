@@ -876,24 +876,50 @@ async function loadAthletes() {
   } catch {}
 }
 
+// The collector writes the first screen (news.json: newest + Israeli) and the rest (news-more.json) separately
+const fetchJson = (path) => fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))));
+// translated headlines without a link use the story's link (saves repeating it in the file)
+const prepStories = (list) => list.map((s) => {
+  for (const lang of ['he', 'en']) if (s.t?.[lang] && !s.t[lang].link) s.t[lang].link = s.link;
+  return s;
+});
+async function withMore(data, morePromise) {
+  if (!data.more) return data;
+  const more = await morePromise.catch(() => null);
+  if (more?.generatedAt === data.generatedAt) data.stories = data.stories.concat(prepStories(more.stories));
+  return data;
+}
+
 async function load({ initial = false } = {}) {
   try {
-    const res = await fetch(`data/news.json?t=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    data.stories = applyFixes(data.stories);
+    const first = await fetchJson('data/news.json');
+    const morePromise = first.more ? fetchJson('data/news-more.json') : Promise.resolve(null);
+    first.stories = prepStories(first.stories);
     state.lastFetchOk = true;
 
     if (initial || !state.data) {
-      state.data = data;
-      data.stories.forEach((s) => {
+      // show the first screen right away, then add the rest quietly
+      first.stories = applyFixes(first.stories);
+      state.data = first;
+      const markSeen = (list) => list.forEach((s) => {
         state.seen.add(s.id);
         if (s.big) state.bigSeen.add(s.id);
       });
+      markSeen(first.stories);
       render();
+      const count = first.stories.length;
+      const full = await withMore(first, morePromise);
+      if (state.data === first && full.stories.length > count) {
+        full.stories = applyFixes(full.stories);
+        markSeen(full.stories);
+        renderChrome();
+        renderList();
+      }
       return;
     }
-    if (data.generatedAt === state.data.generatedAt) return renderStatus();
+    if (first.generatedAt === state.data.generatedAt) return renderStatus();
+    const data = await withMore(first, morePromise);
+    data.stories = applyFixes(data.stories);
 
     const prevGen = state.data.generatedAt;
     const freshIds = new Set(data.stories.filter((s) => !state.seen.has(s.id)).map((s) => s.id));

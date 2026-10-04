@@ -388,14 +388,30 @@ export async function collect({ log = console.log, force = false } = {}) {
   const health = sources.map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
   const okCount = health.filter((h) => h.ok).length;
 
+  // What the app needs, nothing more (phones): ≤8 sources per story, no repeated links, no unused fields
+  const slim = (s) => {
+    const { summary: _s, seen: _seen, ...rest } = s;
+    const t = {};
+    for (const lang of ['he', 'en']) if (s.t?.[lang]) t[lang] = s.t[lang].link === s.link ? { ...s.t[lang], link: undefined } : s.t[lang];
+    return {
+      ...rest,
+      t,
+      sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}) })),
+      sum: s.ai ? undefined : s.sum, // the language model's summary replaces the feed blurb
+    };
+  };
+  // First screen: the newest 300 + everything Israeli / Israelis abroad; the rest loads right after
+  const byNew = [...stories].sort((a, b) => b.first - a.first);
+  const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad)].map((s) => s.id));
+  const head = { generatedAt: now, tookMs: Date.now() - started, sources: { total: sources.length, ok: okCount, fetched: due.length } };
+  await writeJson(join(DATA, 'news-more.json'), { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) });
   await writeJson(join(DATA, 'news.json'), {
-    generatedAt: now,
-    tookMs: Date.now() - started,
-    sources: { total: sources.length, ok: okCount, fetched: due.length },
+    ...head,
+    more: stories.length - firstIds.size, // how many stories news-more.json holds
     rivals: rivals.games,
     gameInfo: gameInfo.games,
     wikiAthletes: wiki.athletes || {},
-    stories,
+    stories: stories.filter((s) => firstIds.has(s.id)).map(slim),
   });
   // For the app: athlete list (+ 365Scores team ids for the scoreboard)
   await writeJson(join(DATA, 'athletes.json'), {

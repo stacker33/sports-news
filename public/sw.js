@@ -1,5 +1,5 @@
 // Service worker: app shell works offline; news data always network-first.
-const CACHE = 'sports-radar-v19';
+const CACHE = 'sports-radar-v20';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'scores.js', 'learn.js', 'manifest.webmanifest', 'icon.svg'];
 
 // Clicking a notification opens the story (or focuses the app)
@@ -37,11 +37,11 @@ self.addEventListener('fetch', (e) => {
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
-          const key = url.pathname.endsWith('news.json') ? new Request(url.origin + url.pathname) : e.request;
+          const key = /\/data\/[\w-]+\.json$/.test(url.pathname) ? new Request(url.origin + url.pathname) : e.request;
           caches.open(CACHE).then((c) => c.put(key, copy));
         }
         return res;
       })
-      .catch(() => caches.match(url.pathname.endsWith('news.json') ? new Request(url.origin + url.pathname) : e.request))
+      .catch(() => caches.match(/\/data\/[\w-]+\.json$/.test(url.pathname) ? new Request(url.origin + url.pathname) : e.request))
   );
 });
