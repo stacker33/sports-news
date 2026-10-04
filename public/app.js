@@ -86,6 +86,7 @@ const T = {
     sinceVisit: (n, when) => `🆕 ${n} ידיעות חדשות מאז הביקור הקודם (${when})`, newBadge: '🆕 חדש', grew: (n) => `🔄 +${n} מקורות`, grewTip: 'הידיעה התעדכנה מאז שראית אותה',
     s5Covered: '✅ בספורט 5', s5Newer: (n) => `🟡 בספורט 5 · ${n} מקורות חדשים מאז`, s5Not: '🔴 לא נמצא בספורט 5', s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
     s5Filter: '🔴 רק מה שלא בספורט 5', s5FilterTip: 'מציג רק ידיעות שעדיין לא סוקרו בספורט 5',
+    claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     copy: 'העתקה לאתר (כותרת, תקציר ומקור)', copied: '📋 הועתק — מוכן להדבקה', copyFail: 'לא הצלחתי להעתיק', source: 'מקור', mail: 'שליחה למייל web@sport5.co.il', mailFrom: 'נשלח מרדאר ספורט',
     share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
     video: 'וידאו', videoTip: 'סרטון מהערוץ הרשמי (מסיבת עיתונאים, ראיון או תקציר)',
@@ -212,6 +213,7 @@ const T = {
     sinceVisit: (n, when) => `🆕 ${n} new stories since your last visit (${when})`, newBadge: '🆕 New', grew: (n) => `🔄 +${n} sources`, grewTip: 'This story has grown since you saw it',
     s5Covered: '✅ On Sport5', s5Newer: (n) => `🟡 On Sport5 · ${n} new sources since`, s5Not: '🔴 Not found on Sport5', s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
     s5Filter: '🔴 Not on Sport5 only', s5FilterTip: 'Show only stories Sport5 has not covered yet',
+    claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     copy: 'Copy for the site (headline, summary, source)', copied: '📋 Copied — ready to paste', copyFail: "Couldn't copy", source: 'Source', mail: 'Send to web@sport5.co.il', mailFrom: 'Sent from Sports Radar',
     share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
     video: 'Video', videoTip: 'Video from the official channel (press conference, interview or highlights)',
@@ -528,7 +530,9 @@ function titleLine(s, d) {
 // 2–3 sentence summary by the language model, shown in full
 function aiSummaryHtml(s) {
   const text = s.ai?.[state.ui]?.sum;
-  return text ? `<p class="ai-sum" dir="auto">${esc(text)}</p>` : '';
+  if (!text) return '';
+  const facts = state.ui === 'he' ? s.ai.he.facts || [] : [];
+  return `<p class="ai-sum" dir="auto">${esc(text)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}`;
 }
 // Machine translation of the shown headline (for the bubble), if the headline isn't Hebrew/English
 function translationOf(s, d) {
@@ -651,6 +655,7 @@ function cardHtml(s, fresh) {
     <div class="body">
       <div class="badges">
         ${s5Badge(s)}
+        <span class="claim-slot">${claimBadge(s)}</span>
         ${unseen ? `<span class="badge new">${esc(t().newBadge)}</span>` : ''}
         ${grew ? `<span class="badge grew" title="${esc(t().grewTip)}">${esc(t().grew(grew))}</span>` : ''}
         ${isHot ? `<span class="badge hot">${esc(t().hot)}</span>` : ''}
@@ -671,6 +676,7 @@ function cardHtml(s, fresh) {
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
         ${foreignLink ? `<a href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener">🌐 ${esc(L.readOriginal)}</a>` : ''}
+        <button type="button" class="claim-btn${claimFor(s)?.mine ? ' on' : ''}" title="${esc(L.claim)}" aria-label="${esc(L.claim)}">🙋</button>
         <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
         <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
         <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
@@ -884,6 +890,7 @@ function renderList(freshIds = new Set()) {
   const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
   $('list').innerHTML = cardsRow + (playersOnly ? '' : banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join(''));
   $('empty').hidden = list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players');
+  paintClaims();
   if (seenObserver) {
     seenObserver.disconnect();
     document.querySelectorAll('#list .card[data-id]').forEach((el) => seenObserver.observe(el));
@@ -1411,6 +1418,81 @@ $('list').addEventListener('click', (e) => {
   renderChrome();
   renderList();
 });
+// ---------- 🙋 "I'm on it": which editor is writing which story ----------
+// Each claim / unclaim is a message on a public ntfy.sh topic; every browser reads the last 8 hours of it every
+// minute, so all editors see who took what. A claim lasts 8 hours (or until undone). Only a first name is shared.
+const CLAIM_TOPIC = 'https://ntfy.sh/sports-radar-claims-fc75c54a0494b149';
+const CLAIM_HOURS = 8;
+const deviceId = store.get('deviceId', '') || (() => { const id = Math.random().toString(36).slice(2, 10); store.set('deviceId', id); return id; })();
+let claims = new Map(); // story id → { name, device, links, t }
+function claimFor(s) {
+  let c = claims.get(s.id);
+  if (!c) {
+    const links = new Set(s.sources.map((x) => x.link));
+    for (const v of claims.values()) if (v.links?.some((l) => links.has(l))) { c = v; break; }
+  }
+  return c ? { ...c, mine: c.device === deviceId } : null;
+}
+function claimBadge(s) {
+  const c = claimFor(s);
+  if (!c) return '';
+  return `<span class="badge claim${c.mine ? ' mine' : ''}">${esc(c.mine ? t().claimMine : t().claimBy(c.name))}</span>`;
+}
+async function loadClaims() {
+  try {
+    const res = await fetch(`${CLAIM_TOPIC}/json?poll=1&since=${CLAIM_HOURS}h`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const next = new Map();
+    for (const line of (await res.text()).split('\n')) {
+      let m;
+      try { m = JSON.parse(line); } catch { continue; }
+      if (m.event !== 'message') continue;
+      let c;
+      try { c = JSON.parse(m.message); } catch { continue; }
+      if (c?.v !== 1 || typeof c.id !== 'string') continue;
+      if (c.type === 'unclaim') next.delete(c.id);
+      else if (c.type === 'claim' && typeof c.name === 'string') next.set(c.id, { id: c.id, name: c.name.slice(0, 30), device: String(c.device || ''), links: Array.isArray(c.links) ? c.links.slice(0, 15) : [], t: m.time * 1000 });
+    }
+    claims = next;
+    paintClaims();
+  } catch {}
+}
+// update the badges / buttons in place (no full re-render while someone is reading)
+function paintClaims() {
+  document.querySelectorAll('#list .card[data-id]').forEach((card) => {
+    const s = state.data?.stories.find((x) => x.id === card.dataset.id);
+    if (!s) return;
+    const slot = card.querySelector('.claim-slot');
+    if (slot) slot.innerHTML = claimBadge(s);
+    card.querySelector('.claim-btn')?.classList.toggle('on', !!claimFor(s)?.mine);
+  });
+}
+async function toggleClaim(s) {
+  const c = claimFor(s);
+  if (c && !c.mine) return toast(t().claimBy(c.name)); // someone else has it
+  let name = store.get('editorName', '');
+  if (!c && !name) {
+    name = (prompt(t().claimName) || '').trim().slice(0, 30);
+    if (!name) return;
+    store.set('editorName', name);
+  }
+  const msg = c ? { v: 1, type: 'unclaim', id: c.id || s.id } : { v: 1, type: 'claim', id: s.id, name, device: deviceId, links: s.sources.map((x) => x.link).slice(0, 15) };
+  // show it at once, then share it
+  if (c) claims.delete(msg.id);
+  else claims.set(s.id, { id: s.id, name, device: deviceId, links: msg.links, t: Date.now() });
+  paintClaims();
+  if (!c) toast(`${t().claimMine} · ${t().claimUndo}`);
+  try {
+    await fetch(CLAIM_TOPIC, { method: 'POST', body: JSON.stringify(msg) });
+  } catch {}
+}
+$('list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.claim-btn');
+  if (!btn) return;
+  const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
+  if (s) toggleClaim(s);
+});
+
 // ---------- Sport5 coverage + copy for the site + mail ----------
 function s5Badge(s) {
   const L = t();
@@ -1427,7 +1509,8 @@ function editorText(s) {
   const sum = s.ai?.he?.sum || s.sum?.he || (s.sum?.lang === 'he' ? s.sum.text : '') || '';
   const src = s.sources[0] || { name: '', link: s.link };
   const orig = s.lang !== 'he' && s.title !== title ? `\n(${s.title})` : '';
-  return { title, text: `${title}${orig}\n\n${sum ? sum + '\n\n' : ''}${t().source}: ${src.name} | ${s.realLink || src.link || s.link}` };
+  const facts = (s.ai?.he?.facts || []).map((f) => `• ${f}`).join('\n');
+  return { title, text: `${title}${orig}\n\n${sum ? sum + '\n\n' : ''}${facts ? facts + '\n\n' : ''}${t().source}: ${src.name} | ${s.realLink || src.link || s.link}` };
 }
 $('s5Filter').addEventListener('click', () => {
   state.notS5 = !state.notS5;
@@ -1618,6 +1701,8 @@ $('topicForm').addEventListener('click', (e) => {
   await load({ initial: true });
   loadScores();
   setInterval(load, REFRESH_MS);
+  loadClaims();
+  setInterval(loadClaims, 60 * 1000);
   setInterval(loadAthletes, 10 * 60 * 1000);
   Learn.sync().then(() => state.tab === 'foryou' && renderList());
   setInterval(() => Learn.sync(), 3 * 60 * 1000);

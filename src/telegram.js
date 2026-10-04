@@ -30,7 +30,7 @@ const SCOOP = /here we go|official|confirmed|agreed|agreement|deal (done|agreed)
 const isScoop = (s) => (s.social || []).some((p) => !/[א-ת]/.test(p)) && SCOOP.test(s.title);
 const major = (s) => s.tags?.some((g) => MAJOR.has(g.id));
 // how much an editor wants this right now (world stories are first-class)
-const urgency = (s) => s.score + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
+const urgency = (s) => s.score + (!s.s5 || s.s5.probable ? 2 : 0) + (s.s5?.newer >= 2 ? 1 : 0) + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
 const titleHe = (s) => s.ai?.he?.title || s.t?.he?.title || heMap.get(s) || s.title;
 const isHe = (t) => /[א-ת]/.test(t || '');
 const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
@@ -40,9 +40,12 @@ function alertText(s, siteUrl, heName = new Map()) {
   const sum = s.ai?.he?.sum ? `\n${esc(s.ai.he.sum)}\n` : '';
   const more = s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : '';
   const video = s.video ? ` · <a href="${esc(s.video)}">🎥 וידאו</a>` : '';
+  // Sport5 status (the editors' first question)
+  const s5 = !s.s5 ? '🔴 לא נמצא בספורט 5' : s.s5.newer >= 2 ? `🟡 בספורט 5 · ${s.s5.newer} מקורות חדשים מאז` : s.s5.probable ? '☑️ כנראה בספורט 5' : '✅ כבר בספורט 5';
+  const s5Line = s.s5 ? `<a href="${esc(s.s5.link)}">${s5}</a>` : s5;
   const he = titleHe(s);
   const head = isHe(s.title) || he === s.title ? `<b>${esc(he)}</b>` : `<b>${esc(s.title)}</b>\n🇮🇱 ${esc(he)}`;
-  return `${icon(s)} ${head}\n${who}${sum}\n<a href="${esc(s.realLink || s.link)}">${esc(s.sources[0]?.name || '')}${more}</a>${video} · <a href="${esc(siteUrl)}">רדאר ספורט</a>`;
+  return `${icon(s)} ${head}\n${s5Line}\n${who}${sum}\n<a href="${esc(s.realLink || s.link)}">${esc(s.sources[0]?.name || '')}${more}</a>${video} · <a href="${esc(siteUrl)}">רדאר ספורט</a>`;
 }
 
 // One line per Israeli abroad who had a game in the last 24h

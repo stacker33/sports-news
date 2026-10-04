@@ -20,8 +20,9 @@ Write for each story:
 - "title_he": the headline in natural, fluent Hebrew as an Israeli sports site would write it (not a literal translation). Use the common Hebrew spelling of players, clubs and competitions (e.g. "מכבי תל אביב", "ריאל מדריד", "ליגת האלופות", "דני אבדיה").
 - "summary_he": 2–3 short, clear Hebrew sentences: what happened, who is involved, and why it matters (result, decision, injury, transfer, quote…). The reader should understand the story without opening it.
 - "summary_en": the same summary in English, 2–3 sentences.
+- "facts_he": 2–4 short Hebrew bullet points an editor can write from: the key numbers (score, fee, contract length, stats, dates), short quotes with who said them ("X: '…'"), and the people/clubs involved. Only what the texts actually say; fewer bullets if there is little. No repetition of the summary.
 Rules: keep the sport right — a basketball story says כדורסל, never כדורגל (and vice versa). Use ONLY facts that appear in the given texts. Never invent scores, numbers, quotes, dates or reasons. Keep attributions ("according to …", "reportedly") when the source only reports a claim. If the texts say very little, write one sentence with what is known. No hashtags, emojis or clickbait.
-Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…"}]} with every id you were given.`;
+Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"]}]} with every id you were given.`;
 
 const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
 
@@ -52,7 +53,7 @@ async function callModel(token, user) {
     body: JSON.stringify({
       model: MODEL,
       temperature: 0.2,
-      max_tokens: 3500,
+      max_tokens: 6000,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM },
@@ -84,7 +85,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
   const keyOf = new Map(stories.map((s) => [s, storyKey(s)]));
   const attach = (s) => {
     const r = st.res[keyOf.get(s)];
-    if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he }, en: { sum: r.summary_en } };
+    if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he, ...(r.facts?.length ? { facts: r.facts } : {}) }, en: { sum: r.summary_en } };
   };
 
   const token = process.env.AI_API_KEY;
@@ -95,7 +96,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
       .filter((s) => now - s.first < 18 * 3600e3)
       .filter((s) => {
         const r = st.res[keyOf.get(s)];
-        return !r || (s.sourceCount >= r.n * 2 && s.sourceCount >= r.n + 3 && now - r.at > 3600e3);
+        return !r || r.v !== 2 || (s.sourceCount >= r.n * 2 && s.sourceCount >= r.n + 3 && now - r.at > 3600e3);
       })
       .sort((a, b) => b.score - a.score) // most important first — world and Israeli alike
       .slice(0, PER_REQUEST);
@@ -107,7 +108,8 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
           if (!s || !r.summary_he) continue;
-          st.res[keyOf.get(s)] = { title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), n: s.sourceCount, at: now };
+          const facts = (Array.isArray(r.facts_he) ? r.facts_he : []).filter((f) => typeof f === 'string' && f.trim()).slice(0, 4).map((f) => clip(f.trim(), 200));
+          st.res[keyOf.get(s)] = { v: 2, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, n: s.sourceCount, at: now };
           done++;
         }
         st.error = null;
