@@ -13,6 +13,7 @@ import { features, trainModel, predict, entitySport, decideSport, SURE } from '.
 import { loadCorrections } from './corrections.js';
 import { aiSummaries } from './ai.js';
 import { telegramPost } from './telegram.js';
+import { assignStoryIds } from './storyids.js';
 import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
@@ -345,8 +346,11 @@ export async function collect({ log = console.log, force = false } = {}) {
     return [...comps, ...teams.map((e) => ({ ...e, il: isIl(e) || undefined })), ...players].filter((e) => !seenName.has(e.k + e.en) && seenName.add(e.k + e.en)).map(({ k, id, en, he, il }) => ({ k, id, en, he, ...(il ? { il: true } : {}) }));
   }
 
-  const stories = clusterItems(items.filter((i) => !i.hidden))
-    .map((members) => ({ ...buildStory(members, now), tags: storyTags(members), _members: members }))
+  // stable story ids across runs (see src/storyids.js)
+  const clusters = clusterItems(items.filter((i) => !i.hidden));
+  const { ids: storyIdList, map: storyIds } = assignStoryIds(clusters, state.storyIds);
+  const stories = clusters
+    .map((members, i) => ({ ...buildStory(members, now), id: storyIdList[i], tags: storyTags(members), _members: members }))
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
     .map((s) => applySignals(s, signals))
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
@@ -422,7 +426,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   await writeJson(join(DATA, 'sources.json'), { generatedAt: now, health });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

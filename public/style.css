@@ -448,3 +448,10 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 .tg-btn { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border-radius: 999px; background: #229ED9; color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; flex: none; }
 .tg-btn:hover { filter: brightness(1.08); }
 @media (max-width: 420px) { .tg-btn span { display: none; } .tg-btn { padding: 0 8px; } }
+
+/* v19: what's new since your last visit */
+.card.unseen { box-shadow: inset 3px 0 0 var(--accent), var(--shadow); }
+[dir="rtl"] .card.unseen { box-shadow: inset -3px 0 0 var(--accent), var(--shadow); }
+.badge.new { background: var(--accent-soft); color: var(--accent); }
+.badge.grew { background: var(--il-soft); color: var(--il); }
+.since-bar { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 14px; border-radius: var(--radius); padding: 9px 14px; }

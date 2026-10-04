@@ -83,6 +83,7 @@ const T = {
       il: '🇮🇱 ישראלי', notIl: '🌍 לא ישראלי', hide: '🚫 לא רלוונטי', thanks: 'תודה! תוקן — והמערכת תלמד מזה',
     },
     socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
+    sinceVisit: (n, when) => `🆕 ${n} ידיעות חדשות מאז הביקור הקודם (${when})`, newBadge: '🆕 חדש', grew: (n) => `🔄 +${n} מקורות`, grewTip: 'הידיעה התעדכנה מאז שראית אותה',
     share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
     video: 'וידאו', videoTip: 'סרטון מהערוץ הרשמי (מסיבת עיתונאים, ראיון או תקציר)',
     sumTranslated: 'תורגם אוטומטית',
@@ -205,6 +206,7 @@ const T = {
       il: '🇮🇱 Israeli', notIl: '🌍 Not Israeli', hide: '🚫 Not relevant', thanks: 'Thanks! Fixed, and the system will learn from it',
     },
     socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
+    sinceVisit: (n, when) => `🆕 ${n} new stories since your last visit (${when})`, newBadge: '🆕 New', grew: (n) => `🔄 +${n} sources`, grewTip: 'This story has grown since you saw it',
     share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
     video: 'Video', videoTip: 'Video from the official channel (press conference, interview or highlights)',
     sumTranslated: 'machine-translated',
@@ -302,12 +304,51 @@ function ago(ts) {
   const s = Math.round((ts - Date.now()) / 1000);
   if (s > -60) return state.ui === 'he' ? 'עכשיו' : 'just now';
   const m = Math.round(s / 60);
-  if (m > -60) return rtf.format(m, 'minute');
   const h = Math.round(m / 60);
+  const d = Math.round(h / 24);
+  if (state.ui === 'he') {
+    // natural Hebrew (the browser's short format writes "שע׳ (1)")
+    if (m > -60) return `לפני ${-m} דק׳`;
+    if (h > -24) return h === -1 ? 'לפני שעה' : h === -2 ? 'לפני שעתיים' : `לפני ${-h} שעות`;
+    return d === -1 ? 'אתמול' : d === -2 ? 'לפני יומיים' : `לפני ${-d} ימים`;
+  }
+  if (m > -60) return rtf.format(m, 'minute');
   if (h > -24) return rtf.format(h, 'hour');
-  return rtf.format(Math.round(h / 24), 'day');
+  return rtf.format(d, 'day');
 }
 const hhmm = (ts) => new Date(ts).toLocaleTimeString(state.ui === 'he' ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+
+// ---------- what you've seen ----------
+// seenN: story id → number of sources when you saw it (a card counts as seen after ~1.5s on screen, or when opened).
+// Stories you haven't seen that appeared since your last visit get 🆕; a seen story that gained 2+ sources gets 🔄.
+let seenN = store.get('seenN', {});
+const lastVisit = store.get('lastVisit', 0); // when you last left the site (fixed for this visit)
+let seenTimer;
+function markSeen(s) {
+  if (!s || seenN[s.id] === s.sourceCount) return;
+  seenN[s.id] = s.sourceCount;
+  clearTimeout(seenTimer);
+  seenTimer = setTimeout(() => store.set('seenN', seenN), 2000);
+}
+const isUnseen = (s) => !!lastVisit && seenN[s.id] == null && s.first > lastVisit;
+const grewBy = (s) => (seenN[s.id] != null && s.sourceCount - seenN[s.id] >= 2 ? s.sourceCount - seenN[s.id] : 0);
+function pruneSeen(stories) {
+  const live = new Set(stories.map((s) => s.id));
+  seenN = Object.fromEntries(Object.entries(seenN).filter(([id]) => live.has(id)));
+  store.set('seenN', seenN);
+}
+const leave = () => store.set('lastVisit', Date.now());
+document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && leave());
+window.addEventListener('pagehide', leave);
+const seenObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver((entries) => {
+      for (const en of entries) {
+        const el = en.target;
+        clearTimeout(el._seenT);
+        if (en.isIntersecting) el._seenT = setTimeout(() => markSeen(state.data?.stories.find((x) => x.id === el.dataset.id)), 1500);
+      }
+    }, { threshold: 0.6 })
+  : null;
 
 // ---------- category corrections ----------
 // Each fix: { id, links, sport?, israel?, hide?, t }. Applied to the matching story on this device at once, and sent
@@ -596,9 +637,13 @@ function cardHtml(s, fresh) {
         .map((x) => `<li><b>${esc(x.name)}${x.unknown ? '' : ` · ${timeEl(x.published)}`}</b><a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`)
         .join('')}</ul></details>`
     : '';
-  return `<article class="card${fresh ? ' fresh' : ''}" data-id="${esc(s.id)}">
+  const unseen = isUnseen(s);
+  const grew = grewBy(s);
+  return `<article class="card${fresh ? ' fresh' : ''}${unseen ? ' unseen' : ''}" data-id="${esc(s.id)}">
     <div class="body">
       <div class="badges">
+        ${unseen ? `<span class="badge new">${esc(t().newBadge)}</span>` : ''}
+        ${grew ? `<span class="badge grew" title="${esc(t().grewTip)}">${esc(t().grew(grew))}</span>` : ''}
         ${isHot ? `<span class="badge hot">${esc(t().hot)}</span>` : ''}
         ${s.social?.length ? `<span class="badge social" title="${esc(L.socialTip)}">⚡ ${esc(s.social.join(', '))}</span>` : ''}
         ${s.video && s.video !== d.link ? `<a class="badge video" href="${esc(s.video)}" target="_blank" rel="noopener" title="${esc(L.videoTip)}">🎥 ${esc(L.video)}</a>` : ''}
@@ -816,13 +861,19 @@ function renderList(freshIds = new Set()) {
   const tagBar = tagInfo ? `<div class="tag-filter"><button type="button" class="tag on" data-tag="${esc(tagInfo.id)}">${TAG_ICON[tagInfo.k] || ''} ${esc(tagName(tagInfo))} ✕</button></div>` : '';
   const tp = activeTopic();
   const topicBar = tp ? `<div class="topic-banner"><b>⭐ ${esc(tp.name)}</b><span class="muted">${esc(t().topics.banner(list.length))}</span><button type="button" class="small-btn" data-topic-edit="${esc(tp.id)}">${esc(t().topics.edit)}</button><button type="button" class="small-btn" data-topic="${esc(tp.id)}">${esc(t().topics.clear)}</button></div>` : '';
-  const banner = topicBar + tagBar + (state.tab === 'foryou' && !tp
+  const unseenN = lastVisit ? list.filter(isUnseen).length : 0;
+  const sinceBar = unseenN ? `<div class="since-bar">${esc(t().sinceVisit(unseenN, ago(lastVisit)))}</div>` : '';
+  const banner = sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
     ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
     : '');
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
   const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
   $('list').innerHTML = cardsRow + (playersOnly ? '' : banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join(''));
   $('empty').hidden = list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players');
+  if (seenObserver) {
+    seenObserver.disconnect();
+    document.querySelectorAll('#list .card[data-id]').forEach((el) => seenObserver.observe(el));
+  }
 }
 
 // ---------- rendering: just in ----------
@@ -906,20 +957,21 @@ async function load({ initial = false } = {}) {
       // show the first screen right away, then add the rest quietly
       first.stories = applyFixes(first.stories);
       state.data = first;
-      const markSeen = (list) => list.forEach((s) => {
+      const markLoaded = (list) => list.forEach((s) => {
         state.seen.add(s.id);
         if (s.big) state.bigSeen.add(s.id);
       });
-      markSeen(first.stories);
+      markLoaded(first.stories);
       render();
       const count = first.stories.length;
       const full = await withMore(first, morePromise);
       if (state.data === first && full.stories.length > count) {
         full.stories = applyFixes(full.stories);
-        markSeen(full.stories);
+        markLoaded(full.stories);
         renderChrome();
         renderList();
       }
+      pruneSeen(state.data.stories);
       return;
     }
     if (first.generatedAt === state.data.generatedAt) return renderStatus();
@@ -1284,6 +1336,7 @@ function recordOpen(e) {
   if (!holder || a.closest('.meta')) return; // the translate link etc. is not a read
   const s = state.data?.stories.find((x) => x.id === holder.dataset.id);
   if (s) Learn.record(s);
+  markSeen(s);
 }
 $('list').addEventListener('click', recordOpen);
 $('list').addEventListener('click', (e) => {
