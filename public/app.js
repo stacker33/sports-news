@@ -91,6 +91,8 @@ const T = {
     reasons: { url: 'מדור האתר', section: 'מדור האתר', feed: 'מקור ייעודי לענף', names: 'שמות שחקנים/קבוצות', kw: 'מילות מפתח', 'kw-other': 'מילות מפתח של ענף אחר', 'kw-weak': 'מילות מפתח (חלש)', model: 'מודל למידה', 'model-weak': 'מודל למידה (ביטחון נמוך)', 'in-the-news': 'ההקשר החדשותי של הקבוצה', score: 'תוצאת המשחק', user: 'תיקון עורך', uncertain: 'אין ראיה ברורה', athlete: 'ישראלי בחו"ל', 'il-clubs': 'שמות מועדונים', tie: 'שוויון ראיות' },
     sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
     s5Filter: '🔴 רק מה שלא בספורט 5', s5FilterTip: 'מציג רק ידיעות שעדיין לא סוקרו בספורט 5',
+    report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
+    vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     copy: 'העתקה לאתר (כותרת, תקציר ומקור)', copied: '📋 הועתק — מוכן להדבקה', copyFail: 'לא הצלחתי להעתיק', source: 'מקור', mail: 'שליחה למייל web@sport5.co.il', mailFrom: 'נשלח מרדאר ספורט',
     share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
@@ -223,6 +225,8 @@ const T = {
     reasons: { url: 'site section', section: 'site section', feed: 'sport-specific source', names: 'player/team names', kw: 'keywords', 'kw-other': "another sport's keywords", 'kw-weak': 'keywords (weak)', model: 'learned model', 'model-weak': 'learned model (low confidence)', 'in-the-news': "the club's news context", score: 'the score', user: 'editor correction', uncertain: 'no clear evidence', athlete: 'Israeli abroad', 'il-clubs': 'club names', tie: 'tied evidence' },
     sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
     s5Filter: '🔴 Not on Sport5 only', s5FilterTip: 'Show only stories Sport5 has not covered yet',
+    report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
+    vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     copy: 'Copy for the site (headline, summary, source)', copied: '📋 Copied — ready to paste', copyFail: "Couldn't copy", source: 'Source', mail: 'Send to web@sport5.co.il', mailFrom: 'Sent from Sports Radar',
     share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
@@ -697,6 +701,7 @@ function cardHtml(s, fresh) {
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
         ${foreignLink ? `<a href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener">🌐 ${esc(L.readOriginal)}</a>` : ''}
+        <span class="votes" title="${esc(voteTip(s))}"><button type="button" class="vote-btn${myVotes[s.id] === 1 ? ' on' : ''}" data-vote="1" aria-label="${esc(L.vote.up)}" title="${esc(L.vote.up)}">👍${voteN(s, 'up')}</button><button type="button" class="vote-btn${myVotes[s.id] === -1 ? ' on' : ''}" data-vote="-1" aria-label="${esc(L.vote.down)}" title="${esc(L.vote.down)}">👎${voteN(s, 'down')}</button></span>
         <button type="button" class="claim-btn${claimFor(s)?.mine ? ' on' : ''}" title="${esc(L.claim)}" aria-label="${esc(L.claim)}">🙋</button>
         <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
         <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
@@ -722,6 +727,8 @@ function renderChrome() {
   document.body.dataset.panel = state.panel;
   $('langBtn').textContent = state.ui === 'he' ? 'EN' : 'עב';
   $('tgLabel').textContent = t().tgLabel;
+  $('reportBtn').title = t().report.btn;
+  $('reportBtn').setAttribute('aria-label', t().report.btn);
   $('s5Filter').textContent = t().s5Filter;
   $('s5Filter').title = t().s5FilterTip;
   $('s5Filter').setAttribute('aria-pressed', String(state.notS5));
@@ -1441,6 +1448,69 @@ $('list').addEventListener('click', (e) => {
   renderChrome();
   renderList();
 });
+// ---------- 📣 reports + 👍/👎 votes (the pilot's feedback) ----------
+// Both go to a public ntfy.sh topic; the collector forwards reports to the admin's private Telegram and adds the
+// votes up in data/votes.json (shown here as counts, and the labelled set for measuring the radar).
+const FEEDBACK_TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
+let myVotes = store.get('votes', {});
+let voteCounts = {};
+const voteN = (s, k) => { const n = voteCounts[s.id]?.[k] || 0; return n ? `<small>${n}</small>` : ''; };
+const voteTip = (s) => (voteCounts[s.id] ? t().vote.count(voteCounts[s.id].up, voteCounts[s.id].down) : '');
+async function loadVotes() {
+  try {
+    const res = await fetch(`data/votes.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) voteCounts = (await res.json()).stories || {};
+  } catch {}
+}
+function sendFeedback(msg) {
+  return fetch(FEEDBACK_TOPIC, { method: 'POST', body: JSON.stringify({ v: 1, device: deviceId, ...msg }) }).catch(() => {});
+}
+$('list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.vote-btn');
+  if (!btn) return;
+  const card = btn.closest('.card');
+  const s = state.data?.stories.find((x) => x.id === card.dataset.id);
+  if (!s) return;
+  const v = Number(btn.dataset.vote);
+  const next = myVotes[s.id] === v ? 0 : v; // click again to withdraw
+  if (next) myVotes[s.id] = next;
+  else delete myVotes[s.id];
+  store.set('votes', myVotes);
+  card.querySelectorAll('.vote-btn').forEach((b) => b.classList.toggle('on', Number(b.dataset.vote) === next));
+  const s5 = !s.s5 ? 'none' : s.s5.where === 'channel' ? 'channel' : s.s5.probable ? 'probable' : 'site';
+  sendFeedback({ type: 'vote', id: s.id, vote: next, title: (s.ai?.he?.title || s.title).slice(0, 200), sport: s.sport, israel: !!s.israel, s5, link: s.link });
+});
+function openReport() {
+  const L = t().report;
+  $('reportForm').innerHTML = `
+    <h3>${esc(L.title)}</h3>
+    <label class="fld"><span>${esc(L.text)}</span><textarea id="rpText" rows="4" placeholder="${esc(L.textPh)}" dir="auto"></textarea></label>
+    <label class="fld"><span>${esc(L.link)}</span><input id="rpLink" type="url" dir="ltr" placeholder="https://"></label>
+    <label class="fld"><span>${esc(L.name)}</span><input id="rpName" value="${esc(store.get('editorName', ''))}" dir="auto"></label>
+    <p class="warn" id="rpMsg" hidden></p>
+    <div class="dlg-actions">
+      <button type="button" class="small-btn primary" id="rpSend">${esc(L.send)}</button>
+      <button class="small-btn" value="cancel">${esc(L.cancel)}</button>
+    </div>`;
+  $('reportDialog').showModal();
+  $('rpText').focus();
+}
+$('reportBtn').addEventListener('click', openReport);
+$('reportForm').addEventListener('click', async (e) => {
+  if (e.target.id !== 'rpSend') return;
+  const text = $('rpText').value.trim();
+  if (!text) {
+    $('rpMsg').textContent = t().report.empty;
+    $('rpMsg').hidden = false;
+    return;
+  }
+  const name = $('rpName').value.trim().slice(0, 30);
+  if (name) store.set('editorName', name);
+  await sendFeedback({ type: 'report', text: text.slice(0, 1000), link: $('rpLink').value.trim().slice(0, 600), name, page: state.topic ? 'topic' : state.tab });
+  $('reportDialog').close();
+  toast(t().report.sent);
+});
+
 // ---------- 🛠️ system panel: source health, AI status, filtered items ----------
 async function loadHealth() {
   try {
@@ -1763,6 +1833,8 @@ $('topicForm').addEventListener('click', (e) => {
   setInterval(loadClaims, 60 * 1000);
   loadHealth();
   setInterval(loadHealth, 5 * 60 * 1000);
+  loadVotes().then(() => renderList());
+  setInterval(loadVotes, 5 * 60 * 1000);
   setInterval(loadAthletes, 10 * 60 * 1000);
   Learn.sync().then(() => state.tab === 'foryou' && renderList());
   setInterval(() => Learn.sync(), 3 * 60 * 1000);

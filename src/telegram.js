@@ -197,3 +197,15 @@ export async function adminHello(prevChat) {
   await send(token, admin, '✅ <b>רדאר ספורט: התראות המערכת מחוברות</b>\nתקבל כאן הודעה אם מקור לא עובד יותר משעתיים או אם ריצת איסוף נכשלת.', false);
   return admin;
 }
+
+// 📣 Editors' reports → the admin's private chat
+export async function adminReports(reports) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const admin = process.env.TELEGRAM_ADMIN_CHAT;
+  if (!token || !admin || !reports.length) return 0;
+  for (const r of reports.slice(0, 10)) {
+    const who = r.name ? esc(r.name) : 'עורך';
+    await send(token, admin, `📣 <b>דיווח מ${who}</b>${r.page ? ` <i>(${esc(r.page)})</i>` : ''}\n${esc(r.text)}${r.link ? `\n${esc(r.link)}` : ''}`, false);
+  }
+  return Math.min(reports.length, 10);
+}

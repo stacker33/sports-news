@@ -493,3 +493,13 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 .sys-table tr.quiet td { color: var(--muted); }
 .sys-rejected { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 6px; font-size: 13px; }
 .sys-rejected a { color: var(--text); }
+
+/* v23: 📣 report, 👍/👎 votes */
+.report-btn { filter: none; opacity: .85; }
+.votes { display: inline-flex; gap: 2px; margin-inline-start: auto; }
+.vote-btn { border: 0; background: none; cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 8px; opacity: .45; display: inline-flex; align-items: center; gap: 2px; }
+.vote-btn small { font-size: 11px; color: var(--muted); }
+.vote-btn:hover { opacity: 1; background: var(--surface-2); }
+.vote-btn.on { opacity: 1; background: var(--accent-soft); }
+.votes ~ .claim-btn { margin-inline-start: 0; }
+.fld textarea { font: inherit; font-size: 14.5px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); resize: vertical; }

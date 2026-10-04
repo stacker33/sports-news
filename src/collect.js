@@ -12,7 +12,8 @@ import { classify } from './classify.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap } from './ai.js';
-import { telegramPost, adminHealthAlerts, adminHello } from './telegram.js';
+import { telegramPost, adminHealthAlerts, adminHello, adminReports } from './telegram.js';
+import { loadFeedback, votesFile } from './feedback.js';
 import { assignStoryIds } from './storyids.js';
 import { addHebrewNames } from './hebrew.js';
 import { sport5Coverage, sport5Probable } from './sport5.js';
@@ -456,13 +457,17 @@ export async function collect({ log = console.log, force = false } = {}) {
   // Alert the admin (private Telegram chat) about sources down for 2h+ — once a day per source
   const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
   const adminGreeted = await adminHello(state.adminGreeted).catch(() => state.adminGreeted || null);
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  // Editors' feedback: 📣 reports → admin's Telegram; 👍/👎 votes → data/votes.json (the pilot's labelled set)
+  const { feedback, reports } = await loadFeedback(state.feedback, now);
+  const reportsSent = await adminReports(reports).catch(() => 0);
+  await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
   );
   log(
-    `   Sport5: +${s5probable} probably covered · Telegram: ${tgPosted} posted${tg.error ? ` (${tg.error})` : ''} · AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
+    `   Sport5: +${s5probable} probably covered · Telegram: ${tgPosted} posted · reports forwarded: ${reportsSent}${tg.error ? ` (${tg.error})` : ''} · AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
   );
   results.forEach((r, i) => !r.ok && log(`   ✗ ${due[i].id}: ${String(r.error?.message || r.error).slice(0, 100)}`));
   return { stories: stories.length, fresh };
