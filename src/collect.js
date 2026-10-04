@@ -43,7 +43,7 @@ const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
 
 const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*$|אתר ערוץ הספורט/i;
-const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|in diretta|per 90|stats for .{2,40}?\d{4}\/\d{4})\b/i;
+const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|en directo|minuto a minuto|in diretta|liveticker|per 90|stats for .{2,40}?\d{4}\/\d{4}|fantasy|start.{0,4}sit)\b/i;
 
 const itemId = (link, title) => {
   let key = link;
@@ -365,7 +365,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const sums = state.sums || {};
   const priority = [...stories]
     .filter((s) => now - s.first < 18 * 3600e3)
-    .sort((a, b) => (b.israel || b.abroad ? 1 : 0) - (a.israel || a.abroad ? 1 : 0) || b.score - a.score);
+    .sort((a, b) => b.score - a.score); // most important first — world and Israeli alike
   const summarized = await fillSummaries([...priority, ...stories.filter((s) => !priority.includes(s))], sums, { now }).catch(() => 0);
   // foreign-language summaries → Hebrew + English (cached with the summary)
   const needTr = stories.filter((s) => s.sum && s.sum.lang !== 'he' && s.sum.lang !== 'en' && !(sums[s.sum.id]?.he && sums[s.sum.id]?.en));

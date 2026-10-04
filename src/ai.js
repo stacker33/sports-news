@@ -4,7 +4,7 @@
 //   AI_API_KEY (GitHub secret, required — without it nothing is called and stories keep the machine
 //   translation / feed blurb), AI_BASE_URL, AI_MODEL, AI_DAILY_CAP.
 // - One request per run at most, 10 stories per request, a daily cap, most important stories first
-//   (Israeli, Israelis abroad, then by score). Each story is done once, and again only if it has grown a lot
+//   (by importance, world and Israeli alike). Each story is done once, and again only if it has grown a lot
 //   since (more sources = more to summarise).
 // - The model gets only the stories' headlines and descriptions and is told to use nothing else.
 
@@ -97,7 +97,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
         const r = st.res[keyOf.get(s)];
         return !r || (s.sourceCount >= r.n * 2 && s.sourceCount >= r.n + 3 && now - r.at > 3600e3);
       })
-      .sort((a, b) => (b.israel || b.abroad ? 1 : 0) - (a.israel || a.abroad ? 1 : 0) || b.score - a.score)
+      .sort((a, b) => b.score - a.score) // most important first — world and Israeli alike
       .slice(0, PER_REQUEST);
     if (need.length) {
       const user = need.map((s, i) => `### id: s${i}\n${storyInput(s, sums)}`).join('\n\n');

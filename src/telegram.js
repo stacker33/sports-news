@@ -3,13 +3,17 @@
 // without them nothing is sent.
 //
 // - ☀️ Morning briefing once a day after 08:00 Israel time: the night's top stories + how the Israelis abroad did.
-// - 🔔 Alerts during the day (not 00:00–07:00): important Israeli stories, Israelis-abroad news, the biggest
+// - 🔔 Alerts (not 01:00–06:00), world news first: reporters' scoops (🔴), stories spreading across countries /
+//   trending, the big leagues / Champions League / NBA / EuroLeague, important Israeli and Israelis-abroad news; the biggest
 //   world stories. At most 3 per run, 8 per hour, 40 per day; every story once.
 
 const API = 'https://api.telegram.org/bot';
-const PER_RUN = 3;
-const PER_HOUR = 8;
-const PER_DAY = 40;
+const PER_RUN = 4;
+const PER_HOUR = 15;
+const PER_DAY = 120;
+const QUIET = [1, 6]; // no alerts from 01:00 to 05:59 Israel time
+// competitions the editors follow (tag ids from src/entities.js)
+const MAJOR = new Set(['c-ucl', 'c-uel', 'c-epl', 'c-laliga', 'c-seriea', 'c-bundes', 'c-ligue1', 'c-nba', 'c-euroleague', 'c-wc', 'c-unl']);
 const BRIEF_HOUR = 8;
 
 const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -18,9 +22,15 @@ const ilParts = (ts) => {
   return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
 };
 
-const icon = (s, hot = true) => `${s.israel ? '🇮🇱' : s.abroad ? '✈️' : ''}${s.sport === 'football' ? '⚽' : s.sport === 'basketball' ? '🏀' : '🏅'}${hot && s.big ? '🔥' : ''}`;
+const icon = (s, hot = true) => `${hot && isScoop(s) ? '🔴 ' : ''}${s.israel ? '🇮🇱' : s.abroad ? '✈️' : '🌍'}${s.sport === 'football' ? '⚽' : s.sport === 'basketball' ? '🏀' : '🏅'}${hot && s.big ? '🔥' : ''}`;
 // Hebrew headline: the model's, else a Hebrew article's, else the machine translation, else this run's translation
 let heMap = new Map();
+// a reporter's own post (Romano, Shams, Ornstein…) about a signing / injury / official news
+const SCOOP = /here we go|official|confirmed|agreed|agreement|deal (done|agreed)|signs|signed|completes?|medical|exclusive|breaking|ruled out|injur|sacked|fired|appointed|traded|trade|waived|extension|רשמי|חתם|סוכם|הסכם|בלעדי|נפצע|פוטר|מונה/i;
+const isScoop = (s) => (s.social || []).some((p) => !/[א-ת]/.test(p)) && SCOOP.test(s.title);
+const major = (s) => s.tags?.some((g) => MAJOR.has(g.id));
+// how much an editor wants this right now (world stories are first-class)
+const urgency = (s) => s.score + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
 const titleHe = (s) => s.ai?.he?.title || s.t?.he?.title || heMap.get(s) || s.title;
 const isHe = (t) => /[א-ת]/.test(t || '');
 const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
@@ -64,8 +74,8 @@ function abroadLines(athletes, cards, gameInfo, now) {
 function briefingTop(stories, now) {
   return stories
     .filter((s) => now - s.first < 12 * 3600e3 && (s.sport !== 'other' || s.big))
-    .sort((a, b) => (b.israel || b.abroad ? 0.5 : 0) + (b.pop ?? b.score) - ((a.israel || a.abroad ? 0.5 : 0) + (a.pop ?? a.score)))
-    .slice(0, 8);
+    .sort((a, b) => (b.pop ?? b.score) + (b.langs?.length >= 3 ? 2 : 0) - ((a.pop ?? a.score) + (a.langs?.length >= 3 ? 2 : 0)))
+    .slice(0, 10);
 }
 function briefingText(top, athletes, cards, gameInfo, now, siteUrl) {
   const lines = top.map((s) => `${icon(s, false)} <a href="${esc(s.realLink || s.link)}">${esc(titleHe(s))}</a>`);
@@ -119,9 +129,11 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     const keyOf = new Map(stories.map((s) => [s, storyKey(s)]));
     const firstRun = !prev.sent; // don't flood the channel with everything that's already there
     const worth = (s) =>
+      isScoop(s) || // reporters' scoops, at once
+      (s.sport !== 'other' && (s.big || s.trending || s.langs?.length >= 3 || (major(s) && s.sourceCount >= 3))) || // world: spreading / big leagues
+      (s.sport === 'other' && s.big && s.sourceCount >= 6) || // other sports: only the biggest
       (s.abroad && (s.sourceCount >= 2 || s.social?.length)) ||
-      (s.israel && (s.big || s.sourceCount >= 4 || (s.breaking && s.sourceCount >= 2))) ||
-      (s.big && s.sourceCount >= 8);
+      (s.israel && (s.big || s.sourceCount >= 4 || (s.breaking && s.sourceCount >= 2)));
     const fresh = stories.filter((s) => !st.sent[keyOf.get(s)] && !s.dateUnknown && now - s.first < 90 * 60000 && worth(s));
     // Hebrew for headlines that only exist in English (one batch per run)
     heMap = new Map();
@@ -140,9 +152,9 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     }
     // 🔔 alerts
     if (firstRun) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now));
-    else if (il.hour >= 7) {
+    else if (il.hour < QUIET[0] || il.hour >= QUIET[1]) {
       const room = Math.min(PER_RUN, PER_HOUR - st.hour.length, PER_DAY - st.dayCount);
-      for (const s of fresh.sort((a, b) => b.score - a.score).slice(0, Math.max(0, room))) {
+      for (const s of fresh.sort((a, b) => urgency(b) - urgency(a)).slice(0, Math.max(0, room))) {
         await send(token, chat, alertText(s, siteUrl, new Map((athletes || []).map((a) => [a.name, a.name_he || a.name]))), true);
         st.sent[keyOf.get(s)] = now;
         st.hour.push(now);
