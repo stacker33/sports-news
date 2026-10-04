@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "collect": "node src/collect.js"
+    "collect": "node src/collect.js",
+    "test": "node --test test/*.test.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "fast-xml-parser": "^4.5.0"
   }

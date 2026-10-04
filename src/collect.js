@@ -229,10 +229,13 @@ export async function collect({ log = console.log, force = false } = {}) {
     it._fix = corrections.byLink[it.link] || null;
   }
   // Pass 2: a word model trained on the articles whose sport is certain (site section, sport feed, or names)
+  // (+ articles whose keywords point only to other sports: otherwise "other" has too few examples and
+  //  unknown sports — baseball, tennis, motor racing — get guessed as football)
+  const onlyOther = (ev) => ev.kw.o >= 2 && !ev.kw.f && !ev.kw.b ? 'other' : null;
   const samples = items
-    .filter((it) => it._fix?.sport || it._ev.url || it._ev.source || it._entSport)
+    .filter((it) => it._fix?.sport || it._ev.url || it._ev.source || it._entSport || onlyOther(it._ev))
     .flatMap((it) => {
-      const s = { feats: it._feats, sport: it._fix?.sport || it._ev.url || it._ev.source || it._entSport };
+      const s = { feats: it._feats, sport: it._fix?.sport || it._ev.url || onlyOther(it._ev) || it._ev.source || it._entSport };
       return it._fix?.sport ? [s, s, s] : [s];
     });
   const model = trainModel(samples);

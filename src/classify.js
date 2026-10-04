@@ -41,6 +41,21 @@ const OTHER = [
   'wimbledon', 'roland garros', 'atp', 'wta', 'tennis', 'rugby', 'cycling', 'tour de france', 'nascar', 'olympic',
   'handball', 'volleyball', 'futsal', 'water polo', 'כדוריד', 'כדורעף', 'פוטסל', 'כדורמים', 'כדורשת', 'טריאתלון', 'פאדל',
   'פוטבול', 'בייסבול', 'הוקי', 'אקרובטיקה', 'התעמלות', "ג'ודו", 'שחייה', 'טניס', 'פורמולה', 'אגרוף', 'גולף', 'רוגבי', 'אופניים', 'אולימפי',
+  'מרתון', 'אתלטיקה', 'קפיצה במוט', 'שייט', 'גלישה', 'טאקוונדו', 'היאבקות', 'סקי', 'החלקה',
+  // baseball (MLB) — teams whose names are also football/basketball clubs (Rangers, Giants…) are left out
+  ' inning', 'home run', 'no-hit', 'pitcher', 'world series', ' alds', ' alcs', ' nlds', ' nlcs', 'wild card series', 'yankees', 'red sox',
+  'dodgers', ' mets ', 'cubs', 'astros', 'phillies', 'padres', 'mariners', 'blue jays', 'orioles', 'brewers', 'white sox', 'diamondbacks',
+  'guardians', 'royals', 'marlins', 'rockies', 'béisbol', 'beisebol',
+  // American football (NFL) and ice hockey (NHL)
+  'chiefs', 'cowboys', '49ers', 'patriots', 'packers', 'steelers', 'ravens', 'bengals', 'broncos', 'seahawks', 'buccaneers', 'commanders',
+  'mahomes', 'football américain', 'football americain', 'american football', 'maple leafs', 'canadiens', 'bruins', 'oilers', 'penguins',
+  'red wings', 'blackhawks', 'stanley cup', 'football-americain',
+  // motor sport, tennis, golf, cycling, athletics
+  'indycar', 'cup series', 'keselowski', 'verstappen', 'leclerc', 'piastri', 'fórmula 1', 'formel 1', 'formule 1', 'djokovic', 'đoković',
+  'alcaraz', 'jannik sinner', 'zverev', 'medvedev', 'swiatek', 'świątek', 'sabalenka', 'gauff', 'grand slam', 'masters 1000', 'mcilroy',
+  'scheffler', 'pogacar', 'pogačar', 'vingegaard', 'vollering', 'road race', 'peloton', 'giro d', 'vuelta', 'radsport', 'ciclismo',
+  'duplantis', 'pole vault', 'triathlon', 'decathlon', 'heptathlon', 'sprinter', 'diamond league',
+  'tenis', 'judo', 'gymnast', 'swimmer', 'swimming', 'world aquatics', 'skiing', 'biathlon', 'curling',
 ];
 
 // Israeli context (clubs, national teams, leagues)
@@ -112,6 +127,7 @@ function sectionFromUrl(link) {
   // only section-like path segments (not long article slugs)
   const segs = u.pathname.toLowerCase().split('/').filter((s) => s && s.split('-').length <= 3);
   for (const s of segs) {
+    if (/^(football-americain|football-us|american-football|us-sports)$/.test(s)) return 'other';
     if (SEG_FOOTBALL.test(s) || /^(football|soccer)-/.test(s)) return 'football';
     if (SEG_BASKETBALL.test(s)) return 'basketball';
     if (SEG_OTHER.test(s)) return 'other';
@@ -146,7 +162,7 @@ export function classify(item, source, ctx) {
   const b = hits(text, BASKETBALL) + hits(titleText, BASKETBALL);
   const o = hits(text, OTHER) + hits(titleText, OTHER) + (source.usa && titleText.includes('football') ? 2 : 0);
   if (!sport) {
-    if (o > 0 && o > Math.max(f, b)) sport = 'other';
+    if (o > 0 && o >= Math.max(f, b)) sport = 'other';
     else if (source.sport) sport = source.sport;
     else if (athleteSport && f === 0 && b === 0) sport = athleteSport;
     else if (f === 0 && b === 0) sport = 'other';

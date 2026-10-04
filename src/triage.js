@@ -122,7 +122,8 @@ export function decideSport(ev, ent, pred, feats = []) {
   if (ev.section === 'drop') return { sport: 'other', nonSport: true, why: 'section' };
   if (ev.url) return { sport: ev.url, why: 'url' };
   const { f, b, o } = ev.kw;
-  if (o > 0 && o > Math.max(f, b)) return { sport: 'other', why: 'kw-other' };
+  // a clear other-sport word wins a tie, and beats a sport-specific feed (rugby / NFL posts in a club's news search)
+  if (o > 0 && o >= Math.max(f, b)) return { sport: 'other', why: 'kw-other' };
   if (ev.source) return { sport: ev.source, why: 'feed' };
   if (ent) return { sport: ent, why: 'names' };
   const kwSport = f || b ? (b > f ? 'basketball' : f > b ? 'football' : null) : null;
