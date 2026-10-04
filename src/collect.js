@@ -11,9 +11,10 @@ import { fetchFeed, pool } from './feeds.js';
 import { classify } from './classify.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
-import { aiSummaries } from './ai.js';
-import { telegramPost } from './telegram.js';
+import { aiSummaries, aiCap } from './ai.js';
+import { telegramPost, adminHealthAlerts } from './telegram.js';
 import { assignStoryIds } from './storyids.js';
+import { addHebrewNames } from './hebrew.js';
 import { sport5Coverage, sport5Probable } from './sport5.js';
 import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
@@ -124,25 +125,28 @@ export async function collect({ log = console.log, force = false } = {}) {
   });
 
   const results = await pool(due, 12, (s) => fetchFeed(s));
+  // what was filtered out and why (diagnostics for misses): article link → { t, src, title, link, why }
+  const rejected = new Map((state.rejected || []).filter((r) => now - r.at < 24 * 3600e3).map((r) => [r.link, r]));
+  const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, title: String(raw.title).slice(0, 200), link: raw.link, why });
   let fresh = 0;
 
   results.forEach((r, idx) => {
     const src = due[idx];
     if (!r.ok) {
       const error = String(r.error?.message || r.error).slice(0, 120);
-      meta[src.id] = { ...meta[src.id], last: now, ok: false, error, cooldownUntil: now + COOLDOWN_MIN * 60000 };
+      meta[src.id] = { ...meta[src.id], last: now, ok: false, error, cooldownUntil: now + COOLDOWN_MIN * 60000, failStreak: (meta[src.id]?.failStreak || 0) + 1 };
       return;
     }
     const firstRead = !meta[src.id]?.okOnce; // never read this source successfully before
-    meta[src.id] = { last: now, ok: true, okOnce: true, count: r.value.length };
+    meta[src.id] = { last: now, ok: true, okOnce: true, count: r.value.length, lastOk: now, failStreak: 0 };
 
     for (const raw of r.value) {
       // Skip navigation junk (e.g. 'News / EuroLeague / Leagues') and tiny titles
       if (raw.title.length < 12 || raw.title.split(' / ').length > 2) continue;
       // betting / odds / live-score widget pages (any language) are not news
-      if (JUNK_TITLE.test(raw.title)) continue;
+      if (JUNK_TITLE.test(raw.title)) { reject(raw, src, 'junk'); continue; }
       // a site's own name/homepage instead of a headline (Google sometimes returns "- sport5.co.il")
-      if (SITE_TITLE.test(raw.title)) continue;
+      if (SITE_TITLE.test(raw.title)) { reject(raw, src, 'site-title'); continue; }
 
       const id = itemId(raw.link, raw.title);
       const prev = known.get(id);
@@ -158,7 +162,7 @@ export async function collect({ log = console.log, force = false } = {}) {
       if (now - published > KEEP_ITEMS_H * 3600000) continue;
 
       const tags = classify(raw, src, ctx);
-      if (src.mixed && !tags.looksSport) continue;
+      if (src.mixed && !tags.looksSport) { reject(raw, src, 'general-feed'); continue; }
 
       const item = {
         id,
@@ -204,6 +208,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     edb = await refreshEntityDb(edb, entityPath, now);
   } catch {}
   const eindex = entityIndex(edb);
+  // protect Hebrew names from prefix stripping ("מכבי" must not become "כבי") — src/hebrew.js
+  addHebrewNames([...Object.values(edb.teams || {}).map((t) => t.he), ...Object.values(edb.players || {}).map((p) => p.he), ...athletes.flatMap((a) => [a.name_he, a.team_he])]);
   const entById = new Map();
 
   // Readers' 🏷️ corrections (sport / Israeli / not relevant), per article link
@@ -214,10 +220,11 @@ export async function collect({ log = console.log, force = false } = {}) {
   for (const it of items) {
     it.tr = tr[it.id] || null;
     const src = srcById.get(it.sourceId) || {};
-    it.hidden = (!!it.rival && !rivalRelevant(it)) || SITE_TITLE.test(it.title) || JUNK_TITLE.test(it.title);
+    it.hiddenWhy = SITE_TITLE.test(it.title) || JUNK_TITLE.test(it.title) ? 'junk' : it.rival && !rivalRelevant(it) ? 'rival' : null;
+    it.hidden = !!it.hiddenWhy;
     const en = it.lang !== 'en' && it.tr?.en ? ' ' + it.tr.en : '';
     const tags = classify({ title: it.title + en, summary: it.summary, link: it.link }, src, ctx);
-    if (src.mixed && !tags.looksSport) it.hidden = true; // general-news feeds: sport only
+    if (src.mixed && !tags.looksSport) [it.hidden, it.hiddenWhy] = [true, 'general-feed']; // general-news feeds: sport only
     it.assist = !!src.assist;
     Object.assign(it, {
       sport: tags.sport, israel: tags.israel, israelOther: tags.israelOther,
@@ -233,12 +240,13 @@ export async function collect({ log = console.log, force = false } = {}) {
   // Pass 2: a word model trained on the articles whose sport is certain (site section, sport feed, or names)
   // (+ articles whose keywords point only to other sports: otherwise "other" has too few examples and
   //  unknown sports — baseball, tennis, motor racing — get guessed as football)
+  const confirmedFix = (f) => (f?.sport && (f.devices?.length || 0) >= 2 ? f.sport : null);
   const onlyOther = (ev) => ev.kw.o >= 2 && !ev.kw.f && !ev.kw.b ? 'other' : null;
   const samples = items
-    .filter((it) => it._fix?.sport || it._ev.url || it._ev.source || it._entSport || onlyOther(it._ev))
+    .filter((it) => confirmedFix(it._fix) || it._ev.url || it._ev.source || it._entSport || onlyOther(it._ev))
     .flatMap((it) => {
-      const s = { feats: it._feats, sport: it._fix?.sport || it._ev.url || onlyOther(it._ev) || it._ev.source || it._entSport };
-      return it._fix?.sport ? [s, s, s] : [s];
+      const s = { feats: it._feats, sport: confirmedFix(it._fix) || it._ev.url || onlyOther(it._ev) || it._ev.source || it._entSport };
+      return [s]; // (corrections train only when two devices agree — see the filter above)
     });
   const model = trainModel(samples);
   const decisions = items.map((it) => (it._fix?.sport ? { sport: it._fix.sport, why: 'user' } : decideSport(it._ev, it._entSport, predict(model, it._feats), it._feats)));
@@ -267,7 +275,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     it.sport = d.sport;
     it.sportSure = SURE.has(d.why);
     it.sportWhy = d.why; // kept for debugging the triage
-    if (d.nonSport) it.hidden = true; // cars, politics… in a sports section
+    if (d.nonSport) [it.hidden, it.hiddenWhy] = [true, d.why === 'section' ? 'section' : 'no-sport']; // cars, politics… in a sports section
     why[d.why] = (why[d.why] || 0) + 1;
     it._ents = [...findEntities(eindex, it.title, it.sport), ...findEntities(eindex, it.tr?.en, it.sport)];
     delete it._ev;
@@ -306,9 +314,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   for (const it of items) {
     // highlights from the big global channels (NBA, EuroLeague…) only when an Israeli club or player is in them
-    if (it.video === 'highlights' && !srcById.get(it.sourceId)?.israel && !it.israel && !it.athletes?.length) it.hidden = true;
+    if (it.video === 'highlights' && !srcById.get(it.sourceId)?.israel && !it.israel && !it.athletes?.length) [it.hidden, it.hiddenWhy] = [true, 'video'];
     if (it._fix?.israel != null) it.israel = it._fix.israel;
-    if (it._fix?.hide) it.hidden = true;
+    if (it._fix?.hide) [it.hidden, it.hiddenWhy] = [true, 'user'];
     delete it._fix;
   }
   const liveIds = new Set(items.map((i) => i.id));
@@ -430,8 +438,24 @@ export async function collect({ log = console.log, force = false } = {}) {
     suggestions: athleteSuggestions(athletes, teamCache, edb, await readJson(join(ROOT, 'private', 'ignored.json'), [])),
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
-  await writeJson(join(DATA, 'sources.json'), { generatedAt: now, health });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  // Source health for the "system" panel: last check, last success, consecutive failures; quiet ≠ failed
+  const sourceHealth = sources.map((s) => {
+    const m = meta[s.id] || {};
+    return { id: s.id, name: s.name, ok: m.ok !== false, last: m.last || null, lastOk: m.lastOk || (m.ok ? m.last : null), failStreak: m.failStreak || 0, count: m.count ?? 0, error: m.ok === false ? m.error : undefined };
+  });
+  await writeJson(join(DATA, 'sources.json'), {
+    generatedAt: now,
+    tookMs: Date.now() - started,
+    ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0 },
+    health: sourceHealth,
+  });
+  // Rejected items of the last 24h (filtered at intake + hidden later), newest first — diagnostics for misses
+  for (const it of items) if (it.hidden && now - it.seen < 24 * 3600e3) rejected.set(it.link, { at: now, t: it.published, src: srcById.get(it.sourceId)?.name || it.publisher, title: it.title.slice(0, 200), link: it.link, why: it.hiddenWhy || 'hidden' });
+  const rejectedList = [...rejected.values()].sort((a, b) => b.t - a.t).slice(0, 500);
+  await writeJson(join(DATA, 'rejected.json'), { generatedAt: now, items: rejectedList });
+  // Alert the admin (private Telegram chat) about sources down for 2h+ — once a day per source
+  const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

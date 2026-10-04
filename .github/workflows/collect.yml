@@ -56,9 +56,22 @@ jobs:
           # optional repository variables to switch provider/model (empty = Gemini Flash-Lite)
           AI_BASE_URL: ${{ vars.AI_BASE_URL }}
           AI_MODEL: ${{ vars.AI_MODEL }}
+          AI_DAILY_CAP: ${{ vars.AI_DAILY_CAP }}
           # Telegram channel (src/telegram.js): bot token as a secret, channel ("@name") as a repository variable
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
+          TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
+
+      - name: Tell the admin if the collection failed
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_ADMIN_CHAT" ]; then
+            curl -s "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d chat_id="$TELEGRAM_ADMIN_CHAT" \
+              --data-urlencode text="⚠️ רדאר ספורט: ריצת האיסוף נכשלה — $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null
+          fi
 
       - uses: actions/upload-pages-artifact@v3
         with:

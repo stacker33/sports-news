@@ -12,7 +12,9 @@ const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googlea
 const ENDPOINT = `${BASE_URL}/chat/completions`;
 const MODEL = process.env.AI_MODEL || 'gemini-flash-lite-latest';
 const PER_REQUEST = 10;
-const DAILY_CAP = Number(process.env.AI_DAILY_CAP) || 400; // under the free tier's daily request limit
+const DAILY_CAP = Number(process.env.AI_DAILY_CAP) || 400; // under the free tier's daily request limit (the provider's real limits may be lower)
+export const aiCap = () => DAILY_CAP;
+let lastUsage = null; // tokens of the last call (for metering)
 const KEEP_DAYS = 3;
 
 const SYSTEM = `You are a sports news editor for an Israeli sports app. For each story you get its headlines and descriptions from one or more outlets, in various languages.
@@ -64,6 +66,7 @@ async function callModel(token, user) {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 160)}`);
   const body = await res.text();
+  try { lastUsage = JSON.parse(body).usage || null; } catch { lastUsage = null; }
   let j;
   try {
     j = JSON.parse(body);
@@ -91,7 +94,7 @@ async function callModel(token, user) {
 export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
   const day = new Date(now).toISOString().slice(0, 10);
   const st = { ...prev, res: { ...(prev.res || {}) } };
-  if (st.day !== day) Object.assign(st, { day, used: 0 });
+  if (st.day !== day) Object.assign(st, { day, used: 0, tokens: 0 });
   for (const [k, r] of Object.entries(st.res)) if (now - r.at > KEEP_DAYS * 864e5) delete st.res[k];
 
   // attach what we already have
@@ -118,6 +121,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now()) {
       try {
         st.used++;
         const out = await callModel(token, user);
+        st.tokens = (st.tokens || 0) + (lastUsage?.total_tokens || 0);
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
           if (!s || !r.summary_he) continue;

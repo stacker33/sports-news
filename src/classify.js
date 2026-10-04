@@ -178,7 +178,7 @@ export function classify(item, source, ctx) {
   // Mixed feeds (general news sites): drop items that don't look like sport at all
   // (decided before the fallback below, so e.g. a food article mentioning Israel isn't treated as football)
   const looksSport =
-    section !== 'drop' && (sport !== 'other' || israelOther || ib + ifb > 0 || /\/(sport|sports|deportes|futbol|calcio|basket)/i.test(item.link || ''));
+    (section !== 'drop' || f + b + ib + ifb > 0 || athletes.length > 0) && (sport !== 'other' || israelOther || ib + ifb > 0 || /\/(sport|sports|deportes|futbol|calcio|basket)/i.test(item.link || ''));
 
   // Israeli story without a sport word: decide by club/league names, default football
   if (israel && sport === 'other' && !israelOther && !sportFromUrl(item.link)) {

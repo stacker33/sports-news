@@ -1,4 +1,5 @@
 // Group items that report the same story (same language) and score each story.
+import { heBase } from './hebrew.js';
 
 const STOP = new Set(
   `a an the and or but of to in on at for from by with as is are was were be been it its this that these those
@@ -12,7 +13,6 @@ const STOP = new Set(
   הזה הזאת היום אתמול מחר דקות שעות ואז כבר אחד אחת שני שתי
   ליגה משחק שחקן שחקנים קבוצה קבוצת אוהדים צפו תקציר שער שערים`.split(/\s+/)
 );
-const HE_PREFIX = /^[הובלמשכ]/;
 
 // two-word place/club names → one token
 const COMPOUND = /\b(tel) (aviv)\b|\b(petah|petach) (tikva|tikvah|tiqva)\b|\b(beer|be'er|beersheba) (sheva)\b|\b(kiryat) (shmona)\b|\b(real) (madrid)\b|\b(new) (york|england|orleans|jersey)\b|\b(los) (angeles)\b|\b(san) (antonio|francisco|diego|jose)\b|\b(golden) (state)\b|\b(manchester) (united|city)\b|\b(aston) (villa)\b|\b(west) (ham|brom)\b|\b(crystal) (palace)\b|\b(saint|st) (germain|etienne)\b|\b(red) (star|bull)\b|\b(tel)-(aviv)\b|תל אביב|פתח תקווה|פתח תקוה|באר שבע|ריאל מדריד/g;
@@ -27,8 +27,7 @@ export function tokens(title) {
     .filter(Boolean);
   const out = new Set();
   for (let w of words) {
-    // Hebrew: strip a single attached prefix letter (ה/ו/ב/ל/מ/ש/כ) consistently
-    if (/[א-ת]/.test(w) && w.length >= 4 && HE_PREFIX.test(w)) w = w.slice(1);
+    w = heBase(w); // Hebrew prefix letter, keeping known names intact (src/hebrew.js)
     if (w.length < 2 || STOP.has(w)) continue;
     // crude English plural/possessive normalisation
     if (/^[a-z]+$/.test(w) && w.length > 4 && w.endsWith('s')) w = w.slice(0, -1);
@@ -159,6 +158,8 @@ export function buildStory(members, now) {
     athletes,
     teams,
     breaking: breaking > 0,
+    uncertain: members.every((m) => m.sportWhy === 'uncertain') || undefined,
+    why: topReason(members),
     top,
     sourceCount: distinct.length,
     sources: distinct.slice(0, 15).map((m) => ({ name: m.publisher, title: m.title, link: m.link, lang: m.lang, published: m.published, unknown: !!m.dateUnknown, social: !!m.social })),
@@ -169,6 +170,13 @@ export function buildStory(members, now) {
     score: Math.round(score * 100) / 100,
     pop: Math.round(pop * 100) / 100,
   };
+}
+
+// Why the story got its sport: the most common reason among its articles (for the card's "why" line)
+function topReason(members) {
+  const n = {};
+  for (const m of members) if (m.sportWhy) n[m.sportWhy] = (n[m.sportWhy] || 0) + 1;
+  return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0];
 }
 
 // Title to show per app language: a native article in that language if the story has one,

@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { classify } from '../src/classify.js';
 import { features, decideSport } from '../src/triage.js';
+import { tokens } from '../src/cluster.js';
 
 const ctx = { matchers: { players: () => [], teams: () => [] }, athleteSport: {} };
 
@@ -30,6 +31,8 @@ const CASES = [
   ['מכבי חיפה החתימה חלוץ חדש לקראת המשחק בליגת העל', 'football'],
   ['Mbappé scores twice as Real Madrid win in La Liga', 'football'],
   ['West Ham striker ruled out for six weeks', 'football', { source: { sport: 'football' } }],
+  // a sports story in a non-sport section stays (SR-04); a car review there is still dropped
+  ['LeBron James opens up about family life in rare interview', 'basketball', { link: 'https://example.com/lifestyle/lebron-interview' }],
 ];
 
 for (const [title, want, opt = {}] of CASES) {
@@ -40,3 +43,25 @@ for (const [title, want, opt = {}] of CASES) {
     assert.equal(d.sport, want, `decided by "${d.why}"`);
   });
 }
+
+// Hebrew prefixes: a name and the same name with a prefix are one word; different clubs stay apart
+test('Hebrew: מכבי / במכבי / למכבי are the same word', () => {
+  for (const w of ['במכבי', 'למכבי', 'ומכבי']) assert.deepEqual([...tokens(w)], [...tokens('מכבי')]);
+  assert.deepEqual([...tokens('להפועל')], [...tokens('הפועל')]);
+});
+test('Hebrew: different clubs stay different', () => {
+  const a = tokens('מכבי חיפה'), b = tokens('מכבי תל אביב');
+  assert.ok([...a].some((t) => !b.has(t)));
+});
+
+// SR-03 / SR-04: no sport evidence → uncertain (not silently football); non-sport section without evidence → dropped
+test('Israeli story with no sport evidence is uncertain', () => {
+  const item = { title: 'ישראל: הכנס השנתי התקיים אמש', summary: '', link: 'https://example.com/news/2' };
+  const d = decideSport(classify(item, {}, ctx).ev, null, null, features(item));
+  assert.equal(d.why, 'uncertain');
+});
+test('car review in a cars section is still dropped', () => {
+  const item = { title: 'דור חמישי ל-C-SUV הפופולרי. מתי בישראל?', summary: '', link: 'https://www.sport5.co.il/articles.aspx?FolderID=7186&docID=1' };
+  const d = decideSport(classify(item, {}, ctx).ev, null, null, features(item));
+  assert.equal(d.nonSport, true);
+});

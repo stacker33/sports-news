@@ -72,7 +72,8 @@ const T = {
     sumBtn: '📝 תקציר',
     topics: {
       add: '＋ נושא', edit: '✏️ עריכה', newTitle: '⭐ נושא חדש', editTitle: '⭐ עריכת נושא', name: 'שם הנושא', namePh: 'למשל: דני והבלייזרס',
-      words: 'מילות חיפוש (בכל שפה, מופרדות בפסיקים)', wordsPh: 'אבדיה, Avdija, טרייד', wordsNote: 'מחפש גם בתרגומים ובתקצירים — מילה בעברית מוצאת גם כתבות ביוונית או בספרדית',
+      must: 'חייב לכלול (כל המילים)', mustPh: 'אבדיה', exclude: 'לא לכלול', excludePh: 'פנטזי, הימורים', timeMode: 'מה לספור בזמן', timeAny: 'כל פרסום חדש (גם בסיפור ישן)', timeNew: 'רק ידיעות שהתחילו בזמן הזה',
+      words: 'לפחות אחת מהמילים (בכל שפה, מופרדות בפסיקים)', wordsPh: 'אבדיה, Avdija, טרייד', wordsNote: 'מחפש גם בתרגומים ובתקצירים — מילה בעברית מוצאת גם כתבות ביוונית או בספרדית',
       tags: 'קבוצות / שחקנים / מסגרות', tagsPh: 'התחילו להקליד ובחרו מהרשימה', sport: 'ענף', scope: 'היקף', sites: 'אתרים (לא חובה, מופרדים בפסיקים)', sitesPh: 'ONE, ספורט 5, ESPN',
       hours: 'זמן', notify: '🔔 התראה כשמגיעה ידיעה חדשה בנושא', save: 'שמירה', del: 'מחיקה', cancel: 'ביטול', nameNeeded: 'צריך שם ולפחות מילה, תגית או סינון',
       all: 'הכל', football: '⚽ כדורגל', basketball: '🏀 כדורסל', other: '🏅 אחר', il: '🇮🇱 ישראלי וישראלים בחו"ל', world: '🌍 עולמי',
@@ -84,7 +85,11 @@ const T = {
     },
     socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
     sinceVisit: (n, when) => `🆕 ${n} ידיעות חדשות מאז הביקור הקודם (${when})`, newBadge: '🆕 חדש', grew: (n) => `🔄 +${n} מקורות`, grewTip: 'הידיעה התעדכנה מאז שראית אותה',
-    s5Covered: '✅ בספורט 5', s5Newer: (n) => `🟡 בספורט 5 · ${n} מקורות חדשים מאז`, s5Not: '🔴 לא נמצא בספורט 5', s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
+    s5Covered: '✅ באתר ספורט 5', s5Newer: (n) => `🟡 באתר ספורט 5 · ${n} פרסומים נוספים מאז`, s5Channel: '📱 רק בטלגרם/יוטיוב של ספורט 5', s5ChannelTip: 'פורסם בערוץ טלגרם או יוטיוב של ספורט 5 — לא נמצאה כתבה באתר', s5Not: '🔴 לא נמצאה התאמה בספורט 5', s5NotTip: (when) => `לא נמצאה כתבה מתאימה בספורט 5 (בדיקה אחרונה: ${when}). זו לא הוכחה שלא פורסם.`,
+    aiNote: '✨ סיכום אוטומטי מהכותרות והתקצירים של המקורות — לא מהכתבה המלאה', uncertain: '❓ ענף לא ודאי', uncertainTip: 'לא נמצאה ראיה ברורה לענף — אפשר לתקן עם 🏷️',
+    why: (sport, reason) => `סווג: ${sport} · לפי ${reason}`, sportName: { football: 'כדורגל', basketball: 'כדורסל', other: 'ספורט אחר' },
+    reasons: { url: 'מדור האתר', section: 'מדור האתר', feed: 'מקור ייעודי לענף', names: 'שמות שחקנים/קבוצות', kw: 'מילות מפתח', 'kw-other': 'מילות מפתח של ענף אחר', 'kw-weak': 'מילות מפתח (חלש)', model: 'מודל למידה', 'model-weak': 'מודל למידה (ביטחון נמוך)', 'in-the-news': 'ההקשר החדשותי של הקבוצה', score: 'תוצאת המשחק', user: 'תיקון עורך', uncertain: 'אין ראיה ברורה', athlete: 'ישראלי בחו"ל', 'il-clubs': 'שמות מועדונים', tie: 'שוויון ראיות' },
+    sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
     s5Filter: '🔴 רק מה שלא בספורט 5', s5FilterTip: 'מציג רק ידיעות שעדיין לא סוקרו בספורט 5',
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     copy: 'העתקה לאתר (כותרת, תקציר ומקור)', copied: '📋 הועתק — מוכן להדבקה', copyFail: 'לא הצלחתי להעתיק', source: 'מקור', mail: 'שליחה למייל web@sport5.co.il', mailFrom: 'נשלח מרדאר ספורט',
@@ -199,7 +204,8 @@ const T = {
     sumBtn: '📝 Summary',
     topics: {
       add: '＋ Topic', edit: '✏️ Edit', newTitle: '⭐ New topic', editTitle: '⭐ Edit topic', name: 'Topic name', namePh: 'e.g. Deni & the Blazers',
-      words: 'Search words (any language, comma-separated)', wordsPh: 'Avdija, אבדיה, trade', wordsNote: 'Also searches translations and summaries — an English word finds Greek or Spanish articles too',
+      must: 'Must include (all words)', mustPh: 'Avdija', exclude: 'Exclude', excludePh: 'fantasy, betting', timeMode: 'What counts in the time window', timeAny: 'Any new publication (even in an older story)', timeNew: 'Only stories that started in it',
+      words: 'At least one of these words (any language, comma-separated)', wordsPh: 'Avdija, אבדיה, trade', wordsNote: 'Also searches translations and summaries — an English word finds Greek or Spanish articles too',
       tags: 'Teams / players / competitions', tagsPh: 'Start typing and pick from the list', sport: 'Sport', scope: 'Scope', sites: 'Sites (optional, comma-separated)', sitesPh: 'ESPN, BBC Sport, ONE',
       hours: 'Time', notify: '🔔 Notify me when a new story matches', save: 'Save', del: 'Delete', cancel: 'Cancel', nameNeeded: 'Needs a name and at least one word, tag or filter',
       all: 'All', football: '⚽ Football', basketball: '🏀 Basketball', other: '🏅 Other', il: '🇮🇱 Israeli & Israelis abroad', world: '🌍 World',
@@ -211,7 +217,11 @@ const T = {
     },
     socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
     sinceVisit: (n, when) => `🆕 ${n} new stories since your last visit (${when})`, newBadge: '🆕 New', grew: (n) => `🔄 +${n} sources`, grewTip: 'This story has grown since you saw it',
-    s5Covered: '✅ On Sport5', s5Newer: (n) => `🟡 On Sport5 · ${n} new sources since`, s5Not: '🔴 Not found on Sport5', s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
+    s5Covered: '✅ On the Sport5 site', s5Newer: (n) => `🟡 On the Sport5 site · ${n} more publications since`, s5Channel: '📱 Only on Sport5 Telegram/YouTube', s5ChannelTip: 'Posted on a Sport5 Telegram or YouTube channel — no website article found', s5Not: '🔴 No Sport5 match found', s5NotTip: (when) => `No matching Sport5 article found (last check: ${when}). Not proof it wasn't published.`,
+    aiNote: '✨ Automatic summary from the sources\' headlines and descriptions — not the full article', uncertain: '❓ Sport uncertain', uncertainTip: 'No clear evidence of the sport — fix it with 🏷️',
+    why: (sport, reason) => `Classified: ${sport} · by ${reason}`, sportName: { football: 'football', basketball: 'basketball', other: 'other sport' },
+    reasons: { url: 'site section', section: 'site section', feed: 'sport-specific source', names: 'player/team names', kw: 'keywords', 'kw-other': "another sport's keywords", 'kw-weak': 'keywords (weak)', model: 'learned model', 'model-weak': 'learned model (low confidence)', 'in-the-news': "the club's news context", score: 'the score', user: 'editor correction', uncertain: 'no clear evidence', athlete: 'Israeli abroad', 'il-clubs': 'club names', tie: 'tied evidence' },
+    sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
     s5Filter: '🔴 Not on Sport5 only', s5FilterTip: 'Show only stories Sport5 has not covered yet',
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     copy: 'Copy for the site (headline, summary, source)', copied: '📋 Copied — ready to paste', copyFail: "Couldn't copy", source: 'Source', mail: 'Send to web@sport5.co.il', mailFrom: 'Sent from Sports Radar',
@@ -382,7 +392,7 @@ function applyFixes(stories) {
 function sendFix(s, change) {
   // full correction for this story (earlier choices + this one), so the collector can simply take the latest
   const prev = fixes.find((f) => f.id === s.id) || {};
-  const fix = { ...prev, id: s.id, links: s.sources.map((x) => x.link).slice(0, 15), ...change, t: Date.now() };
+  const fix = { ...prev, id: s.id, links: s.sources.map((x) => x.link).slice(0, 15), ...change, device: deviceId, t: Date.now() };
   fixes = [...fixes.filter((f) => f.id !== s.id), fix];
   store.set('fixes', fixes);
   fetch(FIX_TOPIC, { method: 'POST', body: JSON.stringify({ v: 1, ...fix, title: s.title.slice(0, 140) }) }).catch(() => {});
@@ -411,13 +421,17 @@ function storyText(s) {
   return textCache.get(s);
 }
 function matchTopic(s, tp) {
-  if (Date.now() - (s.dateUnknown ? s.latest : s.first) > tp.hours * 3600e3) return false;
+  // time: any new publication in the story (default) or only stories that started in the window
+  const when = tp.timeMode === 'new' && !s.dateUnknown ? s.first : s.latest;
+  if (Date.now() - when > tp.hours * 3600e3) return false;
   if (tp.sport !== 'all' && s.sport !== tp.sport) return false;
   if (tp.scope === 'il' && !s.israel && !s.abroad) return false;
   if (tp.scope === 'world' && s.israel) return false;
   if (tp.sites.length && !s.sources.some((x) => tp.sites.some((site) => x.name.toLowerCase().includes(site)))) return false;
-  if (!tp.words.length && !tp.tags.length) return true;
   const text = storyText(s);
+  if ((tp.exclude || []).some((w) => text.includes(w))) return false; // an excluded word always wins
+  if ((tp.must || []).some((w) => !text.includes(w))) return false; // every must-include word
+  if (!tp.words.length && !tp.tags.length) return true;
   return tp.words.some((w) => text.includes(w)) || tp.tags.some((id) => s.tags?.some((g) => g.id === id));
 }
 const topicStories = (tp) => (state.data?.stories || []).filter((s) => matchTopic(s, tp));
@@ -454,6 +468,7 @@ function renderTopicEditor(msg = '') {
   $('topicForm').innerHTML = `
     <h3>${esc(d.isNew ? L.newTitle : L.editTitle)}</h3>
     <label class="fld"><span>${esc(L.name)}</span><input id="tpName" value="${esc(d.name)}" placeholder="${esc(L.namePh)}" dir="auto"></label>
+    <label class="fld"><span>${esc(L.must)}</span><input id="tpMust" value="${esc((d.must || []).join(', '))}" placeholder="${esc(L.mustPh)}" dir="auto"></label>
     <label class="fld"><span>${esc(L.words)}</span><input id="tpWords" value="${esc(d.words.join(', '))}" placeholder="${esc(L.wordsPh)}" dir="auto"><small class="muted">${esc(L.wordsNote)}</small></label>
     <label class="fld"><span>${esc(L.tags)}</span><input id="tpTag" list="tpTagList" placeholder="${esc(L.tagsPh)}" dir="auto">
       <datalist id="tpTagList">${allTags().map((g) => `<option value="${esc(tagName(g))}">${TAG_ICON[g.k] || ''} ${esc(g.he && g.en && g.he !== g.en ? (state.ui === 'he' ? g.en : g.he) : '')}</option>`).join('')}</datalist>
@@ -461,8 +476,10 @@ function renderTopicEditor(msg = '') {
     <div class="fld-row">
       <label class="fld"><span>${esc(L.sport)}</span><select id="tpSport">${['all', 'football', 'basketball', 'other'].map((v) => opt(v, d.sport, L[v])).join('')}</select></label>
       <label class="fld"><span>${esc(L.scope)}</span><select id="tpScope">${['all', 'il', 'world'].map((v) => opt(v, d.scope, L[v])).join('')}</select></label>
+      <label class="fld"><span>${esc(L.timeMode)}</span><select id="tpTimeMode">${['any', 'new'].map((v) => opt(v, d.timeMode || 'any', v === 'any' ? L.timeAny : L.timeNew)).join('')}</select></label>
       <label class="fld"><span>${esc(L.hours)}</span><select id="tpHours">${TOPIC_HOURS.map((h) => opt(String(h), String(d.hours), L.h(h))).join('')}</select></label>
     </div>
+    <label class="fld"><span>${esc(L.exclude)}</span><input id="tpExclude" value="${esc((d.exclude || []).join(', '))}" placeholder="${esc(L.excludePh)}" dir="auto"></label>
     <label class="fld"><span>${esc(L.sites)}</span><input id="tpSites" list="tpSiteList" value="${esc(d.sites.join(', '))}" placeholder="${esc(L.sitesPh)}" dir="auto">
       <datalist id="tpSiteList">${sources.map((x) => `<option value="${esc(x)}">`).join('')}</datalist></label>
     <label class="chk"><input type="checkbox" id="tpNotify" ${d.notify ? 'checked' : ''}> ${esc(L.notify)}</label>
@@ -479,6 +496,9 @@ function readTopicForm() {
   const d = topicDraft;
   d.name = $('tpName').value.trim();
   d.words = splitList($('tpWords').value);
+  d.must = splitList($('tpMust').value);
+  d.exclude = splitList($('tpExclude').value);
+  d.timeMode = $('tpTimeMode').value;
   d.sport = $('tpSport').value;
   d.scope = $('tpScope').value;
   d.hours = Number($('tpHours').value);
@@ -532,7 +552,7 @@ function aiSummaryHtml(s) {
   const text = s.ai?.[state.ui]?.sum;
   if (!text) return '';
   const facts = state.ui === 'he' ? s.ai.he.facts || [] : [];
-  return `<p class="ai-sum" dir="auto">${esc(text)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}`;
+  return `<p class="ai-sum" dir="auto">${esc(text)}</p><p class="ai-note">${esc(t().aiNote)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}`;
 }
 // Machine translation of the shown headline (for the bubble), if the headline isn't Hebrew/English
 function translationOf(s, d) {
@@ -574,7 +594,7 @@ function visibleStories() {
   const tp = activeTopic();
   if (tp) {
     // an open topic: everything that matches, in any tab
-    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && (!state.notS5 || !s.s5 || s.s5.probable) && (!q || storyText(s).includes(q)));
+    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && (!state.notS5 || !s.s5 || s.s5.probable || s.s5.where === 'channel') && (!q || storyText(s).includes(q)));
     const mix = rankMix(list);
     return list.sort((a, b) => mix(b) - mix(a)).slice(0, 300);
   }
@@ -582,7 +602,7 @@ function visibleStories() {
     (s) =>
       inTab(s, state.tab) && langOk(s) && athleteOk(s) && (!state.rival || s.rival?.opponent === state.rival) &&
       (!state.tag || s.tags?.some((g) => g.id === state.tag)) &&
-      (!state.notS5 || !s.s5 || s.s5.probable) &&
+      (!state.notS5 || !s.s5 || s.s5.probable || s.s5.where === 'channel') &&
       (!q || storyText(s).includes(q)) // search also covers translations, summaries and tags
   );
   const mix = rankMix(list);
@@ -654,6 +674,7 @@ function cardHtml(s, fresh) {
   return `<article class="card${fresh ? ' fresh' : ''}${unseen ? ' unseen' : ''}" data-id="${esc(s.id)}">
     <div class="body">
       <div class="badges">
+        ${s.uncertain ? `<span class="badge uncertain" title="${esc(t().uncertainTip)}">${esc(t().uncertain)}</span>` : ''}
         ${s5Badge(s)}
         <span class="claim-slot">${claimBadge(s)}</span>
         ${unseen ? `<span class="badge new">${esc(t().newBadge)}</span>` : ''}
@@ -680,7 +701,7 @@ function cardHtml(s, fresh) {
         <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
         <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
         <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
-        <button type="button" class="fix-btn" title="${esc(L.fix.title)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
+        <button type="button" class="fix-btn" title="${esc(`${L.fix.title}\n${L.why(L.sportName[s.sport] || s.sport, L.reasons[s.why] || s.why || '—')}`)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
       </div>
       <div class="fix-menu" hidden>${['football', 'basketball', 'other']
         .filter((sp) => sp !== s.sport)
@@ -785,7 +806,9 @@ function renderStatus() {
   const ageMin = (Date.now() - d.generatedAt) / 60000;
   if (!state.lastFetchOk) el.classList.add('error');
   else if (ageMin > STALE_MIN) el.classList.add('stale');
-  $('statusText').textContent = state.lastFetchOk ? t().updated(ago(d.generatedAt)) : t().offline;
+  const failing = (state.health?.health || []).filter((h) => !h.ok && h.failStreak >= 3).length;
+  $('statusText').textContent = (state.lastFetchOk ? t().updated(ago(d.generatedAt)) : t().offline) + (failing ? ` · ${t().sys.failing(failing)}` : '');
+  if (failing) el.classList.add('stale');
   el.title = new Date(d.generatedAt).toLocaleString();
   $('foot').textContent = t().feeds(d.sources.ok, d.sources.total);
 }
@@ -1418,6 +1441,40 @@ $('list').addEventListener('click', (e) => {
   renderChrome();
   renderList();
 });
+// ---------- 🛠️ system panel: source health, AI status, filtered items ----------
+async function loadHealth() {
+  try {
+    const res = await fetch(`data/sources.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) state.health = await res.json();
+    renderStatus();
+  } catch {}
+}
+async function openSystem() {
+  const L = t().sys;
+  await loadHealth();
+  let rejected = [];
+  try { rejected = (await (await fetch(`data/rejected.json?t=${Date.now()}`, { cache: 'no-store' })).json()).items || []; } catch {}
+  const h = state.health || { health: [] };
+  const ok = h.health.filter((x) => x.ok).length;
+  const rows = [...h.health].sort((a, b) => (a.ok ? 1 : 0) - (b.ok ? 1 : 0) || b.failStreak - a.failStreak || a.name.localeCompare(b.name));
+  const ai = h.ai || {};
+  $('sysBody').innerHTML = `
+    <h3>${esc(L.title)}</h3>
+    <p class="muted">${esc(L.updated(h.generatedAt ? ago(h.generatedAt) : '—'))}${h.tookMs ? ` · ${esc(L.took(Math.round(h.tookMs / 1000)))}` : ''}</p>
+    <p><b>${esc(L.ai)}:</b> ${esc(ai.ok ? L.aiOk(ai.used || 0, ai.cap || 0) : L.aiOff(ai.error || '—'))}</p>
+    <details open><summary><b>${esc(L.sources)}</b> — ${esc(L.sourcesOk(ok, h.health.length))}</summary>
+      <table class="sys-table">${rows.map((x) => `<tr class="${x.ok ? (x.count ? '' : 'quiet') : 'bad'}"><td>${x.ok ? (x.count ? '✅' : '💤') : '⚠️'}</td><td>${esc(x.name)} <small class="muted">${esc(x.id)}</small></td><td>${x.ok ? (x.count ? `${x.count}` : esc(L.quiet)) : esc(x.error || '')}</td><td class="muted">${esc(L.lastOk)}: ${x.lastOk ? esc(ago(x.lastOk)) : esc(L.never)}</td></tr>`).join('')}</table>
+    </details>
+    <details><summary><b>${esc(L.rejected)}</b> (${rejected.length})</summary>
+      <ul class="sys-rejected">${rejected.slice(0, 250).map((r) => `<li><span class="badge">${esc(L.why[r.why] || r.why)}</span> <a href="${esc(r.link)}" target="_blank" rel="noopener" dir="auto">${esc(r.title)}</a> <small class="muted">${esc(r.src || '')}</small></li>`).join('')}</ul>
+    </details>
+    <div class="dlg-actions"><button type="button" class="small-btn" id="sysClose">${esc(L.close)}</button></div>`;
+  $('sysDialog').showModal();
+}
+$('status').addEventListener('click', openSystem);
+$('status').setAttribute('role', 'button');
+$('sysBody').addEventListener('click', (e) => e.target.id === 'sysClose' && $('sysDialog').close());
+
 // ---------- 🙋 "I'm on it": which editor is writing which story ----------
 // Each claim / unclaim is a message on a public ntfy.sh topic; every browser reads the last 8 hours of it every
 // minute, so all editors see who took what. A claim lasts 8 hours (or until undone). Only a first name is shared.
@@ -1496,12 +1553,13 @@ $('list').addEventListener('click', (e) => {
 // ---------- Sport5 coverage + copy for the site + mail ----------
 function s5Badge(s) {
   const L = t();
+  if (s.s5?.where === 'channel') return `<a class="badge s5 channel" href="${esc(s.s5.link)}" target="_blank" rel="noopener" title="${esc(L.s5ChannelTip)}">${esc(L.s5Channel)}</a>`;
   if (s.s5) {
     const label = s.s5.newer >= 2 ? L.s5Newer(s.s5.newer) : s.s5.probable ? L.s5Probable : L.s5Covered;
     return `<a class="badge s5${s.s5.newer >= 2 ? ' newer' : ''}${s.s5.probable ? ' probable' : ''}" href="${esc(s.s5.link)}" target="_blank" rel="noopener" title="${esc(s.s5.probable ? L.s5ProbTip : L.s5Tip)}">${esc(label)}</a>`;
   }
   // "not on Sport5" only where it matters (stories several outlets carry), so the feed isn't covered in red
-  return s.big || s.sourceCount >= 3 ? `<span class="badge s5 not">${esc(L.s5Not)}</span>` : '';
+  return s.big || s.sourceCount >= 3 ? `<span class="badge s5 not" title="${esc(L.s5NotTip(state.data ? ago(state.data.generatedAt) : ''))}">${esc(L.s5Not)}</span>` : '';
 }
 // Hebrew text for the site's editing system: headline, summary, source
 function editorText(s) {
@@ -1676,7 +1734,7 @@ $('topicForm').addEventListener('click', (e) => {
   if (e.target.id !== 'tpSave') return;
   readTopicForm();
   const d = topicDraft;
-  const hasFilter = d.words.length || d.tags.length || d.sites.length || d.sport !== 'all' || d.scope !== 'all';
+  const hasFilter = d.words.length || d.must.length || d.tags.length || d.sites.length || d.sport !== 'all' || d.scope !== 'all';
   if (!d.name || !hasFilter) return renderTopicEditor(t().topics.nameNeeded);
   delete d.isNew;
   const i = topics.findIndex((x) => x.id === d.id);
@@ -1703,6 +1761,8 @@ $('topicForm').addEventListener('click', (e) => {
   setInterval(load, REFRESH_MS);
   loadClaims();
   setInterval(loadClaims, 60 * 1000);
+  loadHealth();
+  setInterval(loadHealth, 5 * 60 * 1000);
   setInterval(loadAthletes, 10 * 60 * 1000);
   Learn.sync().then(() => state.tab === 'foryou' && renderList());
   setInterval(() => Learn.sync(), 3 * 60 * 1000);

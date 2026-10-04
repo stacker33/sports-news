@@ -8,6 +8,7 @@
 //   5. a small word model (naive Bayes) trained every run on the articles whose sport is certain
 //   6. weak keywords / Israeli club names
 // Articles with no evidence at all (cars, politics in a sports section) end up as "not sport" and are hidden.
+import { heBase } from './hebrew.js';
 
 const SPORTS = ['football', 'basketball', 'other'];
 
@@ -20,7 +21,6 @@ const STOP = new Set(
   של את על עם לא כי זה זו גם אבל או אם כל רק עוד היה היא הוא הם הן יש אין אחרי לפני מול בין אל עד כך מה מי
   הזה הזאת היום אתמול מחר ואז כבר`.split(/\s+/)
 );
-const HE_PREFIX = /^[הובלמשכ]/;
 
 export function words(text) {
   const out = [];
@@ -29,7 +29,7 @@ export function words(text) {
     .replace(/[֑-ׇ]/g, '')
     .replace(/['"׳״`’‘“”]/g, '')
     .split(/[^\p{L}\p{N}]+/u)) {
-    if (/[א-ת]/.test(w) && w.length >= 4 && HE_PREFIX.test(w)) w = w.slice(1);
+    w = heBase(w); // Hebrew prefix letter, keeping known names intact (src/hebrew.js)
     if (w.length < 2 || STOP.has(w) || /^\d+$/.test(w)) continue;
     out.push(w);
   }
@@ -119,7 +119,10 @@ export function entitySport(ents) {
 export const SURE = new Set(['user', 'section', 'url', 'kw-other', 'feed', 'names', 'kw', 'score']);
 
 export function decideSport(ev, ent, pred, feats = []) {
-  if (ev.section === 'drop') return { sport: 'other', nonSport: true, why: 'section' };
+  // a cars / lifestyle section: drop — unless the article itself names a known athlete / team or sports words
+  // (an athlete interview in a magazine section is still a sports story)
+  const sportsEvidence = !!ent || !!ev.athleteSport || ev.kw.f + ev.kw.b > 0 || ev.ib + ev.ifb > 0;
+  if (ev.section === 'drop' && !sportsEvidence) return { sport: 'other', nonSport: true, why: 'section' };
   if (ev.url) return { sport: ev.url, why: 'url' };
   const { f, b, o } = ev.kw;
   // a clear other-sport word wins a tie, and beats a sport-specific feed (rugby / NFL posts in a club's news search)
@@ -136,7 +139,8 @@ export function decideSport(ev, ent, pred, feats = []) {
   if (ev.israel && ev.ib + ev.ifb > 0) return { sport: ev.ib > ev.ifb ? 'basketball' : 'football', why: 'il-clubs' };
   if (f && f === b) return { sport: 'football', why: 'tie' };
   // Israeli club/national-team story with no sport word (a section that isn't sport was already dropped above)
-  if (ev.israel && !ev.israelOther && o === 0) return { sport: 'football', why: 'il-default' };
+  // Israeli story with no sport evidence: uncertain — shown with ❓ (best guess: the model's, else football)
+  if (ev.israel && !ev.israelOther && o === 0) return { sport: pred?.sport && pred.sport !== 'other' ? pred.sport : 'football', why: 'uncertain' };
   // nothing points to any sport: keep only if it reads like another sport (judo, tennis…)
   return { sport: 'other', nonSport: !ev.israelOther && o === 0, why: 'none' };
 }
