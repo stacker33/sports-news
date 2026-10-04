@@ -14,6 +14,7 @@ import { loadCorrections } from './corrections.js';
 import { aiSummaries } from './ai.js';
 import { telegramPost } from './telegram.js';
 import { assignStoryIds } from './storyids.js';
+import { sport5Coverage, sport5Probable } from './sport5.js';
 import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
@@ -351,6 +352,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const { ids: storyIdList, map: storyIds } = assignStoryIds(clusters, state.storyIds);
   const stories = clusters
     .map((members, i) => ({ ...buildStory(members, now), id: storyIdList[i], tags: storyTags(members), _members: members }))
+    .map((s) => ({ ...s, s5: sport5Coverage(s) })) // did Sport5 already cover it? (for the Sport5 editors)
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
     .map((s) => applySignals(s, signals))
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
@@ -360,6 +362,9 @@ export async function collect({ log = console.log, force = false } = {}) {
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
     .sort((a, b) => b.latest - a.latest)
     .slice(0, MAX_STORIES);
+
+  // Sport5 coverage, second check: same-day Sport5 article about the same thing worded differently
+  const s5probable = sport5Probable(stories, items, tokens);
 
   // Summaries: feed descriptions + article pages, most important stories first (Israeli / abroad, then popular & fresh)
   const sums = state.sums || {};
@@ -432,7 +437,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
   );
   log(
-    `   Telegram: ${tgPosted} posted${tg.error ? ` (${tg.error})` : ''} · AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
+    `   Sport5: +${s5probable} probably covered · Telegram: ${tgPosted} posted${tg.error ? ` (${tg.error})` : ''} · AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
   );
   results.forEach((r, i) => !r.ok && log(`   ✗ ${due[i].id}: ${String(r.error?.message || r.error).slice(0, 100)}`));
   return { stories: stories.length, fresh };

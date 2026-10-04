@@ -455,3 +455,17 @@ main { max-width: 860px; margin: 0 auto; padding: 12px 16px 24px; display: grid;
 .badge.new { background: var(--accent-soft); color: var(--accent); }
 .badge.grew { background: var(--il-soft); color: var(--il); }
 .since-bar { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 14px; border-radius: var(--radius); padding: 9px 14px; }
+
+/* v20: Sport5 coverage, copy, mail */
+.badge.s5 { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+.badge.s5.newer { background: #fff4d6; color: #8a5a00; }
+.badge.s5.not { background: var(--hot-soft); color: var(--hot); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge.s5.newer { background: #3a2f12; color: #f3c560; } }
+:root[data-theme="dark"] .badge.s5.newer { background: #3a2f12; color: #f3c560; }
+.s5-filter { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.s5-filter[aria-pressed="true"] { background: var(--hot); border-color: var(--hot); color: #fff; }
+.copy-btn, .mail-btn { border: 0; background: none; cursor: pointer; font-size: 14px; padding: 2px 4px; border-radius: 8px; opacity: .75; }
+.copy-btn { margin-inline-start: auto; }
+.copy-btn:hover, .mail-btn:hover { opacity: 1; background: var(--surface-2); }
+.copy-btn ~ .share-btn { margin-inline-start: 0; }
+.badge.s5.probable:not(.newer) { background: var(--surface-2); color: var(--text); }

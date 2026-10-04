@@ -84,6 +84,9 @@ const T = {
     },
     socialTip: 'פרסום ישיר של הכתב (טלגרם / Bluesky) — לרוב מהיר יותר מהכתבות',
     sinceVisit: (n, when) => `🆕 ${n} ידיעות חדשות מאז הביקור הקודם (${when})`, newBadge: '🆕 חדש', grew: (n) => `🔄 +${n} מקורות`, grewTip: 'הידיעה התעדכנה מאז שראית אותה',
+    s5Covered: '✅ בספורט 5', s5Newer: (n) => `🟡 בספורט 5 · ${n} מקורות חדשים מאז`, s5Not: '🔴 לא נמצא בספורט 5', s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
+    s5Filter: '🔴 רק מה שלא בספורט 5', s5FilterTip: 'מציג רק ידיעות שעדיין לא סוקרו בספורט 5',
+    copy: 'העתקה לאתר (כותרת, תקציר ומקור)', copied: '📋 הועתק — מוכן להדבקה', copyFail: 'לא הצלחתי להעתיק', source: 'מקור', mail: 'שליחה למייל web@sport5.co.il', mailFrom: 'נשלח מרדאר ספורט',
     share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
     video: 'וידאו', videoTip: 'סרטון מהערוץ הרשמי (מסיבת עיתונאים, ראיון או תקציר)',
     sumTranslated: 'תורגם אוטומטית',
@@ -207,6 +210,9 @@ const T = {
     },
     socialTip: "The reporter's own post (Telegram / Bluesky) — usually ahead of the articles",
     sinceVisit: (n, when) => `🆕 ${n} new stories since your last visit (${when})`, newBadge: '🆕 New', grew: (n) => `🔄 +${n} sources`, grewTip: 'This story has grown since you saw it',
+    s5Covered: '✅ On Sport5', s5Newer: (n) => `🟡 On Sport5 · ${n} new sources since`, s5Not: '🔴 Not found on Sport5', s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
+    s5Filter: '🔴 Not on Sport5 only', s5FilterTip: 'Show only stories Sport5 has not covered yet',
+    copy: 'Copy for the site (headline, summary, source)', copied: '📋 Copied — ready to paste', copyFail: "Couldn't copy", source: 'Source', mail: 'Send to web@sport5.co.il', mailFrom: 'Sent from Sports Radar',
     share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
     video: 'Video', videoTip: 'Video from the official channel (press conference, interview or highlights)',
     sumTranslated: 'machine-translated',
@@ -268,6 +274,7 @@ const state = {
   ui: store.get('ui', 'he'),
   tab: TABS.includes(store.get('tab')) ? store.get('tab') : store.get('tab') === 'ilOther' ? 'other' : 'top',
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
+  notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
   mix: Number(store.get('mix', 40)),
   abroadView: store.get('abroadView', 'news') === 'players' ? 'players' : 'news', // Israelis abroad: 📰 news | 👤 players // 0 = newest … 100 = most popular
@@ -563,7 +570,7 @@ function visibleStories() {
   const tp = activeTopic();
   if (tp) {
     // an open topic: everything that matches, in any tab
-    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && (!q || storyText(s).includes(q)));
+    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && (!state.notS5 || !s.s5 || s.s5.probable) && (!q || storyText(s).includes(q)));
     const mix = rankMix(list);
     return list.sort((a, b) => mix(b) - mix(a)).slice(0, 300);
   }
@@ -571,6 +578,7 @@ function visibleStories() {
     (s) =>
       inTab(s, state.tab) && langOk(s) && athleteOk(s) && (!state.rival || s.rival?.opponent === state.rival) &&
       (!state.tag || s.tags?.some((g) => g.id === state.tag)) &&
+      (!state.notS5 || !s.s5 || s.s5.probable) &&
       (!q || storyText(s).includes(q)) // search also covers translations, summaries and tags
   );
   const mix = rankMix(list);
@@ -642,6 +650,7 @@ function cardHtml(s, fresh) {
   return `<article class="card${fresh ? ' fresh' : ''}${unseen ? ' unseen' : ''}" data-id="${esc(s.id)}">
     <div class="body">
       <div class="badges">
+        ${s5Badge(s)}
         ${unseen ? `<span class="badge new">${esc(t().newBadge)}</span>` : ''}
         ${grew ? `<span class="badge grew" title="${esc(t().grewTip)}">${esc(t().grew(grew))}</span>` : ''}
         ${isHot ? `<span class="badge hot">${esc(t().hot)}</span>` : ''}
@@ -662,6 +671,8 @@ function cardHtml(s, fresh) {
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
         ${foreignLink ? `<a href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener">🌐 ${esc(L.readOriginal)}</a>` : ''}
+        <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
+        <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
         <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
         <button type="button" class="fix-btn" title="${esc(L.fix.title)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
       </div>
@@ -684,6 +695,9 @@ function renderChrome() {
   document.body.dataset.panel = state.panel;
   $('langBtn').textContent = state.ui === 'he' ? 'EN' : 'עב';
   $('tgLabel').textContent = t().tgLabel;
+  $('s5Filter').textContent = t().s5Filter;
+  $('s5Filter').title = t().s5FilterTip;
+  $('s5Filter').setAttribute('aria-pressed', String(state.notS5));
   $('tgBtn').title = t().tgTip;
   renderTopics();
   $('bellBtn').classList.toggle('on', !!state.notif.enabled);
@@ -1397,6 +1411,49 @@ $('list').addEventListener('click', (e) => {
   renderChrome();
   renderList();
 });
+// ---------- Sport5 coverage + copy for the site + mail ----------
+function s5Badge(s) {
+  const L = t();
+  if (s.s5) {
+    const label = s.s5.newer >= 2 ? L.s5Newer(s.s5.newer) : s.s5.probable ? L.s5Probable : L.s5Covered;
+    return `<a class="badge s5${s.s5.newer >= 2 ? ' newer' : ''}${s.s5.probable ? ' probable' : ''}" href="${esc(s.s5.link)}" target="_blank" rel="noopener" title="${esc(s.s5.probable ? L.s5ProbTip : L.s5Tip)}">${esc(label)}</a>`;
+  }
+  // "not on Sport5" only where it matters (stories several outlets carry), so the feed isn't covered in red
+  return s.big || s.sourceCount >= 3 ? `<span class="badge s5 not">${esc(L.s5Not)}</span>` : '';
+}
+// Hebrew text for the site's editing system: headline, summary, source
+function editorText(s) {
+  const title = s.ai?.he?.title || (s.lang === 'he' ? s.title : s.t?.he?.title) || s.title;
+  const sum = s.ai?.he?.sum || s.sum?.he || (s.sum?.lang === 'he' ? s.sum.text : '') || '';
+  const src = s.sources[0] || { name: '', link: s.link };
+  const orig = s.lang !== 'he' && s.title !== title ? `\n(${s.title})` : '';
+  return { title, text: `${title}${orig}\n\n${sum ? sum + '\n\n' : ''}${t().source}: ${src.name} | ${s.realLink || src.link || s.link}` };
+}
+$('s5Filter').addEventListener('click', () => {
+  state.notS5 = !state.notS5;
+  store.set('notS5', state.notS5);
+  renderChrome();
+  renderList();
+});
+$('list').addEventListener('click', async (e) => {
+  const copy = e.target.closest('.copy-btn');
+  const mail = e.target.closest('.mail-btn');
+  if (!copy && !mail) return;
+  const s = state.data?.stories.find((x) => x.id === e.target.closest('.card').dataset.id);
+  if (!s) return;
+  const { title, text } = editorText(s);
+  if (copy) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(t().copied);
+    } catch {
+      toast(t().copyFail);
+    }
+    return;
+  }
+  location.href = `mailto:web@sport5.co.il?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n— ${t().mailFrom}`)}`;
+});
+
 // WhatsApp share: opens WhatsApp (the app on phones, WhatsApp Web on computers) with the story ready to send
 const SITE_URL = 'https://stacker33.github.io/sports-news/';
 const WA_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="#25D366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#fff" d="M17.5 14.4c-.3-.2-1.8-.9-2-1s-.5-.2-.7.1-.8 1-.9 1.2-.3.2-.6.1a8.2 8.2 0 0 1-4-3.5c-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1.1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.4 13.4 0 0 0 5.2 4.6c1.9.8 2.7.9 3.6.7a3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.4z"/></svg>';
