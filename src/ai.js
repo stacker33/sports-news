@@ -20,7 +20,7 @@ Write for each story:
 - "title_he": the headline in natural, fluent Hebrew as an Israeli sports site would write it (not a literal translation). Use the common Hebrew spelling of players, clubs and competitions (e.g. "מכבי תל אביב", "ריאל מדריד", "ליגת האלופות", "דני אבדיה").
 - "summary_he": 2–3 short, clear Hebrew sentences: what happened, who is involved, and why it matters (result, decision, injury, transfer, quote…). The reader should understand the story without opening it.
 - "summary_en": the same summary in English, 2–3 sentences.
-Rules: use ONLY facts that appear in the given texts. Never invent scores, numbers, quotes, dates or reasons. Keep attributions ("according to …", "reportedly") when the source only reports a claim. If the texts say very little, write one sentence with what is known. No hashtags, emojis or clickbait.
+Rules: keep the sport right — a basketball story says כדורסל, never כדורגל (and vice versa). Use ONLY facts that appear in the given texts. Never invent scores, numbers, quotes, dates or reasons. Keep attributions ("according to …", "reportedly") when the source only reports a claim. If the texts say very little, write one sentence with what is known. No hashtags, emojis or clickbait.
 Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…"}]} with every id you were given.`;
 
 const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
