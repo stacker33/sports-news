@@ -149,8 +149,9 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
       st.model = model();
       return out;
     } catch (e) {
-      if (model() === MODEL && MODEL !== FALLBACK && /HTTP (429|404|400)/.test(e.message)) {
-        st.mainOffDay = day;
+      // quota / unknown model → the cheaper model for the rest of the day; overloaded (5xx) → just for this call
+      if (model() === MODEL && MODEL !== FALLBACK && /HTTP (429|404|400|5\d\d)/.test(e.message)) {
+        if (!/HTTP 5\d\d/.test(e.message)) st.mainOffDay = day;
         st.used++;
         st.hourly.push(now);
         const out = await callModel(token, FALLBACK, system, user);
