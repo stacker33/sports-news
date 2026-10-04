@@ -25,12 +25,14 @@ const titleHe = (s) => s.ai?.he?.title || s.t?.he?.title || heMap.get(s) || s.ti
 const isHe = (t) => /[א-ת]/.test(t || '');
 const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
 
-function alertText(s, siteUrl) {
-  const who = s.athletes?.length ? `👤 ${s.athletes.join(', ')}\n` : '';
+function alertText(s, siteUrl, heName = new Map()) {
+  const who = s.athletes?.length ? `👤 ${s.athletes.map((n) => heName.get(n) || n).join(', ')}\n` : '';
   const sum = s.ai?.he?.sum ? `\n${esc(s.ai.he.sum)}\n` : '';
   const more = s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : '';
   const video = s.video ? ` · <a href="${esc(s.video)}">🎥 וידאו</a>` : '';
-  return `${icon(s)} <b>${esc(titleHe(s))}</b>\n${who}${sum}\n<a href="${esc(s.realLink || s.link)}">${esc(s.sources[0]?.name || '')}${more}</a>${video} · <a href="${esc(siteUrl)}">רדאר ספורט</a>`;
+  const he = titleHe(s);
+  const head = isHe(s.title) || he === s.title ? `<b>${esc(he)}</b>` : `<b>${esc(s.title)}</b>\n🇮🇱 ${esc(he)}`;
+  return `${icon(s)} ${head}\n${who}${sum}\n<a href="${esc(s.realLink || s.link)}">${esc(s.sources[0]?.name || '')}${more}</a>${video} · <a href="${esc(siteUrl)}">רדאר ספורט</a>`;
 }
 
 // One line per Israeli abroad who had a game in the last 24h
@@ -141,7 +143,7 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     else if (il.hour >= 7) {
       const room = Math.min(PER_RUN, PER_HOUR - st.hour.length, PER_DAY - st.dayCount);
       for (const s of fresh.sort((a, b) => b.score - a.score).slice(0, Math.max(0, room))) {
-        await send(token, chat, alertText(s, siteUrl), true);
+        await send(token, chat, alertText(s, siteUrl, new Map((athletes || []).map((a) => [a.name, a.name_he || a.name]))), true);
         st.sent[keyOf.get(s)] = now;
         st.hour.push(now);
         st.dayCount++;

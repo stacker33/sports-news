@@ -662,7 +662,7 @@ function cardHtml(s, fresh) {
       <div class="meta">
         <span>${esc(lead)}</span>${s.dateUnknown ? '' : `<span>${timeEl(s.first)}</span>`}${!s.dateUnknown && s.sourceCount > 1 && s.latest - s.first > 30 * 60000 ? `<span>${esc(t().storyUpdated(''))}${timeEl(s.latest)}</span>` : ''}
         ${foreignLink ? `<a href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener">🌐 ${esc(L.readOriginal)}</a>` : ''}
-        <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">📤</button>
+        <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
         <button type="button" class="fix-btn" title="${esc(L.fix.title)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
       </div>
       <div class="fix-menu" hidden>${['football', 'basketball', 'other']
@@ -1397,8 +1397,9 @@ $('list').addEventListener('click', (e) => {
   renderChrome();
   renderList();
 });
-// 📤 share: the phone's share sheet (WhatsApp, Telegram…) or WhatsApp Web on a computer
+// WhatsApp share: opens WhatsApp (the app on phones, WhatsApp Web on computers) with the story ready to send
 const SITE_URL = 'https://stacker33.github.io/sports-news/';
+const WA_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="#25D366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#fff" d="M17.5 14.4c-.3-.2-1.8-.9-2-1s-.5-.2-.7.1-.8 1-.9 1.2-.3.2-.6.1a8.2 8.2 0 0 1-4-3.5c-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1.1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.4 13.4 0 0 0 5.2 4.6c1.9.8 2.7.9 3.6.7a3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.4z"/></svg>';
 function shareText(s) {
   const he = state.ui === 'he';
   const d = disp(s);
@@ -1411,16 +1412,7 @@ $('list').addEventListener('click', async (e) => {
   if (!btn) return;
   const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
   if (!s) return;
-  const { title, text } = shareText(s);
-  const touch = matchMedia('(pointer: coarse)').matches;
-  if (touch && navigator.share) {
-    try {
-      await navigator.share({ title, text });
-      return;
-    } catch (err) {
-      if (err?.name === 'AbortError') return; // closed the share sheet
-    }
-  }
+  const { text } = shareText(s);
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
 });
 $('list').addEventListener('auxclick', recordOpen); // middle-click / open in new tab
