@@ -91,15 +91,18 @@ export function parseDate(s, tz) {
 // Sport5 has no RSS: read the homepage (articles are listed newest first; no times → first-seen time)
 function parseSport5(html) {
   const re = /<a[^>]+href="((?:https:\/\/www\.sport5\.co\.il)?\/articles\.aspx\?FolderID=\d+&(?:amp;)?docID=(\d+))"[^>]*>([\s\S]{0,600}?)<\/a>/g;
-  const best = new Map();
+  // The homepage links an article several times: headline first, then the subheading (usually longer), then the
+  // picture. The first text is the headline; the next different one is kept as the summary.
+  const texts = new Map();
   let m;
   while ((m = re.exec(html))) {
-    const title = cleanText(m[3]);
-    if (title.length > (best.get(m[2])?.title.length || 15)) {
-      best.set(m[2], { title, link: `https://www.sport5.co.il/articles.aspx?FolderID=${m[1].match(/FolderID=(\d+)/)[1]}&docID=${m[2]}` });
-    }
+    const text = cleanText(m[3].replace(/<img[^>]*>/gi, ''));
+    if (text.length < 15) continue; // picture-only links, "more" links
+    if (!texts.has(m[2])) texts.set(m[2], { link: `https://www.sport5.co.il/articles.aspx?FolderID=${m[1].match(/FolderID=(\d+)/)[1]}&docID=${m[2]}`, list: [] });
+    const t = texts.get(m[2]);
+    if (!t.list.includes(text)) t.list.push(text);
   }
-  return [...best.values()].map((a) => ({ ...a, summary: '', published: null, image: null, publisher: 'ספורט 5' }));
+  return [...texts.values()].map(({ link, list }) => ({ title: list[0], link, summary: (list[1] || '').slice(0, 280), published: null, image: null, publisher: 'ספורט 5' }));
 }
 
 // ---------- direct sources without RSS ----------

@@ -32,7 +32,7 @@ const isScoop = (s) => (s.social || []).some((p) => !/[א-ת]/.test(p)) && SCOOP
 const major = (s) => s.tags?.some((g) => MAJOR.has(g.id));
 // how much an editor wants this right now (world stories are first-class)
 const urgency = (s) => s.score + (!s.s5 || s.s5.probable || s.s5.where === 'channel' ? 2 : 0) + (s.s5?.newer >= 2 ? 1 : 0) + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
-const titleHe = (s) => s.ai?.he?.title || s.t?.he?.title || heMap.get(s) || s.title;
+const titleHe = (s) => (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title || heMap.get(s)) || s.title;
 const isHe = (t) => /[א-ת]/.test(t || '');
 const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
 

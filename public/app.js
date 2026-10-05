@@ -781,7 +781,8 @@ function cardHtmlV2(s, fresh) {
   if (d.link === s.link && s.realLink) d.link = s.realLink;
   const he = state.ui === 'he';
   // headline in the app's language first, the original under it
-  const heTitle = s.ai?.he?.title || (s.lang === 'he' ? s.title : s.t?.he?.from ? s.t.he.title : d.lang === 'he' ? d.title : '');
+  // a Hebrew article keeps its own headline; the model's Hebrew headline is for foreign ones
+  const heTitle = s.lang === 'he' ? s.title : s.ai?.he?.title || (s.t?.he?.from ? s.t.he.title : d.lang === 'he' ? d.title : '');
   const enTitle = s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : d.lang === 'en' ? d.title : '';
   const main = (he ? heTitle : enTitle) || d.title;
   const orig = main !== s.title ? s.title : '';
@@ -1077,7 +1078,7 @@ function briefHtml() {
   const he = state.ui === 'he';
   const title = (s) => {
     const d = disp(s);
-    return (he ? s.ai?.he?.title || (s.lang === 'he' ? s.title : s.t?.he?.from ? s.t.he.title : '') : s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : '') || d.title;
+    return (he ? (s.lang === 'he' ? s.title : s.ai?.he?.title || (s.t?.he?.from ? s.t.he.title : '')) : s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : '') || d.title;
   };
   return `<section class="brief-card"><div class="brief-head"><b>${esc(t().x2.brief.title)}</b><button type="button" class="small-btn" id="briefHide">${esc(t().x2.brief.hide)}</button></div><ol>${items
     .map((s) => `<li data-id="${esc(s.id)}"><span class="bt">${esc(hhmm(s.first))}</span><span class="bi">${catIcon(s)}</span><a href="${esc(s.realLink || disp(s).link)}" target="_blank" rel="noopener" dir="auto">${esc(title(s))}</a><span class="bs">${esc(s.sources[0]?.name || '')}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}</span></li>`)
@@ -1835,7 +1836,7 @@ function s5Badge(s) {
 }
 // Hebrew text for the site's editing system: headline, summary, source
 function editorText(s) {
-  const title = s.ai?.he?.title || (s.lang === 'he' ? s.title : s.t?.he?.title) || s.title;
+  const title = (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title) || s.title;
   const sum = s.ai?.he?.sum || s.sum?.he || (s.sum?.lang === 'he' ? s.sum.text : '') || '';
   const src = s.sources[0] || { name: '', link: s.link };
   const orig = s.lang !== 'he' && s.title !== title ? `\n(${s.title})` : '';
