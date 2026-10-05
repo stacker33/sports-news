@@ -993,7 +993,7 @@ function playerCardsHtml() {
     const k = cards[a.name];
     let statusText = '';
     const name = he && a.name_he ? a.name_he : a.name;
-    const team = he && a.team_he ? a.team_he : a.team;
+    const team = (he && a.team_he ? a.team_he : a.team) + (a.college ? ' · 🎓 NCAA' : '');
     const lines = [];
     // status (injured / national team / starting…) for the next or current game
     if (k?.next) {

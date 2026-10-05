@@ -57,6 +57,8 @@ export function normalizeAthlete(a) {
     team_alt: (Array.isArray(a.team_alt) ? a.team_alt : String(a.team_alt || '').split(',')).map(str).filter(Boolean),
     country: COUNTRIES[a.country] ? a.country : 'other',
     sport: a.sport === 'basketball' ? 'basketball' : 'football',
+    // US college (NCAA) players: found by name only — college team names ("Utah", "Tennessee") would match NBA/NFL news
+    ...(a.college ? { college: true } : {}),
   };
 }
 
@@ -123,7 +125,7 @@ export function athleteSources(athletes, teamCache) {
   }
 
   const teams = new Map();
-  for (const a of athletes) if (a.team) teams.set(`${a.sport}|${a.team}`, a);
+  for (const a of athletes) if (a.team && !a.college) teams.set(`${a.sport}|${a.team}`, a);
   for (const [key, a] of teams) {
     const full = teamCache[key]?.name || a.team;
     const locale = COUNTRIES[a.country].locale;
@@ -162,7 +164,7 @@ export function buildMatchers(athletes, teamCache) {
   }));
   const teams = new Map();
   for (const a of athletes) {
-    if (!a.team || teams.has(a.team)) continue;
+    if (!a.team || a.college || teams.has(a.team)) continue;
     const full = teamCache[`${a.sport}|${a.team}`]?.name;
     teams.set(a.team, { team: a.team, test: [a.team, a.team_he, full, ...a.team_alt].filter(Boolean).map(matcher) });
   }

@@ -20,5 +20,22 @@
   {"name":"Or Blorian","name_he":"אור בלוריאן","alt":["Blorian","בלוריאן"],"team":"Sporting Kansas City","team_he":"קנזס סיטי","team_alt":["Sporting KC"],"country":"usa","sport":"football"},
   {"name":"Deni Avdija","name_he":"דני אבדיה","alt":["Avdija","אבדיה"],"team":"Portland Trail Blazers","team_he":"פורטלנד","team_alt":["Trail Blazers","Blazers"],"country":"usa","sport":"basketball"},
   {"name":"Ben Saraf","name_he":"בן שרף","alt":[],"team":"Brooklyn Nets","team_he":"ברוקלין","team_alt":[],"country":"usa","sport":"basketball"},
-  {"name":"Danny Wolf","name_he":"דני וולף","alt":[],"team":"Brooklyn Nets","team_he":"ברוקלין","team_alt":[],"country":"usa","sport":"basketball"}
+  {"name":"Danny Wolf","name_he":"דני וולף","alt":[],"team":"Brooklyn Nets","team_he":"ברוקלין","team_alt":[],"country":"usa","sport":"basketball"},
+  {"name":"Omer Mayer","name_he":"עומר מאייר","alt":[],"team":"Purdue Boilermakers","team_he":"פרדו","team_alt":["Purdue"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Noam Yaacov","name_he":"נועם יעקב","alt":["Yaacov","Noam Yaakov"],"team":"Utah Utes","team_he":"יוטה","team_alt":[],"country":"usa","sport":"basketball","college":true},
+  {"name":"Ilay Dolinski","name_he":"עילאי דולינסקי","alt":["Dolinski","Dolinsky"],"team":"Seton Hall Pirates","team_he":"סיטון הול","team_alt":["Seton Hall"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Oren Sahar","name_he":"אורן סהר","alt":[],"team":"Pepperdine Waves","team_he":"פפרדיין","team_alt":["Pepperdine"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Shon Abaev","name_he":"שון אבאייב","alt":["Abaev","שון אבייב"],"team":"Florida State Seminoles","team_he":"פלורידה סטייט","team_alt":["Florida State"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Ethan Burg","name_he":"איתן בורג","alt":[],"team":"Tennessee Volunteers","team_he":"טנסי","team_alt":[],"country":"usa","sport":"basketball","college":true},
+  {"name":"David Musis","name_he":"דיוויד מוסיס","alt":["Musis","דוד מוסיס"],"team":"Florida Atlantic Owls","team_he":"פלורידה אטלנטיק","team_alt":["FAU"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Yoav Berman","name_he":"יואב ברמן","alt":[],"team":"Duquesne Dukes","team_he":"דוקיין","team_alt":["Duquesne"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Alon Michaeli","name_he":"אלון מיכאלי","alt":[],"team":"Saint Louis Billikens","team_he":"סנט לואיס","team_alt":["Saint Louis"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Ofri Naveh","name_he":"עופרי נוה","alt":["Ofri Nave"],"team":"Middle Tennessee Blue Raiders","team_he":"מידל טנסי","team_alt":["Middle Tennessee"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Roee Oselka","name_he":"רואי אוסלקה","alt":["Oselka"],"team":"Little Rock Trojans","team_he":"ליטל רוק","team_alt":["Little Rock"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Yoav Vitlem","name_he":"יואב ויטלם","alt":["Vitlem"],"team":"San Francisco Dons","team_he":"סן פרנסיסקו","team_alt":[],"country":"usa","sport":"basketball","college":true},
+  {"name":"Avner Dror","name_he":"אבנר דרור","alt":[],"team":"Harvard Crimson","team_he":"הרווארד","team_alt":["Harvard"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Or Ashkenazi","name_he":"אור אשכנזי","alt":[],"team":"Lipscomb Bisons","team_he":"ליפסקומב","team_alt":["Lipscomb"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Eyal Harel","name_he":"אייל הראל","alt":[],"team":"Idaho State Bengals","team_he":"איידהו סטייט","team_alt":["Idaho State"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Roi Behar","name_he":"","alt":[],"team":"Bryant Bulldogs","team_he":"בראיינט","team_alt":["Bryant"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Or Faran","name_he":"","alt":[],"team":"Mercyhurst Lakers","team_he":"מרסיהרסט","team_alt":["Mercyhurst"],"country":"usa","sport":"basketball","college":true}
 ]
