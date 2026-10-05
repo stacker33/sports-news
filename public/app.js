@@ -53,8 +53,14 @@ const T = {
     wiki: (w) => `📚 ויקיפדיה: ${w.views.toLocaleString()} צפיות${w.ratio >= 2 ? ` (×${w.ratio})` : ''}`,
     feat: { football: 'כדורגל', basketball: 'כדורסל', other: 'ענפים אחרים', israel: 'ספורט ישראלי', abroad: 'ישראלים בחו"ל' },
     teamSeg: { players: 'שחקנים', teams: '+ חדשות הקבוצות' },
-    side: { scores: '📊 תוצאות', justin: '⚡ עכשיו' },
-    nav: { news: '📰 חדשות', scores: '📊 תוצאות', justin: '⚡ עכשיו' },
+    side: { scores: '📊 תוצאות', justin: '⚡ עכשיו', trends: '🔥 טרנדים' },
+    trends: {
+      head: '🔍 מה מחפשים עכשיו בגוגל', il: 'בישראל', world: 'בעולם', none: 'אין כרגע חיפוש ספורט חם',
+      stories: (n) => (n === 1 ? 'ידיעה אחת ברדאר' : `${n} ידיעות ברדאר`), searching: '🔎 אין עדיין ידיעה — הרדאר מחפש',
+      wiki: '📖 הכי נקראים בוויקיפדיה (אתמול)', spikes: '✈️ ישראלים בחו"ל — קפיצה בצפיות', reddit: '💬 חם ב-Reddit',
+      note: (ago) => `ספורט בלבד · Google Trends מ-10 מדינות, ויקיפדיה ו-Reddit · עודכן ${ago}`, views: 'צפיות', empty: 'הנתונים יגיעו בעדכון הבא',
+    },
+    nav: { news: '📰 חדשות', scores: '📊 תוצאות', justin: '⚡ עכשיו', trends: '🔥 טרנדים' },
     days: { '-1': 'אתמול', 0: 'היום', 1: 'מחר' },
     sources: (n) => (n === 1 ? 'מקור 1' : `${n} מקורות`),
     allSources: (n) => `כל ${n} המקורות`,
@@ -196,8 +202,14 @@ const T = {
     wiki: (w) => `📚 Wikipedia: ${w.views.toLocaleString()} views${w.ratio >= 2 ? ` (×${w.ratio})` : ''}`,
     feat: { football: 'football', basketball: 'basketball', other: 'other sports', israel: 'Israeli sport', abroad: 'Israelis abroad' },
     teamSeg: { players: 'Players', teams: '+ Team news' },
-    side: { scores: '📊 Scores', justin: '⚡ Just in' },
-    nav: { news: '📰 News', scores: '📊 Scores', justin: '⚡ Just in' },
+    side: { scores: '📊 Scores', justin: '⚡ Just in', trends: '🔥 Trends' },
+    trends: {
+      head: '🔍 What people are searching on Google', il: 'In Israel', world: 'Worldwide', none: 'No hot sports search right now',
+      stories: (n) => (n === 1 ? '1 story in the radar' : `${n} stories in the radar`), searching: '🔎 No story yet — the radar is searching',
+      wiki: '📖 Most read on Wikipedia (yesterday)', spikes: '✈️ Israelis abroad — page views jumped', reddit: '💬 Hot on Reddit',
+      note: (ago) => `Sports only · Google Trends from 10 countries, Wikipedia and Reddit · updated ${ago}`, views: 'views', empty: 'The data arrives with the next update',
+    },
+    nav: { news: '📰 News', scores: '📊 Scores', justin: '⚡ Just in', trends: '🔥 Trends' },
     days: { '-1': 'Yesterday', 0: 'Today', 1: 'Tomorrow' },
     sources: (n) => (n === 1 ? '1 source' : `${n} sources`),
     allSources: (n) => `All ${n} sources`,
@@ -951,15 +963,16 @@ function renderChrome() {
     bar.hidden = true;
   }
 
-  $('sideTabs').innerHTML = ['scores', 'justin'].map(
+  $('sideTabs').innerHTML = ['scores', 'justin', 'trends'].map(
     (p) => `<button data-panel="${p}" aria-pressed="${p === state.panel}">${esc(t().side[p])}</button>`
   ).join('');
-  $('bottomNav').innerHTML = ['news', 'scores', 'justin'].map((v) => {
+  $('bottomNav').innerHTML = ['news', 'scores', 'justin', 'trends'].map((v) => {
     const active = v === 'news' ? state.view === 'news' : state.view === 'panel' && state.panel === v;
     return `<button data-nav="${v}" aria-pressed="${active}">${esc(t().nav[v])}</button>`;
   }).join('');
   $('scoresPane').hidden = state.panel !== 'scores';
   $('justinPane').hidden = state.panel !== 'justin';
+  $('trendsPane').hidden = state.panel !== 'trends';
 }
 
 
@@ -1147,6 +1160,56 @@ function renderJustIn(freshIds = new Set()) {
     .join('')}</ul>`;
 }
 
+// ---------- rendering: 🔥 trends (sports only; built by src/trends.js) ----------
+// country names, not flag emoji (Windows shows flags as two letters)
+const GEO_NAME = {
+  he: { IL: 'ישראל', GB: 'אנגליה', US: 'ארה"ב', ES: 'ספרד', IT: 'איטליה', DE: 'גרמניה', FR: 'צרפת', TR: 'טורקיה', GR: 'יוון', BR: 'ברזיל' },
+  en: { IL: 'Israel', GB: 'UK', US: 'USA', ES: 'Spain', IT: 'Italy', DE: 'Germany', FR: 'France', TR: 'Turkey', GR: 'Greece', BR: 'Brazil' },
+};
+const bigNum = (n) => (n >= 1e6 ? `${Math.round(n / 1e5) / 10}M` : n >= 1000 ? `${Math.round(n / 100) / 10}K` : String(n));
+function renderTrends() {
+  const T = state.data?.trends;
+  const L = t().trends;
+  if (!T) return void ($('trendsPane').innerHTML = `<p class="muted pad">${esc(L.empty)}</p>`);
+  const byId = new Map((state.data.stories || []).map((s) => [s.id, s]));
+  const he = state.ui === 'he';
+  const storyTitle = (s) => (he ? (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title) : s.lang === 'en' ? s.title : s.t?.en?.title) || disp(s).title;
+  const row = (g) => {
+    const linked = g.ids.map((id) => byId.get(id)).filter(Boolean);
+    return `<li class="tr-row"><div class="tr-top"><b dir="auto">${esc(g.term)}</b><span class="tr-vol">${bigNum(g.traffic)}+</span></div><div class="tr-geos">${g.geos.map((x) => `<span>${esc(GEO_NAME[state.ui][x] || x)}</span>`).join('')}</div>
+      ${g.news ? `<a class="tr-news" dir="auto" href="${esc(g.url || '#')}" target="_blank" rel="noopener">${esc(g.news)}</a>` : ''}
+      ${linked.length
+        ? `<details class="tr-stories"><summary>📰 ${esc(L.stories(g.n))}</summary><ul>${linked.map((s) => `<li><a href="${esc(s.realLink || disp(s).link)}" target="_blank" rel="noopener" dir="auto">${esc(storyTitle(s))}</a> <span class="muted">${esc(s.sources[0]?.name || '')}</span></li>`).join('')}</ul></details>`
+        : `<div class="tr-wait">${esc(L.searching)}</div>`}</li>`;
+  };
+  const list = (rows) => (rows.length ? `<ul class="tr-list">${rows.map(row).join('')}</ul>` : `<p class="muted tr-none">${esc(L.none)}</p>`);
+  const wikiUrl = (w) => `https://${w.wiki}.wikipedia.org/wiki/${encodeURIComponent(w.title.replace(/ /g, '_'))}`;
+  const wiki = T.wiki.length
+    ? `<h3>${esc(L.wiki)}</h3><ol class="tr-wiki">${T.wiki.map((w) => `<li><a href="${esc(wikiUrl(w))}" target="_blank" rel="noopener" dir="auto">${esc(w.title)}</a> <span class="tr-vol">${bigNum(w.views)} ${esc(L.views)}${w.ratio >= 2 ? ` · ×${w.ratio}` : ''}</span></li>`).join('')}</ol>`
+    : '';
+  const spikes = T.spikes.length
+    ? `<h3>${esc(L.spikes)}</h3><ul class="tr-spikes">${T.spikes.map((a) => `<li><button type="button" class="chip" data-athlete-go="${esc(a.name)}">${esc(he ? a.he : a.name)} <b>×${a.ratio}</b></button></li>`).join('')}</ul>`
+    : '';
+  const subs = [...new Set(T.reddit.map((r) => r.sub))];
+  const reddit = T.reddit.length
+    ? `<h3>${esc(L.reddit)}</h3>${subs.map((sub) => `<div class="tr-sub">r/${esc(sub)}</div><ul class="tr-reddit">${T.reddit.filter((r) => r.sub === sub).map((r) => `<li dir="auto">${r.link ? `<a href="${esc(r.link)}" target="_blank" rel="noopener" dir="auto">${esc(r.title)}</a>` : `<span dir="auto">${esc(r.title)}</span>`}</li>`).join('')}</ul>`).join('')}`
+    : '';
+  $('trendsPane').innerHTML = `<div class="trends"><p class="tr-note">${esc(L.note(ago(T.at)))}</p>
+    <h3>${esc(L.head)}</h3><div class="tr-geo">🇮🇱 ${esc(L.il)}</div>${list(T.google.il)}<div class="tr-geo">🌍 ${esc(L.world)}</div>${list(T.google.world)}
+    ${spikes}${wiki}${reddit}</div>`;
+}
+// an Israeli whose page views jumped → open their stories in Israelis abroad
+$('trendsPane').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-athlete-go]');
+  if (!b) return;
+  state.tab = 'abroad';
+  state.athlete = b.dataset.athleteGo;
+  state.view = 'news';
+  renderChrome();
+  renderList();
+  window.scrollTo({ top: 0 });
+});
+
 // ---------- rendering: scores ----------
 function renderScores() {
   const pane = $('scoresPane');
@@ -1175,6 +1238,7 @@ function render(freshIds) {
   renderStatus();
   renderList(freshIds);
   renderJustIn(freshIds);
+  renderTrends();
   renderScores();
 }
 
@@ -1287,6 +1351,7 @@ function applyData(data, freshIds) {
   renderList(freshIds);
   open.forEach((id) => document.querySelector(`#list .card[data-id="${CSS.escape(id)}"] details`)?.setAttribute('open', ''));
   renderJustIn(freshIds);
+  renderTrends();
 }
 
 // ---------- data: scores ----------
@@ -1557,7 +1622,7 @@ $('langFilter').addEventListener('click', (e) => {
   if (!b) return;
   state.langFilter = b.dataset.lf;
   store.set('langFilter', state.langFilter);
-  renderChrome(); renderList(); renderJustIn();
+  renderChrome(); renderList(); renderJustIn(); renderTrends();
 });
 $('mix').addEventListener('input', (e) => {
   state.mix = Number(e.target.value);

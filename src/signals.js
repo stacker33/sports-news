@@ -24,7 +24,9 @@ async function trends() {
           const traffic = parseInt(m[2].replace(/[^\d]/g, ''), 10) || 0;
           // related news headlines help match terms written differently
           const news = [...m[3].matchAll(/<ht:news_item_title>([^<]*)<\/ht:news_item_title>/g)].map((x) => decode(x[1]));
-          out.push({ term: decode(m[1]).toLowerCase(), traffic, geo, news });
+          // their links tell whether the trend is about sport (sports sites / sports sections) — see trends.js
+          const urls = [...m[3].matchAll(/<ht:news_item_url>([^<]*)<\/ht:news_item_url>/g)].map((x) => decode(x[1]));
+          out.push({ term: decode(m[1]).toLowerCase(), traffic, geo, news, urls });
         }
       } catch {}
     })
@@ -37,7 +39,11 @@ async function reddit() {
   for (const sub of SUBREDDITS) {
     try {
       const xml = await get(`https://www.reddit.com/r/${sub}/hot/.rss?limit=30`);
-      [...xml.matchAll(/<entry>[\s\S]*?<title>([^<]*)<\/title>/g)].forEach((m, i) => out.push({ title: decode(m[1]), rank: i + 1, sub }));
+      [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].forEach((m, i) => {
+        const title = m[1].match(/<title>([^<]*)<\/title>/)?.[1];
+        const link = m[1].match(/<link href="([^"]+)"/)?.[1];
+        if (title) out.push({ title: decode(title), rank: i + 1, sub, link: link ? decode(link) : null });
+      });
     } catch {}
   }
   return out;

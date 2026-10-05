@@ -21,6 +21,7 @@ import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
 import { loadSignals } from './signals.js';
+import { trendBoard, nextTrendSearches, trendSources } from './trends.js';
 import { loadWikipedia } from './wikipedia.js';
 import { loadEntityDb, refreshEntityDb, buildEntityIndex, findEntities } from './entities.js';
 import { fillSummaries } from './summaries.js';
@@ -115,7 +116,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     } catch {}
   }
 
-  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games)];
+  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch)];
   const srcById = new Map(sources.map((s) => [s.id, s]));
   const due = sources.filter((s) => {
     const m = meta[s.id];
@@ -397,6 +398,10 @@ export async function collect({ log = console.log, force = false } = {}) {
   const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now, heOfAthlete).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
   const { tg, posted: tgPosted } = await telegramPost(stories, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
+  // 🔥 trends panel (sports only) + news searches for sports trends we have no story on yet
+  const isAbroad = (text) => ctx.matchers.players(' ' + String(text).toLowerCase() + ' ').length > 0;
+  const trends = trendBoard(signals, stories, isAbroad, athletes, now);
+  const trendSearch = nextTrendSearches(trends, state.trendSearch, now);
   // ☀️ the morning's list, pinned on the site until noon
   const brief = morningBrief(stories, state.brief, now);
   for (const s of stories) {
@@ -405,7 +410,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   for (const id of Object.keys(sums)) if (!liveIds.has(id)) delete sums[id];
 
-  const health = sources.map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
+  const health = sources.filter((s) => !s.trend).map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
   const okCount = health.filter((h) => h.ok).length;
 
   // What the app needs, nothing more (phones): ≤8 sources per story, no repeated links, no unused fields
@@ -431,6 +436,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     rivals: rivals.games,
     gameInfo: gameInfo.games,
     ...(brief ? { brief } : {}),
+    trends,
     wikiAthletes: wiki.athletes || {},
     stories: stories.filter((s) => firstIds.has(s.id)).map(slim),
   });
@@ -443,7 +449,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   // Source health for the "system" panel: last check, last success, consecutive failures; quiet ≠ failed
-  const sourceHealth = sources.map((s) => {
+  const sourceHealth = sources.filter((s) => !s.trend).map((s) => {
     const m = meta[s.id] || {};
     return { id: s.id, name: s.name, ok: m.ok !== false, last: m.last || null, lastOk: m.lastOk || (m.ok ? m.last : null), failStreak: m.failStreak || 0, count: m.count ?? 0, error: m.ok === false ? m.error : undefined };
   });
@@ -464,7 +470,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const { feedback, reports } = await loadFeedback(state.feedback, now);
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
