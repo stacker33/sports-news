@@ -23,7 +23,8 @@ const GEO = {
 const SEARCH_HOURS = 6; // how long a trend keeps its own news search
 const MAX_SEARCHES = 8;
 // trends that are never sports news on their own, even with a sports word nearby
-const NOT_NEWS = /\b(tickets?|stream(ing)?|live score|score|channel|tv|odds|betting|bet|horoscope|weather|lottery|לוטו|מזג|כרטיסים|שידור)\b/i;
+// (Hebrew separately: \b doesn't work on Hebrew letters)
+const NOT_NEWS = /\b(tickets?|stream(ing)?|live score|score|channel|tv|odds|betting|bet|horoscope|weather|forecast|lottery)\b|(^|\s)(לוטו|מזג|תחזית|כרטיסים|שידור|ערוץ)/i;
 // sports-only sites (general news sites count through their sports-section addresses, SPORT_PATH)
 const host = (u) => { try { return new URL(u).hostname.replace(/^(www|m|amp)\./, ''); } catch { return ''; } };
 const SPORT_HOSTS = new Set([

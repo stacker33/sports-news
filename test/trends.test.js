@@ -25,6 +25,12 @@ test('only sports trends: judged by the sites Google links to them', () => {
   assert.equal(b.google.il[0].term, 'johnathan motley');
 });
 
+test('weather is never a sports trend, even when sports stories mention it', () => {
+  const signals = { trends: [{ term: 'מזג האוויר', geo: 'IL', traffic: 200, news: ['התחזית'] }] };
+  const stories = [{ id: 'w1', title: 'המשחק נדחה בגלל מזג האוויר', t: {} }, { id: 'w2', title: 'מזג האוויר ישפיע על המשחק', t: {} }];
+  assert.equal(trendBoard(signals, stories, noAbroad, [], now).google.il.length, 0);
+});
+
 test('a sports trend with no story gets a news search for a few hours', () => {
   const b = { google: { il: [], world: [{ term: 'ángel arroyo', geo: 'ES', n: 0 }, { term: 'carlos alcaraz', geo: 'ES', n: 3 }] } };
   const s1 = nextTrendSearches(b, {}, now);
