@@ -181,7 +181,18 @@ export async function adminHealthAlerts(health, prev = {}, now = Date.now()) {
   const admin = process.env.TELEGRAM_ADMIN_CHAT;
   const sent = Object.fromEntries(Object.entries(prev).filter(([, at]) => now - at < 24 * 3600e3));
   if (!token || !admin) return sent;
-  const down = health.filter((h) => !h.ok && h.failStreak >= 3 && (!h.lastOk || now - h.lastOk > DOWN_AFTER) && !sent[h.id]);
+  let down = health.filter((h) => !h.ok && h.failStreak >= 3 && (!h.lastOk || now - h.lastOk > DOWN_AFTER) && !sent[h.id]);
+  // YouTube's RSS failing for most channels at once is an outage on YouTube's side: one message, not one per channel
+  const yt = health.filter((h) => h.id.startsWith('yt-'));
+  const ytDown = yt.filter((h) => !h.ok && h.failStreak >= 3);
+  if (yt.length >= 4 && ytDown.length >= yt.length / 2) {
+    if (!sent['yt-outage']) {
+      await send(token, admin, `⚠️ <b>רדאר ספורט: יוטיוב לא זמין</b>\nפידי היוטיוב לא עונים ב-${ytDown.length} מתוך ${yt.length} ערוצים (${esc(ytDown[0].error || 'error')}). זו כנראה תקלה בצד של יוטיוב — האתר ממשיך לעבוד בלי סרטונים. לא תקבל על זה הודעה נוספת היום.`, false);
+      sent['yt-outage'] = now;
+    }
+    for (const h of yt) sent[h.id] = sent[h.id] || now;
+    down = down.filter((h) => !h.id.startsWith('yt-'));
+  }
   if (!down.length) return sent;
   const lines = down.slice(0, 15).map((h) => `• ${esc(h.name)} (${esc(h.id)}): ${esc(h.error || 'error')}${h.lastOk ? ` — הצלחה אחרונה לפני ${Math.round((now - h.lastOk) / 3600e3)} שע׳` : ' — לא הצליח מעולם'}`);
   await send(token, admin, `⚠️ <b>רדאר ספורט: מקורות לא עובדים</b>\n${lines.join('\n')}${down.length > 15 ? `\n…ועוד ${down.length - 15}` : ''}`, false);

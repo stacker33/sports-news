@@ -94,6 +94,7 @@ const T = {
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
+    v2: { filters: 'סינון', theme: { auto: 'מצב תצוגה: אוטומטי', dark: 'מצב תצוגה: כהה', light: 'מצב תצוגה: בהיר' }, sumMore: 'לחצו לתקציר המלא', sources: 'מקורות', breaking: 'מבזק' },
     copy: 'העתקה לאתר (כותרת, תקציר ומקור)', copied: '📋 הועתק — מוכן להדבקה', copyFail: 'לא הצלחתי להעתיק', source: 'מקור', mail: 'שליחה למייל web@sport5.co.il', mailFrom: 'נשלח מרדאר ספורט',
     share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
     video: 'וידאו', videoTip: 'סרטון מהערוץ הרשמי (מסיבת עיתונאים, ראיון או תקציר)',
@@ -228,6 +229,7 @@ const T = {
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
+    v2: { filters: 'Filters', theme: { auto: 'Theme: automatic', dark: 'Theme: dark', light: 'Theme: light' }, sumMore: 'Tap for the full summary', sources: 'Sources', breaking: 'Breaking' },
     copy: 'Copy for the site (headline, summary, source)', copied: '📋 Copied — ready to paste', copyFail: "Couldn't copy", source: 'Source', mail: 'Send to web@sport5.co.il', mailFrom: 'Sent from Sports Radar',
     share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
     video: 'Video', videoTip: 'Video from the official channel (press conference, interview or highlights)',
@@ -286,6 +288,23 @@ const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem('sr.' + k)) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem('sr.' + k, JSON.stringify(v)); } catch {} },
 };
+// New design (preview): desk rows on desktop, a clean feed on phones, Sport5 colors. ?design=2 / ?design=1
+const designParam = new URLSearchParams(location.search).get('design');
+if (designParam === '2' || designParam === '1') store.set('design', Number(designParam));
+const V2 = store.get('design', 1) === 2;
+document.body.classList.toggle('v2', V2);
+function applyTheme() {
+  const th = V2 ? store.get('theme', 'auto') : 'auto';
+  if (th === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = th;
+}
+applyTheme();
+if (V2) {
+  const f = document.createElement('link');
+  f.rel = 'stylesheet';
+  f.href = 'https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap';
+  document.head.appendChild(f);
+}
 const state = {
   ui: store.get('ui', 'he'),
   tab: TABS.includes(store.get('tab')) ? store.get('tab') : store.get('tab') === 'ilOther' ? 'other' : 'top',
@@ -659,6 +678,7 @@ function translateUrl(link) {
 }
 
 function cardHtml(s, fresh) {
+  if (V2) return cardHtmlV2(s, fresh);
   const isHot = s.breaking && s.sourceCount >= 2 && Date.now() - s.first < HOT_HOURS * 3600e3;
   const d = disp(s);
   if (d.link === s.link && s.realLink) d.link = s.realLink;
@@ -719,6 +739,100 @@ function cardHtml(s, fresh) {
   </article>`;
 }
 
+// ---------- new design: the familiar card, cleaned: few labels, one-line summary, icon actions ----------
+function cardHtmlV2(s, fresh) {
+  const L = t();
+  const d = disp(s);
+  if (d.link === s.link && s.realLink) d.link = s.realLink;
+  const he = state.ui === 'he';
+  // headline in the app's language first, the original under it
+  const heTitle = s.ai?.he?.title || (s.lang === 'he' ? s.title : s.t?.he?.from ? s.t.he.title : d.lang === 'he' ? d.title : '');
+  const enTitle = s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : d.lang === 'en' ? d.title : '';
+  const main = (he ? heTitle : enTitle) || d.title;
+  const orig = main !== s.title ? s.title : '';
+  const lead = (d.link !== s.link && s.sources.find((x) => x.link === d.link)?.name) || s.sources[0]?.name || '';
+  const isHot = s.breaking && s.sourceCount >= 2 && Date.now() - s.first < HOT_HOURS * 3600e3;
+  const unseen = isUnseen(s);
+  const foreignLink = d.link === s.link && s.lang !== 'he' && s.lang !== 'en';
+  // labels: Sport5 status, one "heat" label, sport (on mixed tabs), up to 2 topics
+  const heat = s.social?.length ? `<span class="badge social" title="${esc(L.socialTip)}">⚡ ${esc(s.social[0])}</span>`
+    : isHot ? `<span class="badge hot">${esc(L.hot)}</span>`
+    : s.breaking ? `<span class="badge hot soft">${esc(L.v2.breaking)}</span>` : '';
+  const mixed = state.tab === 'top' || state.tab === 'foryou';
+  const sport = mixed && L.sportName[s.sport] ? `<span class="badge sport">${esc(L.sportName[s.sport])}</span>` : '';
+  const topics = (s.tags || []).slice(0, 2)
+    .map((g) => `<button type="button" class="tag${g.il ? ' il' : ''}${g.id === state.tag ? ' on' : ''}" data-tag="${esc(g.id)}">${esc(tagName(g))}</button>`).join('');
+  // one-line summary; a tap opens the rest (and the key facts)
+  const aiSum = s.ai?.[state.ui]?.sum;
+  const rawSum = s.sum?.text ? ((s.sum.lang === 'he' || s.sum.lang === 'en') ? s.sum.text : s.sum[state.ui] || s.sum[he ? 'en' : 'he'] || s.sum.text) : '';
+  const sumText = aiSum || rawSum;
+  const facts = aiSum && he ? s.ai.he.facts || [] : [];
+  const sum = sumText ? `<div class="sum1" role="button" tabindex="0" title="${esc(L.v2.sumMore)}"><p dir="auto">${esc(sumText)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}</div>` : '';
+  const srcs = s.sources.length > 1
+    ? `<ul class="srcs" hidden>${s.sources.map((x) => `<li><b>${esc(x.name)}</b>${x.unknown ? '' : ` · ${timeEl(x.published)}`} <a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`).join('')}</ul>`
+    : '';
+  const img = s.image ? `<img class="thumb" src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+  return `<article class="card v2card${fresh ? ' fresh' : ''}${unseen ? ' unseen' : ''}" data-id="${esc(s.id)}">
+    <div class="body">
+      <div class="badges">${s5Badge(s)}<span class="claim-slot">${claimBadge(s)}</span>${heat}${sport}${topics}${s.uncertain ? `<span class="badge uncertain" title="${esc(L.uncertainTip)}">?</span>` : ''}</div>
+      <h2 dir="auto"><a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(main)}</a></h2>
+      ${orig ? `<p class="orig" dir="auto">${esc(orig)}</p>` : ''}
+      ${sum}
+      <div class="meta">
+        <span class="src">${esc(lead)}${s.sourceCount > 1 ? ` <button type="button" class="src-more" aria-expanded="false" title="${esc(L.v2.sources)}">+${s.sourceCount - 1}</button>` : ''}</span>
+        ${s.dateUnknown ? '' : `<span class="when"><b>${esc(hhmm(s.first))}</b> · ${timeEl(s.first)}</span>`}
+        ${s.video && s.video !== d.link ? `<a class="ico" href="${esc(s.video)}" target="_blank" rel="noopener" title="${esc(L.videoTip)}">🎥</a>` : ''}
+        ${foreignLink ? `<a class="ico" href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener" title="${esc(L.readOriginal)}">🌐</a>` : ''}
+        <span class="acts">
+          <span class="votes" title="${esc(voteTip(s))}"><button type="button" class="vote-btn${myVotes[s.id] === 1 ? ' on' : ''}" data-vote="1" aria-label="${esc(L.vote.up)}" title="${esc(L.vote.up)}">👍${voteN(s, 'up')}</button><button type="button" class="vote-btn${myVotes[s.id] === -1 ? ' on' : ''}" data-vote="-1" aria-label="${esc(L.vote.down)}" title="${esc(L.vote.down)}">👎${voteN(s, 'down')}</button></span>
+          <button type="button" class="claim-btn${claimFor(s)?.mine ? ' on' : ''}" title="${esc(L.claim)}" aria-label="${esc(L.claim)}">🙋</button>
+          <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
+          <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
+          <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
+          <button type="button" class="fix-btn" title="${esc(`${L.fix.title}\n${L.why(L.sportName[s.sport] || s.sport, L.reasons[s.why] || s.why || '—')}`)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
+        </span>
+      </div>
+      <div class="fix-menu" hidden>${['football', 'basketball', 'other']
+        .filter((sp) => sp !== s.sport)
+        .map((sp) => `<button type="button" data-fix="${sp}">${esc(L.fix[sp])}</button>`)
+        .join('')}<button type="button" data-fix="${s.israel ? 'notIl' : 'il'}">${esc(s.israel ? L.fix.notIl : L.fix.il)}</button><button type="button" data-fix="hide">${esc(L.fix.hide)}</button></div>
+      ${srcs}
+    </div>
+    ${img}
+  </article>`;
+}
+// summary line opens / closes; "+N" opens the other sources
+function toggleSum(el) { el.classList.toggle('open'); }
+$('list').addEventListener('click', (e) => {
+  if (!V2) return;
+  const sum = e.target.closest('.sum1');
+  if (sum) return toggleSum(sum);
+  const more = e.target.closest('.src-more');
+  if (more) {
+    const ul = more.closest('.card').querySelector('.srcs');
+    ul.hidden = !ul.hidden;
+    more.setAttribute('aria-expanded', String(!ul.hidden));
+  }
+});
+$('list').addEventListener('keydown', (e) => {
+  if (V2 && (e.key === 'Enter' || e.key === ' ') && e.target.classList?.contains('sum1')) { e.preventDefault(); toggleSum(e.target); }
+});
+// language, newest↔popular and topics sit behind one button; search + Sport5 filter stay visible
+function filtersActive() {
+  return !!(state.langFilter !== 'all' || state.topic);
+}
+$('filtersBtn').addEventListener('click', () => {
+  const open = !document.body.classList.contains('show-filters');
+  document.body.classList.toggle('show-filters', open);
+  $('filtersBtn').setAttribute('aria-expanded', String(open));
+});
+// theme: auto → dark → light
+$('themeBtn').addEventListener('click', () => {
+  const order = ['auto', 'dark', 'light'];
+  store.set('theme', order[(order.indexOf(store.get('theme', 'auto')) + 1) % 3]);
+  applyTheme();
+  renderChrome();
+});
 function renderChrome() {
   document.documentElement.lang = state.ui;
   document.documentElement.dir = state.ui === 'he' ? 'rtl' : 'ltr';
@@ -727,6 +841,11 @@ function renderChrome() {
   document.body.dataset.panel = state.panel;
   $('langBtn').textContent = state.ui === 'he' ? 'EN' : 'עב';
   $('tgLabel').textContent = t().tgLabel;
+  $('filtersBtn').innerHTML = `<span aria-hidden="true">☰</span><span class="lbl">${esc(t().v2.filters)}</span>${filtersActive() ? '<i class="fdot"></i>' : ''}`;
+  const th = store.get('theme', 'auto');
+  $('themeBtn').textContent = th === 'dark' ? '🌙' : th === 'light' ? '☀️' : '🌓';
+  $('themeBtn').title = t().v2.theme[th];
+  $('themeBtn').setAttribute('aria-label', t().v2.theme[th]);
   $('reportBtn').title = t().report.btn;
   $('reportBtn').setAttribute('aria-label', t().report.btn);
   $('s5Filter').textContent = t().s5Filter;

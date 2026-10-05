@@ -43,9 +43,10 @@ jobs:
       - name: Restore previous state from the live site
         run: |
           mkdir -p public/data
-          curl -sfL "${{ steps.pages.outputs.base_url }}/data/state.json" -o public/data/state.json \
+          # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
+          curl -sfL "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json \
             || echo "No previous state (first run)"
-          curl -sfL "${{ steps.pages.outputs.base_url }}/data/entities.json" -o public/data/entities.json \
+          curl -sfL "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json \
             || echo "No topic knowledge base yet (built over the first runs)"
 
       - name: Collect
