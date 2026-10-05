@@ -94,6 +94,13 @@ const T = {
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
+    x2: {
+      brief: { title: '☀️ בוקר טוב — מה קרה בלילה בעולם', hide: 'הסתרה עד מחר' },
+      quoteCopy: 'העתקת הציטוט', quoteCopied: '💬 הציטוט הועתק',
+      embed: 'העתקת קוד הטמעה (וידאו / פוסט) למערכת האתר', embedCopied: '</> קוד ההטמעה הועתק',
+      keysBtn: 'קיצורי מקלדת',
+      keys: [['J / K', 'הכתבה הבאה / הקודמת'], ['Enter / O', 'פתיחת הכתבה'], ['S', 'פתיחת התקציר'], ['C', 'העתקה לאתר'], ['M', 'שליחה למייל'], ['W', 'וואטסאפ'], ['H', '🙋 אני על זה'], ['E', 'העתקת קוד הטמעה'], ['/', 'חיפוש'], ['Esc', 'ביטול הבחירה'], ['?', 'החלון הזה']],
+    },
     v2: { filters: 'סינון', theme: { auto: 'מצב תצוגה: אוטומטי', dark: 'מצב תצוגה: כהה', light: 'מצב תצוגה: בהיר' }, sumMore: 'לחצו לתקציר המלא', sources: 'מקורות', breaking: 'מבזק' },
     copy: 'העתקה לאתר (כותרת, תקציר ומקור)', copied: '📋 הועתק — מוכן להדבקה', copyFail: 'לא הצלחתי להעתיק', source: 'מקור', mail: 'שליחה למייל web@sport5.co.il', mailFrom: 'נשלח מרדאר ספורט',
     share: 'שיתוף בוואטסאפ', shareVia: 'דרך רדאר ספורט', tgLabel: 'טלגרם', tgTip: 'ערוץ הטלגרם: תדריך בוקר והתראות',
@@ -229,6 +236,13 @@ const T = {
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
+    x2: {
+      brief: { title: '☀️ Good morning — what happened overnight', hide: 'Hide until tomorrow' },
+      quoteCopy: 'Copy the quote', quoteCopied: '💬 Quote copied',
+      embed: 'Copy embed code (video / post) for the site', embedCopied: '</> Embed code copied',
+      keysBtn: 'Keyboard shortcuts',
+      keys: [['J / K', 'Next / previous story'], ['Enter / O', 'Open the story'], ['S', 'Open the summary'], ['C', 'Copy for the site'], ['M', 'Send by mail'], ['W', 'WhatsApp'], ['H', '🙋 I\'m on it'], ['E', 'Copy embed code'], ['/', 'Search'], ['Esc', 'Clear the selection'], ['?', 'This window']],
+    },
     v2: { filters: 'Filters', theme: { auto: 'Theme: automatic', dark: 'Theme: dark', light: 'Theme: light' }, sumMore: 'Tap for the full summary', sources: 'Sources', breaking: 'Breaking' },
     copy: 'Copy for the site (headline, summary, source)', copied: '📋 Copied — ready to paste', copyFail: "Couldn't copy", source: 'Source', mail: 'Send to web@sport5.co.il', mailFrom: 'Sent from Sports Radar',
     share: 'Share on WhatsApp', shareVia: 'via Sports Radar', tgLabel: 'Telegram', tgTip: 'Telegram channel: morning briefing and alerts',
@@ -570,12 +584,31 @@ function titleLine(s, d) {
   return text ? `<p class="title-tr" dir="auto">${state.ui === 'he' ? '🇮🇱' : '🌐'} ${esc(text)}</p>` : '';
 }
 
+// 💬 what people said, in Hebrew — each with its own copy button
+function quotesHtml(s) {
+  const q = state.ui === 'he' ? s.ai?.he?.quotes || [] : [];
+  if (!q.length) return '';
+  return `<ul class="quotes" dir="rtl">${q.map((x, i) => `<li><span class="q">״${esc(x.he)}״</span> <span class="who">— ${esc(x.who)}</span> <button type="button" class="quote-copy" data-q="${i}" title="${esc(t().x2.quoteCopy)}" aria-label="${esc(t().x2.quoteCopy)}">📋</button></li>`).join('')}</ul>`;
+}
+// </> embed code for the story's video or post (YouTube, Telegram), ready for the site's editing system
+function embedCode(s) {
+  const links = [s.video, s.realLink, s.link, ...s.sources.map((x) => x.link)].filter(Boolean);
+  for (const l of links) {
+    const yt = l.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+    if (yt) return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${yt[1]}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+    const tg = l.match(/^https:\/\/t\.me\/(?:s\/)?(\w{4,})\/(\d+)/);
+    if (tg) return `<script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="${tg[1]}/${tg[2]}" data-width="100%"></script>`;
+  }
+  return '';
+}
+const embedBtn = (s) => (embedCode(s) ? `<button type="button" class="embed-btn" title="${esc(t().x2.embed)}" aria-label="${esc(t().x2.embed)}">&lt;/&gt;</button>` : '');
+
 // 2–3 sentence summary by the language model, shown in full
 function aiSummaryHtml(s) {
   const text = s.ai?.[state.ui]?.sum;
   if (!text) return '';
   const facts = state.ui === 'he' ? s.ai.he.facts || [] : [];
-  return `<p class="ai-sum" dir="auto">${esc(text)}</p><p class="ai-note">${esc(t().aiNote)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}`;
+  return `<p class="ai-sum" dir="auto">${esc(text)}</p><p class="ai-note">${esc(t().aiNote)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}${quotesHtml(s)}`;
 }
 // Machine translation of the shown headline (for the bubble), if the headline isn't Hebrew/English
 function translationOf(s, d) {
@@ -725,7 +758,7 @@ function cardHtml(s, fresh) {
         <button type="button" class="claim-btn${claimFor(s)?.mine ? ' on' : ''}" title="${esc(L.claim)}" aria-label="${esc(L.claim)}">🙋</button>
         <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
         <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
-        <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
+        <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>${embedBtn(s)}
         <button type="button" class="fix-btn" title="${esc(`${L.fix.title}\n${L.why(L.sportName[s.sport] || s.sport, L.reasons[s.why] || s.why || '—')}`)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
       </div>
       <div class="fix-menu" hidden>${['football', 'basketball', 'other']
@@ -767,7 +800,8 @@ function cardHtmlV2(s, fresh) {
   const rawSum = s.sum?.text ? ((s.sum.lang === 'he' || s.sum.lang === 'en') ? s.sum.text : s.sum[state.ui] || s.sum[he ? 'en' : 'he'] || s.sum.text) : '';
   const sumText = aiSum || rawSum;
   const facts = aiSum && he ? s.ai.he.facts || [] : [];
-  const sum = sumText ? `<div class="sum1" role="button" tabindex="0" title="${esc(L.v2.sumMore)}"><p dir="auto">${esc(sumText)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}</div>` : '';
+  const quotes = quotesHtml(s);
+  const sum = sumText ? `<div class="sum1${quotes ? ' has-q' : ''}" role="button" tabindex="0" title="${esc(L.v2.sumMore)}"><p dir="auto">${esc(sumText)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}${quotes}</div>` : '';
   const srcs = s.sources.length > 1
     ? `<ul class="srcs" hidden>${s.sources.map((x) => `<li><b>${esc(x.name)}</b>${x.unknown ? '' : ` · ${timeEl(x.published)}`} <a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`).join('')}</ul>`
     : '';
@@ -788,7 +822,7 @@ function cardHtmlV2(s, fresh) {
           <button type="button" class="claim-btn${claimFor(s)?.mine ? ' on' : ''}" title="${esc(L.claim)}" aria-label="${esc(L.claim)}">🙋</button>
           <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
           <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
-          <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>
+          <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>${embedBtn(s)}
           <button type="button" class="fix-btn" title="${esc(`${L.fix.title}\n${L.why(L.sportName[s.sport] || s.sport, L.reasons[s.why] || s.why || '—')}`)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
         </span>
       </div>
@@ -806,7 +840,7 @@ function toggleSum(el) { el.classList.toggle('open'); }
 $('list').addEventListener('click', (e) => {
   if (!V2) return;
   const sum = e.target.closest('.sum1');
-  if (sum) return toggleSum(sum);
+  if (sum && !e.target.closest('button, a')) return toggleSum(sum);
   const more = e.target.closest('.src-more');
   if (more) {
     const ul = more.closest('.card').querySelector('.srcs');
@@ -846,6 +880,8 @@ function renderChrome() {
   $('themeBtn').textContent = th === 'dark' ? '🌙' : th === 'light' ? '☀️' : '🌓';
   $('themeBtn').title = t().v2.theme[th];
   $('themeBtn').setAttribute('aria-label', t().v2.theme[th]);
+  $('keysBtn').title = t().x2.keysBtn;
+  $('keysBtn').setAttribute('aria-label', t().x2.keysBtn);
   $('reportBtn').title = t().report.btn;
   $('reportBtn').setAttribute('aria-label', t().report.btn);
   $('s5Filter').textContent = t().s5Filter;
@@ -1024,6 +1060,33 @@ function playerCardsHtml() {
     .join('')}</div>`;
 }
 
+function ilNow() {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(Date.now()).map((x) => [x.type, x.value]));
+  return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
+}
+function briefHtml() {
+  const b = state.data?.brief;
+  if (!b || state.tab !== 'top' || state.q.trim() || state.tag || activeTopic()) return '';
+  const il = ilNow();
+  if (b.day !== il.day || il.hour >= 12 || store.get('briefHidden') === b.day) return '';
+  const byId = new Map(state.data.stories.map((s) => [s.id, s]));
+  const items = b.ids.map((id) => byId.get(id)).filter(Boolean);
+  if (items.length < 3) return '';
+  const he = state.ui === 'he';
+  const title = (s) => {
+    const d = disp(s);
+    return (he ? s.ai?.he?.title || (s.lang === 'he' ? s.title : s.t?.he?.from ? s.t.he.title : '') : s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : '') || d.title;
+  };
+  return `<section class="brief-card"><div class="brief-head"><b>${esc(t().x2.brief.title)}</b><button type="button" class="small-btn" id="briefHide">${esc(t().x2.brief.hide)}</button></div><ol>${items
+    .map((s) => `<li data-id="${esc(s.id)}"><span class="bt">${esc(hhmm(s.first))}</span><span class="bi">${catIcon(s)}</span><a href="${esc(s.realLink || disp(s).link)}" target="_blank" rel="noopener" dir="auto">${esc(title(s))}</a><span class="bs">${esc(s.sources[0]?.name || '')}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}</span></li>`)
+    .join('')}</ol></section>`;
+}
+$('list').addEventListener('click', (e) => {
+  if (!e.target.closest('#briefHide')) return;
+  store.set('briefHidden', state.data.brief.day);
+  renderList();
+});
+
 function renderList(freshIds = new Set()) {
   const list = visibleStories();
   const tagInfo = state.tag && state.data?.stories.flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
@@ -1032,7 +1095,7 @@ function renderList(freshIds = new Set()) {
   const topicBar = tp ? `<div class="topic-banner"><b>⭐ ${esc(tp.name)}</b><span class="muted">${esc(t().topics.banner(list.length))}</span><button type="button" class="small-btn" data-topic-edit="${esc(tp.id)}">${esc(t().topics.edit)}</button><button type="button" class="small-btn" data-topic="${esc(tp.id)}">${esc(t().topics.clear)}</button></div>` : '';
   const unseenN = lastVisit ? list.filter(isUnseen).length : 0;
   const sinceBar = unseenN ? `<div class="since-bar">${esc(t().sinceVisit(unseenN, ago(lastVisit)))}</div>` : '';
-  const banner = sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
+  const banner = briefHtml() + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
     ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
     : '');
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
@@ -1757,7 +1820,8 @@ function editorText(s) {
   const src = s.sources[0] || { name: '', link: s.link };
   const orig = s.lang !== 'he' && s.title !== title ? `\n(${s.title})` : '';
   const facts = (s.ai?.he?.facts || []).map((f) => `• ${f}`).join('\n');
-  return { title, text: `${title}${orig}\n\n${sum ? sum + '\n\n' : ''}${facts ? facts + '\n\n' : ''}${t().source}: ${src.name} | ${s.realLink || src.link || s.link}` };
+  const quotes = (s.ai?.he?.quotes || []).map((q) => `״${q.he}״ — ${q.who}`).join('\n');
+  return { title, text: `${title}${orig}\n\n${sum ? sum + '\n\n' : ''}${facts ? facts + '\n\n' : ''}${quotes ? quotes + '\n\n' : ''}${t().source}: ${src.name} | ${s.realLink || src.link || s.link}` };
 }
 $('s5Filter').addEventListener('click', () => {
   state.notS5 = !state.notS5;
@@ -1782,6 +1846,85 @@ $('list').addEventListener('click', async (e) => {
     return;
   }
   location.href = `mailto:web@sport5.co.il?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n— ${t().mailFrom}`)}`;
+});
+
+async function copyText(text, ok) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(ok);
+  } catch {
+    toast(t().copyFail);
+  }
+}
+$('list').addEventListener('click', (e) => {
+  const qb = e.target.closest('.quote-copy');
+  const eb = e.target.closest('.embed-btn');
+  if (!qb && !eb) return;
+  e.stopPropagation();
+  const s = state.data?.stories.find((x) => x.id === e.target.closest('.card').dataset.id);
+  if (!s) return;
+  if (qb) {
+    const q = s.ai?.he?.quotes?.[Number(qb.dataset.q)];
+    if (q) copyText(`״${q.he}״ — ${q.who}`, t().x2.quoteCopied);
+  } else copyText(embedCode(s), t().x2.embedCopied);
+});
+
+// ---------- ⌨️ keyboard shortcuts (desktop) ----------
+let kCard = null;
+function kMove(dir) {
+  const cards = [...document.querySelectorAll('#list .card[data-id]')];
+  if (!cards.length) return;
+  let i = kCard && document.contains(kCard) ? cards.indexOf(kCard) + dir : -1;
+  if (i < 0) {
+    // start from the first story on screen
+    const top = document.querySelector('.top')?.getBoundingClientRect().bottom || 0;
+    i = Math.max(0, cards.findIndex((el) => el.getBoundingClientRect().bottom > top + 10));
+  }
+  i = Math.min(cards.length - 1, Math.max(0, i));
+  kCard?.classList.remove('kfocus');
+  kCard = cards[i];
+  kCard.classList.add('kfocus');
+  const head = document.querySelector('.top')?.getBoundingClientRect().bottom || 0;
+  const r = kCard.getBoundingClientRect();
+  if (r.top < head + 8 || r.bottom > innerHeight - 8) window.scrollBy({ top: r.top - head - 12, behavior: 'smooth' });
+}
+function keysHelp() {
+  let box = document.querySelector('.kbd-help');
+  if (box) return void box.remove();
+  box = document.createElement('div');
+  box.className = 'kbd-help';
+  box.innerHTML = `<div class="kbd-box" role="dialog" aria-label="${esc(t().x2.keysBtn)}"><b>⌨️ ${esc(t().x2.keysBtn)}</b><dl>${t().x2.keys.map(([k, v]) => `<dt><kbd>${esc(k)}</kbd></dt><dd>${esc(v)}</dd>`).join('')}</dl></div>`;
+  box.addEventListener('click', () => box.remove());
+  document.body.append(box);
+}
+$('keysBtn').addEventListener('click', keysHelp);
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.closest?.('input, textarea, select, [contenteditable="true"]') || document.querySelector('dialog[open]')) return;
+  if (e.code === 'Enter' && e.target.closest?.('button, a, [role="button"]')) return;
+  // by key position, so it works on a Hebrew keyboard layout too
+  const code = e.code;
+  const click = (sel) => kCard?.querySelector(sel)?.click();
+  if (code === 'Slash' && e.shiftKey) return void (e.preventDefault(), keysHelp());
+  if (code === 'Escape') {
+    document.querySelector('.kbd-help')?.remove();
+    kCard?.classList.remove('kfocus');
+    kCard = null;
+    return;
+  }
+  if (code === 'Slash') {
+    e.preventDefault();
+    if (V2) document.body.classList.add('show-filters');
+    $('search').focus();
+    return;
+  }
+  if (code === 'KeyJ') return void kMove(1);
+  if (code === 'KeyK') return void kMove(-1);
+  if (!kCard || !document.contains(kCard)) return;
+  const act = { Enter: 'h2 a', KeyO: 'h2 a', KeyC: '.copy-btn', KeyM: '.mail-btn', KeyW: '.share-btn', KeyH: '.claim-btn', KeyE: '.embed-btn', KeyS: V2 ? '.sum1' : '.sum-btn' }[code];
+  if (!act) return;
+  e.preventDefault();
+  click(act);
 });
 
 // WhatsApp share: opens WhatsApp (the app on phones, WhatsApp Web on computers) with the story ready to send

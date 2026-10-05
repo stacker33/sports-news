@@ -2,7 +2,8 @@
 // Needs TELEGRAM_BOT_TOKEN (GitHub secret) and TELEGRAM_CHAT (repository variable: "@channel_name" or "-100…");
 // without them nothing is sent.
 //
-// - ☀️ Morning briefing once a day after 08:00 Israel time: the night's top stories + how the Israelis abroad did.
+// - ☀️ Morning briefing once a day after 07:00 Israel time: the night's top stories (world first) + how the Israelis
+//   abroad did. The same list is pinned on the site until noon (morningBrief → news.json "brief").
 // - 🔔 Alerts (not 01:00–06:00), world news first: reporters' scoops (🔴), stories spreading across countries /
 //   trending, the big leagues / Champions League / NBA / EuroLeague, important Israeli and Israelis-abroad news; the biggest
 //   world stories. At most 3 per run, 8 per hour, 40 per day; every story once.
@@ -14,10 +15,10 @@ const PER_DAY = 120;
 const QUIET = [1, 6]; // no alerts from 01:00 to 05:59 Israel time
 // competitions the editors follow (tag ids from src/entities.js)
 const MAJOR = new Set(['c-ucl', 'c-uel', 'c-epl', 'c-laliga', 'c-seriea', 'c-bundes', 'c-ligue1', 'c-nba', 'c-euroleague', 'c-wc', 'c-unl']);
-const BRIEF_HOUR = 8;
+const BRIEF_HOUR = 7;
 
 const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const ilParts = (ts) => {
+export const ilParts = (ts) => {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(ts).map((x) => [x.type, x.value]));
   return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
 };
@@ -74,16 +75,28 @@ function abroadLines(athletes, cards, gameInfo, now) {
   return lines;
 }
 
-function briefingTop(stories, now) {
+// The night's 10 biggest stories (since ~21:00): world first — at most 3 Israeli ones
+export function briefingTop(stories, now) {
+  const rank = (s) => (s.pop ?? s.score) + (s.langs?.length >= 3 ? 2 : 0) + (s.big ? 1 : 0);
+  let il = 0;
   return stories
-    .filter((s) => now - s.first < 12 * 3600e3 && (s.sport !== 'other' || s.big))
-    .sort((a, b) => (b.pop ?? b.score) + (b.langs?.length >= 3 ? 2 : 0) - ((a.pop ?? a.score) + (a.langs?.length >= 3 ? 2 : 0)))
+    .filter((s) => !s.dateUnknown && now - s.first < 10 * 3600e3 && (s.sport !== 'other' || s.big))
+    .sort((a, b) => rank(b) - rank(a))
+    .filter((s) => !s.israel || ++il <= 3)
     .slice(0, 10);
+}
+// For the site: the morning's list, fixed once a day at the first run after 07:00; kept until noon
+export function morningBrief(stories, prev, now) {
+  const il = ilParts(now);
+  if (il.hour < BRIEF_HOUR || il.hour >= 12) return null;
+  if (prev?.day === il.day) return prev;
+  const ids = briefingTop(stories, now).map((s) => s.id);
+  return ids.length >= 3 ? { day: il.day, at: now, ids } : null;
 }
 function briefingText(top, athletes, cards, gameInfo, now, siteUrl) {
   const lines = top.map((s) => `${icon(s, false)} <a href="${esc(s.realLink || s.link)}">${esc(titleHe(s))}</a>`);
   const abroad = abroadLines(athletes, cards, gameInfo, now);
-  return `☀️ <b>בוקר טוב — מה קרה בלילה</b>\n\n${lines.join('\n')}${abroad.length ? `\n\n✈️ <b>הישראלים בחו"ל</b>\n${abroad.join('\n')}` : ''}\n\n<a href="${esc(siteUrl)}">לכל החדשות ברדאר ספורט</a>`;
+  return `☀️ <b>בוקר טוב — מה קרה בלילה בעולם</b>\n\n${lines.join('\n')}${abroad.length ? `\n\n✈️ <b>הישראלים בחו"ל</b>\n${abroad.join('\n')}` : ''}\n\n<a href="${esc(siteUrl)}">לכל החדשות ברדאר ספורט</a>`;
 }
 
 async function send(token, chat, text, preview) {

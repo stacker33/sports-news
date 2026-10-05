@@ -664,3 +664,38 @@ body.v2 #list { padding: 0; margin-block: 12px 24px; }
 body.v2 .s5-filter { white-space: nowrap; flex: none; }
 @media (max-width: 600px) { body.v2 #search { flex-basis: 80px; } }
 @media (max-width: 600px) { body.v2 .filters-btn .lbl { display: none; } body.v2 .filters { flex: 1 1 0; min-width: 0; } }
+
+/* ☀️ morning brief, 💬 quotes, </> embed, ⌨️ keyboard */
+.brief-card { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid #f2b705; border-radius: var(--radius); padding: 10px 14px 8px; margin-bottom: 10px; }
+.brief-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.brief-head b { font-size: 15.5px; }
+.brief-card ol { list-style: none; margin: 0; padding: 0; display: grid; }
+.brief-card li { display: grid; grid-template-columns: 40px 22px minmax(0, 1fr) auto; gap: 6px; align-items: baseline; padding: 5px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.brief-card li:first-child { border-top: 0; }
+.brief-card .bt { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.brief-card a { text-decoration: none; font-weight: 600; unicode-bidi: plaintext; }
+.brief-card a:hover { text-decoration: underline; }
+.brief-card .bs { color: var(--muted); font-size: 12px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .brief-card li { grid-template-columns: 22px minmax(0, 1fr); }
+  .brief-card .bt, .brief-card .bs { display: none; }
+}
+.quotes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.quotes li { border-inline-start: 3px solid var(--brand, var(--accent)); padding: 2px 10px; font-size: 14px; line-height: 1.5; }
+.quotes .q { font-weight: 600; }
+.quotes .who { color: var(--muted); font-size: 12.5px; }
+.quote-copy { border: 0; background: none; cursor: pointer; font-size: 12px; padding: 0 4px; opacity: .6; }
+.quote-copy:hover { opacity: 1; }
+body.v2 .sum1 .quotes { display: none; }
+body.v2 .sum1.open .quotes { display: grid; }
+body.v2 .sum1.has-q:not(.open) p::before { content: "💬 "; }
+.embed-btn { font-family: ui-monospace, Consolas, monospace !important; font-size: 12px !important; font-weight: 700; }
+.card.kfocus { outline: 2px solid var(--brand, var(--accent)); outline-offset: -2px; }
+.keys-btn { display: none; }
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) { .keys-btn { display: inline-flex; align-items: center; justify-content: center; } }
+.kbd-help { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .35); display: grid; place-items: center; }
+.kbd-box { background: var(--surface); color: var(--text); border-radius: 10px; padding: 16px 20px; min-width: 300px; box-shadow: 0 10px 40px rgba(0, 0, 0, .3); }
+.kbd-box dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 10px 0 0; font-size: 14px; }
+.kbd-box dt { text-align: end; }
+.kbd-box dd { margin: 0; }
+kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; background: var(--surface-2); }

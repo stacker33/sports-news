@@ -39,12 +39,13 @@ For each story you get its headlines (from one or more outlets, various language
 - "title_he": the story's headline in Hebrew. It must say what the main headline says — translate its meaning naturally; do not replace it with a detail from the descriptions. A round-up article ("Notes: A, B, C") gets a round-up headline, not one detail.
 - "summary_he": 2–3 short, clear Hebrew sentences: what happened, who is involved, why it matters. The reader should understand the story without opening it.
 - "summary_en": the same summary in English.
-- "facts_he": 2–4 short Hebrew bullets an editor can write from: key numbers (score, fee, contract, stats, dates), short quotes with who said them, the people/clubs involved. Only what the texts say; fewer if there is little; don't repeat the summary.
+- "facts_he": 2–4 short Hebrew bullets an editor can write from: key numbers (score, fee, contract, stats, dates), the people/clubs involved. Only what the texts say; fewer if there is little; don't repeat the summary or the quotes.
+- "quotes_he": 0–2 of the strongest things someone actually SAID that appear in the texts (in quotation marks, or clearly reported speech of a named person — a coach, player, club, official). Each: {"who":"<who said it, in Hebrew, short: name + role>","he":"<the quote in fluent, natural Hebrew — the way an Israeli sports site would quote it; keep its meaning and tone, not word for word>"}. Never invent or paraphrase a quote that isn't in the texts; an empty list is fine and common.
 Examples of headlines:
 - "Navaro besan nakon poraza od FMP-a: Nismo bili ovde da igramo prijateljsku utakmicu" → "נבארו זועם אחרי ההפסד ל-FMP: ״לא באנו לשחק משחק ידידות״"
 - "Gonçalo Ramos partilha publicação: «O estatuto de ser o melhor!»" → "גונסאלו ראמוס בפוסט: ״המעמד של להיות הטוב ביותר״"
 - "Southwest Notes: Harris, Jerome, Rockets, Mavs, Pelicans" → "עדכוני הדרום-מערב: האריס, ג'רום, יוסטון, דאלאס וניו אורלינס"
-Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"]}]} with every id you were given.`;
+Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"],"quotes_he":[{"who":"…","he":"…"}]}]} with every id you were given.`;
 
 const HEAD_SYSTEM = `${STYLE}
 
@@ -182,7 +183,11 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
           if (!s || !goodHe(r.title_he) || !goodHe(r.summary_he)) continue; // rejected → retried on a later run
           const facts = (Array.isArray(r.facts_he) ? r.facts_he : []).filter(goodHe).slice(0, 4).map((f) => clip(f.trim(), 200));
-          st.res[keyOf.get(s)] = { v: VERSION, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, n: s.sourceCount, at: now };
+          const quotes = (Array.isArray(r.quotes_he) ? r.quotes_he : [])
+            .filter((q) => q && goodHe(q.he) && typeof q.who === 'string' && q.who.trim())
+            .slice(0, 2)
+            .map((q) => ({ who: clip(q.who.trim(), 60), he: clip(q.he.trim().replace(/^[״"']+|[״"']+$/g, ''), 300) }));
+          st.res[keyOf.get(s)] = { v: VERSION, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, ...(quotes.length ? { quotes } : {}), n: s.sourceCount, at: now };
           done++;
         }
       }
@@ -212,7 +217,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   for (const s of stories) {
     const r = st.res[keyOf.get(s)];
     const h = st.heads[keyOf.get(s)];
-    if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he, ...(r.facts?.length ? { facts: r.facts } : {}) }, en: { sum: r.summary_en } };
+    if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he, ...(r.facts?.length ? { facts: r.facts } : {}), ...(r.quotes?.length ? { quotes: r.quotes } : {}) }, en: { sum: r.summary_en } };
     else if (h) s.ai = { he: { title: h.title_he } };
   }
   return { ai: st, done };
