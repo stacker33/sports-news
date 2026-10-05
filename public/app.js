@@ -71,6 +71,7 @@ const T = {
     updatesCount: (n) => ` · ${n} עדכונים`,
     sumBtn: '📝 תקציר',
     topics: {
+      cardTitle: '⭐ הנושאים שלי', cardHint: 'עקבו אחרי שחקן, קבוצה, ליגה או כל מילה — כל ידיעה חדשה עליהם תופיע כאן (ואפשר גם לקבל התראה).', addBig: '＋ הוספת נושא למעקב',
       add: '＋ נושא', edit: '✏️ עריכה', newTitle: '⭐ נושא חדש', editTitle: '⭐ עריכת נושא', name: 'שם הנושא', namePh: 'למשל: דני והבלייזרס',
       must: 'חייב לכלול (כל המילים)', mustPh: 'אבדיה', exclude: 'לא לכלול', excludePh: 'פנטזי, הימורים', timeMode: 'מה לספור בזמן', timeAny: 'כל פרסום חדש (גם בסיפור ישן)', timeNew: 'רק ידיעות שהתחילו בזמן הזה',
       words: 'לפחות אחת מהמילים (בכל שפה, מופרדות בפסיקים)', wordsPh: 'אבדיה, Avdija, טרייד', wordsNote: 'מחפש גם בתרגומים ובתקצירים — מילה בעברית מוצאת גם כתבות ביוונית או בספרדית',
@@ -213,6 +214,7 @@ const T = {
     updatesCount: (n) => ` · ${n} updates`,
     sumBtn: '📝 Summary',
     topics: {
+      cardTitle: '⭐ My topics', cardHint: 'Follow a player, team, league or any word — every new story about it shows up here (with an optional alert).', addBig: '＋ Follow a new topic',
       add: '＋ Topic', edit: '✏️ Edit', newTitle: '⭐ New topic', editTitle: '⭐ Edit topic', name: 'Topic name', namePh: 'e.g. Deni & the Blazers',
       must: 'Must include (all words)', mustPh: 'Avdija', exclude: 'Exclude', excludePh: 'fantasy, betting', timeMode: 'What counts in the time window', timeAny: 'Any new publication (even in an older story)', timeNew: 'Only stories that started in it',
       words: 'At least one of these words (any language, comma-separated)', wordsPh: 'Avdija, אבדיה, trade', wordsNote: 'Also searches translations and summaries — an English word finds Greek or Spanish articles too',
@@ -1087,6 +1089,24 @@ $('list').addEventListener('click', (e) => {
   renderList();
 });
 
+function topicsCardHtml() {
+  const L = t().topics;
+  const chips = topics
+    .map((tp) => {
+      const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
+      return `<button type="button" class="topic-chip" data-topic="${esc(tp.id)}">⭐ ${esc(tp.name)}${fresh ? `<b>${fresh}</b>` : ''}</button>`;
+    })
+    .join('');
+  return `<section class="topics-card"><div class="tc-head"><b>${esc(L.cardTitle)}</b><button type="button" class="tc-add" data-topic-new="1">${esc(L.addBig)}</button></div>${chips ? `<div class="tc-chips">${chips}</div>` : `<p class="tc-hint">${esc(L.cardHint)}</p>`}</section>`;
+}
+$('list').addEventListener('click', (e) => {
+  const card = e.target.closest('.topics-card');
+  if (!card) return;
+  if (e.target.closest('[data-topic-new]')) return openTopicEditor(null);
+  const chip = e.target.closest('[data-topic]');
+  if (chip) openTopic(chip.dataset.topic);
+});
+
 function renderList(freshIds = new Set()) {
   const list = visibleStories();
   const tagInfo = state.tag && state.data?.stories.flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
@@ -1095,7 +1115,7 @@ function renderList(freshIds = new Set()) {
   const topicBar = tp ? `<div class="topic-banner"><b>⭐ ${esc(tp.name)}</b><span class="muted">${esc(t().topics.banner(list.length))}</span><button type="button" class="small-btn" data-topic-edit="${esc(tp.id)}">${esc(t().topics.edit)}</button><button type="button" class="small-btn" data-topic="${esc(tp.id)}">${esc(t().topics.clear)}</button></div>` : '';
   const unseenN = lastVisit ? list.filter(isUnseen).length : 0;
   const sinceBar = unseenN ? `<div class="since-bar">${esc(t().sinceVisit(unseenN, ago(lastVisit)))}</div>` : '';
-  const banner = briefHtml() + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
+  const banner = briefHtml() + (state.tab === 'foryou' && !tp ? topicsCardHtml() : '') + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
     ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
     : '');
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';

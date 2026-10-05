@@ -699,3 +699,14 @@ body.v2 .sum1.has-q:not(.open) p::before { content: "💬 "; }
 .kbd-box dt { text-align: end; }
 .kbd-box dd { margin: 0; }
 kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; background: var(--surface-2); }
+
+/* ⭐ "My topics" card on the For you tab */
+.topics-card { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--brand, var(--accent)); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; display: grid; gap: 8px; }
+.tc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tc-head b { font-size: 16px; }
+.tc-add { border: 0; background: var(--brand, var(--accent)); color: #fff; font-weight: 800; font-size: 14.5px; padding: 9px 16px; border-radius: var(--radius); cursor: pointer; }
+.tc-add:hover { filter: brightness(1.08); }
+.tc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tc-hint { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.topics-card .topic-chip b { margin-inline-start: 6px; background: var(--brand, var(--accent)); color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }
+@media (max-width: 600px) { .tc-add { width: 100%; } }
