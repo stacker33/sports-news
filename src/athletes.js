@@ -59,6 +59,8 @@ export function normalizeAthlete(a) {
     sport: a.sport === 'basketball' ? 'basketball' : 'football',
     // US college (NCAA) players: found by name only — college team names ("Utah", "Tennessee") would match NBA/NFL news
     ...(a.college ? { college: true } : {}),
+    // a 365Scores team id, when searching by name finds the wrong team ("Utah" → Utah Jazz)
+    ...(Number(a.team365) > 0 ? { team365: Number(a.team365) } : {}),
   };
 }
 
@@ -91,6 +93,10 @@ export async function resolveTeams(athletes, cache = {}) {
   const out = { ...cache };
   const byKey = new Map(athletes.filter((a) => a.team).map((a) => [`${a.sport}|${a.team}`, a]));
   for (const [key, a] of byKey) {
+    if (a.team365) {
+      if (out[key]?.id !== a.team365) out[key] = { id: a.team365, name: a.team.replace(/ (Utes|Volunteers)$/, ''), imageVersion: 1 };
+      continue;
+    }
     if (out[key]) continue; // found before (misses are retried every run)
     // Try the team name, then its alternative names, then without punctuation
     const queries = [...new Set([a.team, ...a.team_alt, a.team.replace(/[.]/g, '')])];
