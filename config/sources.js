@@ -70,7 +70,6 @@ export const SOURCES = [
   { id: 'ynet-sport', name: 'ynet ספורט', url: 'https://www.ynet.co.il/Integration/StoryRss3.xml', lang: 'he', weight: 3 },
   { id: 'haaretz-sport', name: 'הארץ', url: 'https://www.haaretz.co.il/srv/sport', lang: 'he', weight: 2 },
   { id: 'maariv-sport', name: 'מעריב', url: 'https://www.maariv.co.il/rss/rssfeedssport', lang: 'he', weight: 2, noDates: true },
-  { id: 'israelhayom', name: 'ישראל היום', url: 'https://www.israelhayom.co.il/rss.xml', lang: 'he', weight: 2, mixed: true },
   { id: 'israelhayom-gn', name: 'ישראל היום', url: gnews('site:israelhayom.co.il/sport when:1d', 'he'), lang: 'he', weight: 2, google: true, every: 5 }, // the direct feed is blocked from GitHub's servers
   { id: 'sport5-home', name: 'ספורט 5', url: 'https://www.sport5.co.il/', lang: 'he', weight: 3, parser: 'sport5', noDates: true },
   { id: 'sport5', name: 'ספורט 5', url: gnews('site:sport5.co.il when:1d', 'he'), lang: 'he', weight: 3, google: true },

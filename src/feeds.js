@@ -1,6 +1,6 @@
 // Fetch + parse RSS / Atom feeds into plain items.
 import { XMLParser } from 'fast-xml-parser';
-import { videoKind } from './youtube.js';
+import { videoKind, ytPage, parseChannelPage } from './youtube.js';
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -188,6 +188,22 @@ function parseYouTube(doc, source) {
   return out;
 }
 
+// YouTube's feed answered 404 (an outage on their side): read the channel's Videos page instead
+async function fetchYouTubePage(source, timeoutMs) {
+  const ch = new URL(source.url).searchParams.get('channel_id');
+  const res = await fetch(ytPage(ch), {
+    headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.8', cookie: 'CONSENT=YES+1' },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} (feed 404)`);
+  const videos = parseChannelPage(await res.text());
+  if (!videos.length) throw new Error('HTTP 404, page backup empty');
+  return videos
+    .map((v) => ({ ...v, kind: videoKind(v.title) }))
+    .filter((v) => v.kind && v.published)
+    .map((v) => ({ title: cleanText(v.title), link: `https://www.youtube.com/watch?v=${v.id}`, summary: '', published: v.published, image: v.image, publisher: source.name, video: v.kind }));
+}
+
 // Public Telegram channel preview page (t.me/s/<channel>)
 function parseTelegram(html, source) {
   const out = [];
@@ -229,6 +245,7 @@ export async function fetchFeed(source, timeoutMs = 15000) {
     signal: AbortSignal.timeout(timeoutMs),
     redirect: 'follow',
   });
+  if (source.parser === 'youtube' && res.status === 404) return fetchYouTubePage(source, timeoutMs);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const xml = await readText(res);
   const doc = parser.parse(xml);
