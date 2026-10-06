@@ -744,3 +744,27 @@ body.v2 .tr-row { border-radius: var(--radius); }
 .tr-geos span { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--surface-2); border-radius: 4px; padding: 0 6px; }
 .tr-stories li { overflow-wrap: anywhere; }
 .tr-reddit li, .tr-wiki li { unicode-bidi: plaintext; text-align: start; }
+
+/* league / time / source-type filters (round 3) */
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 0 16px 10px; max-width: none; }
+.fr-item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.fr-label { color: var(--muted); font-weight: 700; font-size: 12.5px; }
+.fr-item select { font: inherit; font-size: 13px; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius, 8px); padding: 5px 8px; max-width: 220px; }
+.filter-row.active .fr-item select:not([value="all"]) { border-color: var(--text); }
+.fr-when button { font-size: 12.5px; }
+.search-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--surface-2); border-radius: var(--radius, 8px); padding: 8px 12px; margin-bottom: 8px; font-size: 13.5px; font-weight: 600; }
+body.v2 .filter-row { flex-basis: 100%; }
+@media (max-width: 600px) {
+  .filter-row { padding: 0 10px 8px; gap: 6px 8px; }
+  .fr-label { display: none; }
+  .fr-item select { max-width: 160px; font-size: 12.5px; padding: 5px 6px; }
+}
+body.v2 .filter-row { order: 4; }
+@media (max-width: 600px) {
+  .filter-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .fr-item select { max-width: none; width: 100%; }
+  .fr-when { grid-column: 1 / -1; display: flex; }
+  .fr-when button { flex: 1; }
+  body.v2:not(.show-filters) .filter-row { display: none; }
+}
+@media (max-width: 600px) { .fr-when { order: 3; } }

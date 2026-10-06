@@ -214,6 +214,20 @@ export async function collect({ log = console.log, force = false } = {}) {
   // protect Hebrew names from prefix stripping ("מכבי" must not become "כבי") — src/hebrew.js
   addHebrewNames([...Object.values(edb.teams || {}).map((t) => t.he), ...Object.values(edb.players || {}).map((p) => p.he), ...athletes.flatMap((a) => [a.name_he, a.team_he])]);
   const entById = new Map();
+  // every competition a story touches (for the league filter): named in an article, or a named team / a named
+  // player's team plays in it (365Scores competition ids → our tags)
+  const COMP_OF_365 = { 42: 'c-ligat', 43: 'c-leumit', 7: 'c-epl', 11: 'c-laliga', 17: 'c-seriea', 25: 'c-bundes', 35: 'c-ligue1', 572: 'c-ucl', 573: 'c-uel', 7685: 'c-uecl', 47: 'c-winner', 569: 'c-euroleague', 329: 'c-eurocup', 103: 'c-nba' };
+  const teamComps = (teamId) => (edb.teams?.[String(teamId).slice(1)]?.comps || []).map((c) => COMP_OF_365[c]).filter(Boolean);
+  const storyComps = (members) => {
+    const set = new Set();
+    for (const m of members) for (const id of m.ents || []) {
+      if (id.startsWith('c-')) set.add(id);
+      const e = entById.get(id);
+      if (e?.k === 'team') teamComps(id).forEach((c) => set.add(c));
+      else if (e?.k === 'player' && e.team) teamComps(e.team).forEach((c) => set.add(c));
+    }
+    return [...set];
+  };
 
   // Readers' 🏷️ corrections (sport / Israeli / not relevant), per article link
   const { corrections, added: fixesAdded } = await loadCorrections(state.corrections, now);
@@ -362,7 +376,10 @@ export async function collect({ log = console.log, force = false } = {}) {
   const clusters = clusterItems(items.filter((i) => !i.hidden));
   const { ids: storyIdList, map: storyIds } = assignStoryIds(clusters, state.storyIds);
   const stories = clusters
-    .map((members, i) => ({ ...buildStory(members, now), id: storyIdList[i], tags: storyTags(members), _members: members }))
+    .map((members, i) => {
+      const comps = storyComps(members);
+      return { ...buildStory(members, now), id: storyIdList[i], tags: storyTags(members), ...(comps.length ? { comps } : {}), _members: members };
+    })
     .map((s) => ({ ...s, s5: sport5Coverage(s) })) // did Sport5 already cover it? (for the Sport5 editors)
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
     .map((s) => applySignals(s, signals))

@@ -101,6 +101,14 @@ const T = {
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
+    f3: {
+      league: 'ליגה', leagueAll: 'כל הליגות',
+      groups: { 'g:il': 'ישראל — כל הליגות', 'g:eu': '5 הגדולות + גביעי אירופה', 'g:bb': 'כדורסל: NBA, יורוליג, יורוקאפ' },
+      comps: { 'c-ligat': 'ליגת העל', 'c-leumit': 'הליגה הלאומית', 'c-statecup': 'גביע המדינה', 'c-toto': 'גביע הטוטו', 'c-winner': 'ליגת ווינר סל', 'c-wcup': 'גביע ווינר', 'c-epl': 'פרמייר ליג', 'c-laliga': 'לה ליגה', 'c-seriea': 'סרייה א׳', 'c-bundes': 'בונדסליגה', 'c-ligue1': 'ליגה 1', 'c-ucl': 'ליגת האלופות', 'c-uel': 'הליגה האירופית', 'c-uecl': 'ליגת הקונפרנס', 'c-nba': 'NBA', 'c-euroleague': 'יורוליג', 'c-eurocup': 'יורוקאפ' },
+      when: { all: 'כל הזמנים', '1h': 'שעה', '3h': '3 שעות', today: 'היום' }, whenLabel: 'זמן',
+      src: { all: 'כל המקורות', reporter: 'כתבים וסקופים', official: 'רשמי (מועדונים וליגות)', media: 'כלי תקשורת' }, srcLabel: 'סוג מקור',
+      moreTabs: (n) => `עוד ${n} תוצאות בלשוניות אחרות`, showAll: 'חיפוש בכל הלשוניות', backTab: 'רק בלשונית הזו',
+    },
     x2: {
       brief: { title: '☀️ בוקר טוב — מה קרה בלילה בעולם', hide: 'הסתרה עד מחר' },
       quoteCopy: 'העתקת הציטוט', quoteCopied: '💬 הציטוט הועתק',
@@ -250,6 +258,14 @@ const T = {
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
+    f3: {
+      league: 'League', leagueAll: 'All leagues',
+      groups: { 'g:il': 'Israel — all leagues', 'g:eu': 'Big 5 + European cups', 'g:bb': 'Basketball: NBA, EuroLeague, EuroCup' },
+      comps: { 'c-ligat': 'Ligat HaAl', 'c-leumit': 'Liga Leumit', 'c-statecup': 'State Cup', 'c-toto': 'Toto Cup', 'c-winner': 'Winner League', 'c-wcup': 'Winner Cup', 'c-epl': 'Premier League', 'c-laliga': 'LaLiga', 'c-seriea': 'Serie A', 'c-bundes': 'Bundesliga', 'c-ligue1': 'Ligue 1', 'c-ucl': 'Champions League', 'c-uel': 'Europa League', 'c-uecl': 'Conference League', 'c-nba': 'NBA', 'c-euroleague': 'EuroLeague', 'c-eurocup': 'EuroCup' },
+      when: { all: 'Any time', '1h': 'Hour', '3h': '3 hours', today: 'Today' }, whenLabel: 'Time',
+      src: { all: 'All sources', reporter: 'Reporters & scoops', official: 'Official (clubs & leagues)', media: 'Media outlets' }, srcLabel: 'Source type',
+      moreTabs: (n) => `${n} more results in other tabs`, showAll: 'Search all tabs', backTab: 'This tab only',
+    },
     x2: {
       brief: { title: '☀️ Good morning — what happened overnight', hide: 'Hide until tomorrow' },
       quoteCopy: 'Copy the quote', quoteCopied: '💬 Quote copied',
@@ -348,6 +364,10 @@ const state = {
   athlete: null,
   teamNews: store.get('teamNews', false),
   q: '',
+  searchAll: false, // a search across every tab
+  league: store.get('league', 'all'), // 'all' | 'g:il' | 'g:eu' | 'g:bb' | a competition id
+  when: ['all', '1h', '3h', 'today'].includes(store.get('when')) ? store.get('when') : 'all',
+  srcType: ['all', 'reporter', 'official', 'media'].includes(store.get('srcType')) ? store.get('srcType') : 'all',
   view: 'news', // mobile: news | panel
   panel: store.get('panel', 'scores'), // scores | justin
   scoreDay: 0,
@@ -574,6 +594,82 @@ function inTab(s, tab) {
 }
 
 // Language filter: 'all' = everything (foreign headlines are translated); he/en = stories with an article in that language
+// ---------- league / time / source-type filters ----------
+const COMP_GROUPS = {
+  'g:il': ['c-ligat', 'c-leumit', 'c-statecup', 'c-toto', 'c-winner', 'c-wcup'],
+  'g:eu': ['c-epl', 'c-laliga', 'c-seriea', 'c-bundes', 'c-ligue1', 'c-ucl', 'c-uel', 'c-uecl'],
+  'g:bb': ['c-nba', 'c-euroleague', 'c-eurocup'],
+};
+function storyComps(s) {
+  return s.comps || (s.tags || []).filter((g) => g.k === 'comp').map((g) => g.id);
+}
+function leagueOk(s) {
+  if (state.league === 'all') return true;
+  const want = COMP_GROUPS[state.league] || [state.league];
+  const comps = storyComps(s);
+  // Israeli leagues: also every Israeli story of that sport even without a named competition
+  if (state.league === 'g:il' && s.israel && s.sport !== 'other') return true;
+  return comps.some((c) => want.includes(c));
+}
+function ilMidnight() {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(Date.now()).map((x) => [x.type, x.value]));
+  return Date.now() - (Number(p.hour) * 60 + Number(p.minute)) * 60000;
+}
+function whenOk(s) {
+  if (state.when === 'all') return true;
+  const since = state.when === '1h' ? Date.now() - 3600e3 : state.when === '3h' ? Date.now() - 3 * 3600e3 : ilMidnight();
+  return (s.latest || s.first) >= since; // a new publication in an older story counts
+}
+function srcOk(s) {
+  if (state.srcType === 'all') return true;
+  if (state.srcType === 'reporter') return !!(s.reporter || s.social?.length);
+  if (state.srcType === 'official') return !!s.official;
+  return !s.reporter && !s.official;
+}
+const filtersOk = (s) => leagueOk(s) && whenOk(s) && srcOk(s);
+
+// ---------- search: every word must match; headline matches first, then newest ----------
+// Hebrew: niqqud, final letters, prefixes (ו ה ב ל מ ש כ) — "במכבי" finds "מכבי" and back; Latin: accents, word starts
+const FINAL = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+const normText = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f\u0591-\u05C7]/g, '')
+  .replace(/[ךםןףץ]/g, (c) => FINAL[c]).replace(/[״"׳'’`]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const words = (t) => normText(t).split(' ').filter(Boolean);
+const HE_PREFIX = /^(?:ו?(?:ש|כש|מש|לכש)?(?:ה|ב|ל|מ|כ)?)$/;
+function wordHit(w, q) {
+  if (w === q) return true;
+  if (/[א-ת]/.test(q)) {
+    if (q.length >= 3 && w.length > q.length && w.endsWith(q) && HE_PREFIX.test(w.slice(0, w.length - q.length))) return true; // לריאל ⊃ ריאל
+    if (q.length > w.length && w.length >= 3 && q.endsWith(w) && HE_PREFIX.test(q.slice(0, q.length - w.length))) return true; // במכבי → מכבי
+    return false;
+  }
+  return w.startsWith(q) && (q.length >= 3 || w.length === q.length); // messi → messi's
+}
+const searchCache = new WeakMap();
+// the Israelis abroad in a story, in both languages ("אבדיה" finds "Avdija")
+function athleteNames(s) {
+  const byName = new Map((state.athletes?.athletes || []).map((a) => [a.name, a]));
+  return (s.athletes || []).flatMap((n) => [n, byName.get(n)?.name_he, ...(byName.get(n)?.alt || [])]).filter(Boolean);
+}
+function searchFields(s) {
+  if (!searchCache.has(s)) {
+    const head = new Set(words([s.title, s.t?.he?.title, s.t?.en?.title, s.ai?.he?.title, ...s.sources.map((x) => x.title)].join(' ')));
+    const body = new Set(words([s.ai?.he?.sum, s.ai?.en?.sum, s.sum?.text, s.sum?.he, s.sum?.en, ...(s.ai?.he?.facts || []), ...(s.tags || []).flatMap((g) => [g.he, g.en]), ...s.sources.map((x) => x.name), ...athleteNames(s)].join(' ')));
+    searchCache.set(s, { head: [...head], body: [...body] });
+  }
+  return searchCache.get(s);
+}
+// 0 = no match; otherwise 3 per word found in a headline, 1 per word found elsewhere
+function searchScore(s, qWords) {
+  const f = searchFields(s);
+  let score = 0;
+  for (const q of qWords) {
+    if (f.head.some((w) => wordHit(w, q))) score += 3;
+    else if (f.body.some((w) => wordHit(w, q))) score += 1;
+    else return 0;
+  }
+  return score;
+}
+
 function langOk(s) {
   if (state.langFilter === 'all') return true;
   return (s.langs || [s.lang]).includes(state.langFilter);
@@ -660,20 +756,33 @@ function athleteOk(s) {
 
 function visibleStories() {
   if (!state.data) return [];
-  const q = state.q.trim().toLowerCase();
+  const qWords = words(state.q);
   const tp = activeTopic();
+  const s5ok = (s) => !state.notS5 || !s.s5 || s.s5.probable || s.s5.where === 'channel';
+  // a search: best match (headline words) first, then the newest
+  const bySearch = (list) => {
+    const sc = new Map(list.map((s) => [s, searchScore(s, qWords)]));
+    return list.filter((s) => sc.get(s) > 0).sort((a, b) => sc.get(b) - sc.get(a) || (b.latest || b.first) - (a.latest || a.first)).slice(0, 300);
+  };
   if (tp) {
     // an open topic: everything that matches, in any tab
-    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && (!state.notS5 || !s.s5 || s.s5.probable || s.s5.where === 'channel') && (!q || storyText(s).includes(q)));
+    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
+    if (qWords.length) return bySearch(list);
     const mix = rankMix(list);
     return list.sort((a, b) => mix(b) - mix(a)).slice(0, 300);
   }
+  const base = (s) => langOk(s) && s5ok(s) && filtersOk(s);
+  if (qWords.length) {
+    const everywhere = bySearch(state.data.stories.filter(base));
+    const inThisTab = everywhere.filter((s) => inTab(s, state.tab) && athleteOk(s));
+    state.searchExtra = everywhere.length - inThisTab.length; // the "N more results in other tabs" bar
+    return state.searchAll ? everywhere : inThisTab;
+  }
+  state.searchExtra = 0;
   let list = state.data.stories.filter(
     (s) =>
-      inTab(s, state.tab) && langOk(s) && athleteOk(s) && (!state.rival || s.rival?.opponent === state.rival) &&
-      (!state.tag || s.tags?.some((g) => g.id === state.tag)) &&
-      (!state.notS5 || !s.s5 || s.s5.probable || s.s5.where === 'channel') &&
-      (!q || storyText(s).includes(q)) // search also covers translations, summaries and tags
+      inTab(s, state.tab) && base(s) && athleteOk(s) && (!state.rival || s.rival?.opponent === state.rival) &&
+      (!state.tag || s.tags?.some((g) => g.id === state.tag))
   );
   const mix = rankMix(list);
   if (state.tab === 'foryou' && Learn.count() >= 3) {
@@ -868,7 +977,7 @@ $('list').addEventListener('keydown', (e) => {
 });
 // language, newest↔popular and topics sit behind one button; search + Sport5 filter stay visible
 function filtersActive() {
-  return !!(state.langFilter !== 'all' || state.topic);
+  return !!(state.langFilter !== 'all' || state.topic || state.league !== 'all' || state.when !== 'all' || state.srcType !== 'all');
 }
 $('filtersBtn').addEventListener('click', () => {
   const open = !document.body.classList.contains('show-filters');
@@ -897,6 +1006,7 @@ function renderChrome() {
   $('themeBtn').setAttribute('aria-label', t().v2.theme[th]);
   $('keysBtn').title = t().x2.keysBtn;
   $('keysBtn').setAttribute('aria-label', t().x2.keysBtn);
+  renderFilterRow();
   $('reportBtn').title = t().report.btn;
   $('reportBtn').setAttribute('aria-label', t().report.btn);
   $('s5Filter').textContent = t().s5Filter;
@@ -1129,7 +1239,11 @@ function renderList(freshIds = new Set()) {
   const topicBar = tp ? `<div class="topic-banner"><b>⭐ ${esc(tp.name)}</b><span class="muted">${esc(t().topics.banner(list.length))}</span><button type="button" class="small-btn" data-topic-edit="${esc(tp.id)}">${esc(t().topics.edit)}</button><button type="button" class="small-btn" data-topic="${esc(tp.id)}">${esc(t().topics.clear)}</button></div>` : '';
   const unseenN = lastVisit ? list.filter(isUnseen).length : 0;
   const sinceBar = unseenN ? `<div class="since-bar">${esc(t().sinceVisit(unseenN, ago(lastVisit)))}</div>` : '';
-  const banner = briefHtml() + (state.tab === 'foryou' && !tp ? topicsCardHtml() : '') + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
+  const F = t().f3;
+  const searchBar = state.q.trim() && (state.searchExtra > 0 || state.searchAll)
+    ? `<div class="search-bar">${state.searchAll ? '' : `<span>${esc(F.moreTabs(state.searchExtra))}</span>`}<button type="button" class="small-btn" id="searchAllBtn">${esc(state.searchAll ? F.backTab : F.showAll)}</button></div>`
+    : '';
+  const banner = searchBar + briefHtml() + (state.tab === 'foryou' && !tp ? topicsCardHtml() : '') + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
     ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
     : '');
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
@@ -2074,7 +2188,43 @@ $('scoresPane').addEventListener('click', (e) => {
 let searchTimer;
 $('search').addEventListener('input', (e) => {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { state.q = e.target.value; renderList(); }, 150);
+  searchTimer = setTimeout(() => {
+    state.q = e.target.value;
+    if (!state.q.trim()) state.searchAll = false;
+    renderList();
+  }, 150);
+});
+$('list').addEventListener('click', (e) => {
+  if (!e.target.closest('#searchAllBtn')) return;
+  state.searchAll = !state.searchAll;
+  renderList();
+});
+// league / time / source type
+function renderFilterRow() {
+  const F = t().f3;
+  const opt = (v, label) => `<option value="${esc(v)}"${state.league === v ? ' selected' : ''}>${esc(label)}</option>`;
+  const league = `<label class="fr-item"><span class="fr-label">${esc(F.league)}</span><select data-f="league" aria-label="${esc(F.league)}">${opt('all', F.leagueAll)}${Object.entries(COMP_GROUPS)
+    .map(([g, ids]) => `<optgroup label="${esc(F.groups[g])}">${opt(g, F.groups[g])}${ids.map((id) => opt(id, '  ' + F.comps[id])).join('')}</optgroup>`).join('')}</select></label>`;
+  const when = `<div class="seg fr-when" role="group" aria-label="${esc(F.whenLabel)}">${Object.keys(F.when).map((k) => `<button type="button" data-when="${k}" aria-pressed="${state.when === k}">${esc(F.when[k])}</button>`).join('')}</div>`;
+  const src = `<label class="fr-item"><span class="fr-label">${esc(F.srcLabel)}</span><select data-f="srcType" aria-label="${esc(F.srcLabel)}">${Object.keys(F.src).map((k) => `<option value="${k}"${state.srcType === k ? ' selected' : ''}>${esc(F.src[k])}</option>`).join('')}</select></label>`;
+  $('filterRow').innerHTML = league + when + src;
+  $('filterRow').classList.toggle('active', state.league !== 'all' || state.when !== 'all' || state.srcType !== 'all');
+}
+$('filterRow').addEventListener('change', (e) => {
+  const sel = e.target.closest('select[data-f]');
+  if (!sel) return;
+  state[sel.dataset.f] = sel.value;
+  store.set(sel.dataset.f, sel.value);
+  renderChrome();
+  renderList();
+});
+$('filterRow').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-when]');
+  if (!b) return;
+  state.when = b.dataset.when;
+  store.set('when', state.when);
+  renderChrome();
+  renderList();
 });
 $('newPill').addEventListener('click', () => {
   $('newPill').hidden = true;
