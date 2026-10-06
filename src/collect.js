@@ -22,7 +22,7 @@ import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
 import { loadSignals } from './signals.js';
-import { trendBoard, nextTrendSearches, trendSources } from './trends.js';
+import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources } from './trends.js';
 import { loadWikipedia } from './wikipedia.js';
 import { loadEntityDb, refreshEntityDb, buildEntityIndex, findEntities } from './entities.js';
 import { fillSummaries } from './summaries.js';
@@ -115,7 +115,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     } catch {}
   }
 
-  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch)];
+  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch)];
   const srcById = new Map(sources.map((s) => [s.id, s]));
   const due = sources.filter((s) => {
     const m = meta[s.id];
@@ -500,10 +500,11 @@ export async function collect({ log = console.log, force = false } = {}) {
   const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
   const adminGreeted = await adminHello(state.adminGreeted).catch(() => state.adminGreeted || null);
   // Editors' feedback: 📣 reports → admin's Telegram; 👍/👎 votes → data/votes.json (the pilot's labelled set)
-  const { feedback, reports } = await loadFeedback(state.feedback, now);
+  const { feedback, reports, searches } = await loadFeedback(state.feedback, now);
+  const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

@@ -9,6 +9,7 @@ const TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
 const KEEP_DAYS = 30;
 const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;
+const SEARCHES_PER_DEVICE_DAY = 20;
 
 const str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 
@@ -18,6 +19,7 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
   const st = { since: prev.since || '12h', perDevice: prev.perDevice?.day === day ? { ...prev.perDevice } : { day }, votes: { ...(prev.votes || {}) } };
   for (const [id, v] of Object.entries(st.votes)) if (now - v.t > KEEP_DAYS * 864e5) delete st.votes[id];
   const reports = [];
+  const searches = []; // "follow this search in the radar" (🌐 from the web)
   try {
     const res = await fetch(`${TOPIC}/json?poll=1&since=${encodeURIComponent(st.since)}`, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -45,6 +47,10 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
         if (j.vote === -1) v.down.push(device);
         Object.assign(v, { title: str(j.title, 200), sport: str(j.sport, 12), israel: !!j.israel, s5: str(j.s5, 12), link: str(j.link, 600), t: now });
         st.votes[j.id] = v;
+      } else if (j.type === 'search' && str(j.q, 80).length >= 2) {
+        if ((st.perDevice[key] || 0) >= SEARCHES_PER_DEVICE_DAY) continue;
+        st.perDevice[key] = (st.perDevice[key] || 0) + 1;
+        searches.push({ q: str(j.q, 80), at: m.time * 1000 });
       } else if (j.type === 'report' && str(j.text, 1000)) {
         if ((st.perDevice[key] || 0) >= REPORTS_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
@@ -54,7 +60,7 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
   } catch {
     // ntfy unreachable: try again next run
   }
-  return { feedback: st, reports };
+  return { feedback: st, reports, searches };
 }
 
 // the public file: per story the vote counts and what the story was (no device ids)

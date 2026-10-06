@@ -101,6 +101,11 @@ const T = {
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
+    web: {
+      head: (n) => `🌐 מהרשת — Google News (${n})`, loading: '🌐 מחפש ברשת…', none: '🌐 לא נמצאו ברשת ידיעות נוספות', error: '🌐 החיפוש ברשת לא זמין כרגע',
+      follow: '📡 לעקוב ברדאר 6 שעות', following: '📡 הרדאר עוקב — הידיעות ייכנסו לפיד תוך דקות', followed: '📡 הרדאר יחפש את זה ב-6 השעות הקרובות',
+      copy: 'העתקה (כותרת, מקור וקישור)', copied: '📋 הועתק', mail: 'שליחה למייל web@sport5.co.il', share: 'וואטסאפ', source: 'מקור',
+    },
     f3: {
       league: 'ליגה', leagueAll: 'כל הליגות',
       groups: { 'g:il': 'ישראל — כל הליגות', 'g:eu': '5 הגדולות + גביעי אירופה', 'g:bb': 'כדורסל: NBA, יורוליג, יורוקאפ' },
@@ -258,6 +263,11 @@ const T = {
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
+    web: {
+      head: (n) => `🌐 From the web — Google News (${n})`, loading: '🌐 Searching the web…', none: '🌐 Nothing more on the web', error: '🌐 Web search is unavailable right now',
+      follow: '📡 Follow in the radar for 6 hours', following: '📡 The radar is following — stories arrive within minutes', followed: '📡 The radar will search this for the next 6 hours',
+      copy: 'Copy (headline, source and link)', copied: '📋 Copied', mail: 'Send to web@sport5.co.il', share: 'WhatsApp', source: 'Source',
+    },
     f3: {
       league: 'League', leagueAll: 'All leagues',
       groups: { 'g:il': 'Israel — all leagues', 'g:eu': 'Big 5 + European cups', 'g:bb': 'Basketball: NBA, EuroLeague, EuroCup' },
@@ -1231,6 +1241,66 @@ $('list').addEventListener('click', (e) => {
   if (chip) openTopic(chip.dataset.topic);
 });
 
+// ---------- 🌐 instant web search (Cloudflare Worker — worker/README.md) ----------
+// Empty until the worker is deployed: then the section appears under the radar's results.
+const SEARCH_URL = '';
+const web = { q: '', items: [], loading: false, error: false, timer: null };
+function webSearch(q) {
+  clearTimeout(web.timer);
+  if (!SEARCH_URL || words(q).length === 0 || q.trim().length < 2) return Object.assign(web, { q: '', items: [], loading: false, error: false });
+  web.timer = setTimeout(async () => {
+    Object.assign(web, { q, loading: true, error: false });
+    renderList();
+    try {
+      const res = await fetch(`${SEARCH_URL}/search?q=${encodeURIComponent(q.trim())}&langs=he,en`);
+      if (!res.ok) throw new Error(res.status);
+      const j = await res.json();
+      if (web.q !== q) return; // a newer search started
+      // drop what the radar already has (same link, or the same headline)
+      const links = new Set(state.data.stories.flatMap((s) => s.sources.map((x) => x.link)));
+      const heads = new Set(state.data.stories.flatMap((s) => s.sources.map((x) => normText(x.title))));
+      Object.assign(web, { loading: false, items: (j.items || []).filter((x) => !links.has(x.link) && !heads.has(normText(x.title))).slice(0, 30) });
+    } catch {
+      Object.assign(web, { loading: false, error: true, items: [] });
+    }
+    renderList();
+  }, 650);
+}
+function webHtml() {
+  if (!SEARCH_URL || !state.q.trim()) return '';
+  const W = t().web;
+  if (web.loading) return `<section class="web-res"><p class="muted">${esc(W.loading)}</p></section>`;
+  if (web.error) return `<section class="web-res"><p class="muted">${esc(W.error)}</p></section>`;
+  if (web.q !== state.q) return '';
+  const followedQ = store.get('followed', {})[state.q.trim().toLowerCase()];
+  const head = `<div class="web-head"><b>${esc(W.head(web.items.length))}</b><button type="button" class="small-btn" id="webFollow"${followedQ ? ' disabled' : ''}>${esc(followedQ ? W.following : W.follow)}</button></div>`;
+  if (!web.items.length) return `<section class="web-res">${head}<p class="muted">${esc(W.none)}</p></section>`;
+  return `<section class="web-res">${head}<ul>${web.items
+    .map((x, i) => `<li data-w="${i}"><a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto" class="w-title">${esc(x.he || x.title)}</a>${x.he ? `<span class="w-orig" dir="auto">${esc(x.title)}</span>` : ''}<span class="w-meta">${esc(x.source || '')}${x.published ? ` · ${esc(ago(x.published))}` : ''}<span class="w-acts"><button type="button" class="w-copy" title="${esc(W.copy)}" aria-label="${esc(W.copy)}">📋</button><button type="button" class="w-mail" title="${esc(W.mail)}" aria-label="${esc(W.mail)}">✉️</button><button type="button" class="w-share" title="${esc(W.share)}" aria-label="${esc(W.share)}">${WA_ICON}</button></span></span></li>`)
+    .join('')}</ul></section>`;
+}
+const webText = (x) => `${x.he || x.title}${x.he ? `\n(${x.title})` : ''}\n\n${t().web.source}: ${x.source || ''} | ${x.link}`;
+$('list').addEventListener('click', (e) => {
+  if (e.target.closest('#webFollow')) {
+    const q = state.q.trim();
+    sendFeedback({ type: 'search', q: q.slice(0, 80) });
+    const f = store.get('followed', {});
+    f[q.toLowerCase()] = Date.now();
+    for (const [k, at] of Object.entries(f)) if (Date.now() - at > 6 * 3600e3) delete f[k];
+    store.set('followed', f);
+    toast(t().web.followed);
+    renderList();
+    return;
+  }
+  const li = e.target.closest('.web-res li[data-w]');
+  if (!li) return;
+  const x = web.items[Number(li.dataset.w)];
+  if (!x) return;
+  if (e.target.closest('.w-copy')) copyText(webText(x), t().web.copied);
+  else if (e.target.closest('.w-mail')) location.href = `mailto:web@sport5.co.il?subject=${encodeURIComponent(x.he || x.title)}&body=${encodeURIComponent(`${webText(x)}\n\n— ${t().mailFrom}`)}`;
+  else if (e.target.closest('.w-share')) window.open(`https://wa.me/?text=${encodeURIComponent(`*${x.he || x.title}*\n${x.link}`)}`, '_blank', 'noopener');
+});
+
 function renderList(freshIds = new Set()) {
   const list = visibleStories();
   const tagInfo = state.tag && state.data?.stories.flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
@@ -1248,8 +1318,8 @@ function renderList(freshIds = new Set()) {
     : '');
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
   const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
-  $('list').innerHTML = cardsRow + (playersOnly ? '' : banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join(''));
-  $('empty').hidden = list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players');
+  $('list').innerHTML = cardsRow + (playersOnly ? '' : banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + webHtml());
+  $('empty').hidden = list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
   paintClaims();
   if (seenObserver) {
     seenObserver.disconnect();
@@ -2192,6 +2262,7 @@ $('search').addEventListener('input', (e) => {
     state.q = e.target.value;
     if (!state.q.trim()) state.searchAll = false;
     renderList();
+    webSearch(state.q);
   }, 150);
 });
 $('list').addEventListener('click', (e) => {

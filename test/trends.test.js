@@ -53,3 +53,15 @@ test('Wikipedia: sports pages only', () => {
   const b = trendBoard(signals, stories, noAbroad, [], now);
   assert.deepEqual(b.wiki.map((w) => w.title).sort(), ['Harry Kane', 'Julian Hall (soccer)']);
 });
+
+test('"follow this search": Hebrew + English searches for 6 hours, at most 10', async () => {
+  const { nextUserSearches, userSearchSources } = await import('../src/trends.js');
+  const s = nextUserSearches({}, [{ q: 'Lamine  Yamal injury' }], now);
+  assert.deepEqual(Object.keys(s), ['lamine yamal injury']);
+  const src = userSearchSources(s);
+  assert.deepEqual(src.map((x) => x.lang), ['he', 'en']);
+  assert.ok(src.every((x) => x.trend && x.mixed && !x.assist));
+  assert.deepEqual(Object.keys(nextUserSearches(s, [], now + 7 * 3600e3)), []);
+  const many = nextUserSearches({}, Array.from({ length: 15 }, (_, i) => ({ q: `query ${i}` })), now);
+  assert.equal(Object.keys(many).length, 10);
+});
