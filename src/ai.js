@@ -9,7 +9,12 @@
 //   Daily cap and an hourly pace; most important stories first (world and Israeli alike).
 // - The model gets the stories' headlines and descriptions only, plus the correct Hebrew spelling of the teams and
 //   players in each story (from the knowledge base), and is told to use nothing else.
-// - Answers are checked: text with Arabic letters, no Hebrew, or an empty field is rejected and retried later.
+// - The strong model (Flash) writes the important stories (headline + summary); the light one (Flash-Lite) the other
+//   headlines. Only a DAILY quota error moves the strong model's work to the light one for the day; a per-minute
+//   limit falls back for that one call.
+// - Style: ~10 of today's real Sport5 headlines go in as examples (style only, never content).
+// - Answers are checked: text with Arabic letters, Latin / Greek / Cyrillic letters glued to Hebrew ("המffמן"), no
+//   Hebrew, or an empty field is rejected and retried later.
 
 const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/$/, '');
 const ENDPOINT = `${BASE_URL}/chat/completions`;
@@ -22,7 +27,7 @@ const PER_HOUR = Math.ceil(DAILY_CAP / 20); // spread the day's budget
 export const aiCap = () => DAILY_CAP;
 let lastUsage = null; // tokens of the last call (for metering)
 const KEEP_DAYS = 3;
-const VERSION = 3; // results from older prompts are redone gradually, most important first
+const VERSION = 4; // results from older prompts are redone gradually, most important first
 
 const STYLE = `You are a senior editor at an Israeli sports news website (like Sport5 or ONE). You write in natural, fluent, idiomatic Hebrew — the way an Israeli sports journalist writes, never word-for-word translation.
 Style rules:
@@ -31,6 +36,8 @@ Style rules:
 - Write only Hebrew letters (plus digits, Latin abbreviations like NBA, and names with no Hebrew form). Never Arabic or other scripts.
 - Keep the sport right: a basketball story says כדורסל, never כדורגל (and vice versa).
 - Use ONLY facts in the given texts. Never invent scores, numbers, quotes, dates or reasons. Keep attributions (״לפי הדיווח״, ״על פי…״) when the source only reports a claim.
+- Translate MEANING, never word for word: idioms and set phrases become what an Israeli writer would say ("deeply impressed" → מתלהב / התרשם מאוד, "flawless" / "foutloos" → מושלמת / בלי מעידות, "on fire" → בכושר שיא). Not sure what a phrase means? Write its plain meaning; never guess a different one.
+- Headlines like an Israeli sports site: short (up to ~12 words), active voice, the news first; names, scores and numbers exactly as in the source.
 - No hashtags, emojis or clickbait. Inside text never use the " character — write quotes with ״…״ (or ' in English) so the JSON stays valid.`;
 
 const SYSTEM = `${STYLE}
@@ -57,14 +64,19 @@ Return JSON: {"titles":[{"id":"…","title_he":"…"}]} with every id you were g
 
 const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
 // a usable Hebrew text: has Hebrew, no Arabic-script letters (the model sometimes slips one in)
-const goodHe = (t) => typeof t === 'string' && /[א-ת]/.test(t) && !/[؀-ۿݐ-ݿ]/.test(t) && t.trim().length > 3;
+export const goodHe = (t) =>
+  typeof t === 'string' && /[א-ת]/.test(t) && t.trim().length > 3 &&
+  !/[؀-ۿݐ-ݿͰ-Ͽ\u0400-\u04FF]/.test(t) && // Arabic, Greek or Cyrillic letters
+  !/[א-ת][A-Za-z]|[A-Za-z][א-ת]/.test(t); // a Latin letter glued to a Hebrew one inside a word ("המffמן", "סרcסטית")
+const clean = (t) => String(t || '').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '').trim();
 
 // "Hebrew names: Real Valladolid = ריאל ויאדוליד; …" from the story's tags (knowledge base) and Israelis abroad
 function namesLine(s, heName) {
   const pairs = new Map();
   for (const g of s.tags || []) if (g.en && g.he && g.he !== g.en && /[א-ת]/.test(g.he)) pairs.set(g.en, g.he);
   for (const a of s.athletes || []) if (heName.get(a)) pairs.set(a, heName.get(a));
-  return pairs.size ? `\nHebrew names: ${[...pairs].slice(0, 8).map(([en, he]) => `${en} = ${he}`).join('; ')}` : '';
+  for (const [en, he] of s._names || []) if (!pairs.has(en)) pairs.set(en, he);
+  return pairs.size ? `\nHebrew names: ${[...pairs].slice(0, 14).map(([en, he]) => `${en} = ${he}`).join('; ')}` : '';
 }
 
 // What we send for one story: up to 6 distinct headlines (with outlet + language) and the best descriptions
@@ -103,7 +115,7 @@ async function callModel(token, model, system, user) {
     }),
     signal: AbortSignal.timeout(90000),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 160)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 700)}`); // long enough to tell a per-day quota from a per-minute one
   const body = await res.text();
   try { lastUsage = JSON.parse(body).usage || null; } catch { lastUsage = null; }
   let j;
@@ -130,7 +142,11 @@ async function callModel(token, model, system, user) {
 }
 
 // prev = { day, used, hourly, tokens, error, model, mainOffDay, res: { key: {...} }, heads: { key: { title_he, at } } }
-export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), heName = new Map()) {
+export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), heName = new Map(), { styleHeads = [] } = {}) {
+  // today's real Sport5 headlines: a style reference for both prompts
+  const style = styleHeads.length
+    ? `\n\nToday's real Sport5 headlines — imitate this STYLE (length, tone, word order), never their content:\n${styleHeads.slice(0, 10).map((h) => `- ${h}`).join('\n')}`
+    : '';
   const day = new Date(now).toISOString().slice(0, 10);
   const st = { ...prev, res: { ...(prev.res || {}) }, heads: { ...(prev.heads || {}) }, hourly: (prev.hourly || []).filter((t) => now - t < 3600e3) };
   if (st.day !== day) Object.assign(st, { day, used: 0, tokens: 0 });
@@ -140,19 +156,22 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   const token = process.env.AI_API_KEY;
   if (!token) st.error = 'no AI_API_KEY secret';
   const room = () => token && st.used < DAILY_CAP && st.hourly.length < PER_HOUR && !(st.cooldownUntil > now);
-  const model = () => (st.mainOffDay === day ? FALLBACK : MODEL);
-  // one call with the day's model; the main model out of quota / unknown → fall back to the cheaper one for the day
-  async function call(system, user) {
+  // strong jobs (important stories) use the main model unless its DAILY quota is gone; light jobs use the light one
+  const model = (strong) => (strong && st.mainOffDay !== day ? MODEL : FALLBACK);
+  async function call(system, user, strong = false) {
     st.used++;
     st.hourly.push(now);
+    const m = model(strong);
     try {
-      const out = await callModel(token, model(), system, user);
-      st.model = model();
+      const out = await callModel(token, m, system, user);
+      st.model = m;
       return out;
     } catch (e) {
-      // quota / unknown model → the cheaper model for the rest of the day; overloaded (5xx) → just for this call
-      if (model() === MODEL && MODEL !== FALLBACK && /HTTP (429|404|400|5\d\d)/.test(e.message)) {
-        if (!/HTTP 5\d\d/.test(e.message)) st.mainOffDay = day;
+      // the main model: daily quota gone / unknown model → the light one for the rest of the day;
+      // a per-minute limit or an overload (5xx) → the light one just for this call
+      if (m === MODEL && MODEL !== FALLBACK && /HTTP (429|404|400|5\d\d)/.test(e.message)) {
+        const daily = /HTTP (404|400)/.test(e.message) || (/HTTP 429/.test(e.message) && /per ?day|PerDay|daily/i.test(e.message));
+        if (daily) st.mainOffDay = day;
         st.used++;
         st.hourly.push(now);
         const out = await callModel(token, FALLBACK, system, user);
@@ -178,7 +197,8 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         .sort((a, b) => b.score - a.score) // most important first — world and Israeli alike
         .slice(0, PER_REQUEST);
       if (need.length) {
-        const out = await call(SYSTEM, need.map((s, i) => `### id: s${i}\n${storyInput(s, sums, heName)}`).join('\n\n'));
+        const out = await call(SYSTEM + style, need.map((s, i) => `### id: s${i}\n${storyInput(s, sums, heName)}`).join('\n\n'), true);
+        for (const r of out.stories || []) for (const k of ['title_he', 'summary_he', 'summary_en']) if (r[k]) r[k] = clean(r[k]);
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
           if (!s || !goodHe(r.title_he) || !goodHe(r.summary_he)) continue; // rejected → retried on a later run
@@ -200,7 +220,8 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         .sort((a, b) => b.score - a.score)
         .slice(0, HEADLINES_PER_REQUEST);
       if (heads.length >= 5) {
-        const out = await call(HEAD_SYSTEM, heads.map((s, i) => `${i}. ${clip(s.title, 200)}${namesLine(s, heName)}`).join('\n'));
+        const out = await call(HEAD_SYSTEM + style, heads.map((s, i) => `${i}. ${clip(s.title, 200)}${namesLine(s, heName)}`).join('\n'));
+        for (const r of out.titles || []) if (r.title_he) r.title_he = clean(r.title_he);
         for (const r of out.titles || []) {
           const s = heads[Number(String(r.id).replace(/\D/g, ''))];
           if (s && goodHe(r.title_he)) st.heads[keyOf.get(s)] = { title_he: clip(r.title_he, 220), at: now };

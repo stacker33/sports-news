@@ -33,12 +33,15 @@ async function viaGtx(texts, from, to) {
   return out;
 }
 
+const invisible = (t) => (typeof t === 'string' ? t.replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '') : t);
 async function translateBatch(texts, from, to) {
+  let out;
   try {
-    return await viaClients5(texts, from, to);
+    out = await viaClients5(texts, from, to);
   } catch (e) {
-    return await viaGtx(texts, from, to);
+    out = await viaGtx(texts, from, to);
   }
+  return out.map(invisible);
 }
 
 // items: [{ id, title, lang }]; cache: { [id]: { en?, he? } } (mutated). Returns number of titles translated.

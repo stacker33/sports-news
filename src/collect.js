@@ -399,7 +399,18 @@ export async function collect({ log = console.log, force = false } = {}) {
     }
   }
   // Hebrew headline + 2–3 sentence summary by a language model (GitHub Models, free tier; important stories first)
-  const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now, heOfAthlete).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
+  // the knowledge base's Hebrew spelling of every team / player / competition named in the story → the model
+  for (const s of stories) {
+    const pairs = new Map();
+    for (const m of s._members) for (const id of m.ents || []) {
+      const e = entById.get(id);
+      if (e?.en && e.he && e.he !== e.en && /[א-ת]/.test(e.he)) pairs.set(e.en, e.he);
+    }
+    s._names = [...pairs].slice(0, 14);
+  }
+  // today's Sport5 homepage headlines: the style the editors write in
+  const styleHeads = items.filter((i) => i.sourceId === 'sport5-home' && i.title.length > 20).sort((a, b) => b.published - a.published).slice(0, 10).map((i) => i.title);
+  const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
   const { tg, posted: tgPosted } = await telegramPost(stories, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
   // 🔥 trends panel (sports only) + news searches for sports trends we have no story on yet
@@ -411,6 +422,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   for (const s of stories) {
     if (s.sum) Object.assign(s.sum, { he: sums[s.sum.id]?.he, en: sums[s.sum.id]?.en });
     delete s._members;
+    delete s._names;
   }
   for (const id of Object.keys(sums)) if (!liveIds.has(id)) delete sums[id];
 
