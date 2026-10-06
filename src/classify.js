@@ -112,8 +112,14 @@ const FOLDER = new Map(Object.entries(SPORT5_FOLDERS).flatMap(([s, ids]) => ids.
 
 const SEG_FOOTBALL = /^(football|soccer|futbol|calcio|fussball|israeli-soccer|world-soccer|soccer-israel|soccer-international|israeli-football|world-football)$/;
 const SEG_BASKETBALL = /^(basketball|nba|euroleague|baloncesto|basket|israeli-basketball|world-basketball|basketball-israel|basketball-international)$/;
-const SEG_OTHER = /^(rugby[a-z-]*|cricket|golf|tennis|formula1|f1|motorsport|boxing|mma|athletics|cycling|nfl|mlb|nhl|american-football|horse-racing|snooker|darts|other|other-sports|olympics)$/;
-const SEG_DROP = /^(cars?|auto|motors|lifestyle|food|travel|tech|real-estate|economy|business|politics)$/;
+const SEG_OTHER = /^(rugby[a-z-]*|cricket|golf|tennis|tenis|formula1|formula-1|f1|motogp|motorsport|nascar|boxing|mma|ufc|athletics|atletismo|cycling|ciclismo|cyclisme[a-z-]*|radsport|nfl|mlb|nhl|baseball|beisbol|hockey|american-football|horse-racing|snooker|darts|other|other-sports|olympics)$/;
+// sections of sports sites that aren't sport: AS's meristation / tikitakas / actualidad, MD's elotromundo, Record's fora-de-campo…
+const SEG_DROP = /^(cars?|auto|motors|lifestyle|food|travel|tech|tecnologia|real-estate|economy|economia|business|politics|politica|actualidad|sociedad|meristation|tikitakas|tiramillas|elotromundo|fora-de-campo|cine|cinema|television|tv-series|series|famosos|gente|celebrities|showbiz|entertainment|gaming|videojuegos|salud|horoscopo|loterias|loteria)$/;
+
+// a site's own name/homepage instead of a headline (Google sometimes returns "- sport5.co.il")
+export const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*$|אתר ערוץ הספורט/i;
+// betting / odds / live-score widgets / puzzles: not news (any language)
+export const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|en directo|minuto a minuto|in diretta|liveticker|per 90|stats for .{2,40}?\d{4}\/\d{4}|fantasy|start.{0,4}sit|connections: sports edition|wordle|crossword|puzzle no\.?|hints and answers)\b/i;
 
 // Many sites put the sport in the URL path (/sport/rugby-league/…, /israeli-soccer/…, /nba/…) or a folder id
 function sectionFromUrl(link) {

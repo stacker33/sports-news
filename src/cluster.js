@@ -133,7 +133,7 @@ export function buildStory(members, now) {
   const weightSum = distinct.reduce((s, m) => s + m.weight, 0);
   const ageH = (now - first) / 3600000;
   const velocity = distinct.filter((m) => m.published - first < 2 * 3600000).length; // spread within 2h
-  let score = weightSum + velocity * 0.5;
+  let score = weightSum + velocity * 0.8; // spreading fast counts
   if (breaking) score *= 1.3;
   if (top) score *= 1.4;
   const pop = score; // popularity without the age penalty (the app's newest↔popular slider mixes it with freshness)

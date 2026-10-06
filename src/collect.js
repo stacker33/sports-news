@@ -8,7 +8,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
-import { classify } from './classify.js';
+import { classify, JUNK_TITLE, SITE_TITLE } from './classify.js';
+import { editorialBoost, bigEvent } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap } from './ai.js';
@@ -46,8 +47,6 @@ const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
 
-const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*$|אתר ערוץ הספורט/i;
-const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|en directo|minuto a minuto|in diretta|liveticker|per 90|stats for .{2,40}?\d{4}\/\d{4}|fantasy|start.{0,4}sit)\b/i;
 
 const itemId = (link, title) => {
   let key = link;
@@ -366,8 +365,11 @@ export async function collect({ log = console.log, force = false } = {}) {
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
     .map((s) => applySignals(s, signals))
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
-    // Other sports: only the biggest headlines (anything Israeli is always kept)
-    .filter((s) => s.sport !== 'other' || s.big || s.israel || s.abroad)
+    // Other sports (NFL, MLB, NHL, tennis, cycling…): only big events — finals, Grand Slams, Grand Prix, Olympics… —
+    // or a story carried internationally (8+ sources in 3+ languages); anything Israeli is always kept
+    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))
+    // editors' priorities: big competitions, transfers and scoops up; betting / how-to-watch / live blogs down
+    .map(editorialBoost)
     // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
     .sort((a, b) => b.latest - a.latest)

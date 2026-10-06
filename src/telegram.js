@@ -8,13 +8,14 @@
 //   trending, the big leagues / Champions League / NBA / EuroLeague, important Israeli and Israelis-abroad news; the biggest
 //   world stories. At most 3 per run, 8 per hour, 40 per day; every story once.
 
+import { isScoop, major } from './editorial.js';
+
 const API = 'https://api.telegram.org/bot';
 const PER_RUN = 4;
 const PER_HOUR = 15;
 const PER_DAY = 120;
 const QUIET = [1, 6]; // no alerts from 01:00 to 05:59 Israel time
 // competitions the editors follow (tag ids from src/entities.js)
-const MAJOR = new Set(['c-ucl', 'c-uel', 'c-epl', 'c-laliga', 'c-seriea', 'c-bundes', 'c-ligue1', 'c-nba', 'c-euroleague', 'c-wc', 'c-unl']);
 const BRIEF_HOUR = 7;
 
 const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -26,10 +27,6 @@ export const ilParts = (ts) => {
 const icon = (s, hot = true) => `${hot && isScoop(s) ? '🔴 ' : ''}${s.israel ? '🇮🇱' : s.abroad ? '✈️' : '🌍'}${s.sport === 'football' ? '⚽' : s.sport === 'basketball' ? '🏀' : '🏅'}${hot && s.big ? '🔥' : ''}`;
 // Hebrew headline: the model's, else a Hebrew article's, else the machine translation, else this run's translation
 let heMap = new Map();
-// a reporter's own post (Romano, Shams, Ornstein…) about a signing / injury / official news
-const SCOOP = /here we go|official|confirmed|agreed|agreement|deal (done|agreed)|signs|signed|completes?|medical|exclusive|breaking|ruled out|injur|sacked|fired|appointed|traded|trade|waived|extension|רשמי|חתם|סוכם|הסכם|בלעדי|נפצע|פוטר|מונה/i;
-const isScoop = (s) => (s.social || []).some((p) => !/[א-ת]/.test(p)) && SCOOP.test(s.title);
-const major = (s) => s.tags?.some((g) => MAJOR.has(g.id));
 // how much an editor wants this right now (world stories are first-class)
 const urgency = (s) => s.score + (!s.s5 || s.s5.probable || s.s5.where === 'channel' ? 2 : 0) + (s.s5?.newer >= 2 ? 1 : 0) + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
 const titleHe = (s) => (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title || heMap.get(s)) || s.title;
