@@ -17,6 +17,9 @@ import { ytFeed } from '../src/youtube.js';
 //   tz      the feed writes local time but labels it GMT: reinterpret in this zone (e.g. Walla)
 //   noDates the feed's dates are missing/wrong: use the time we first saw the article
 //   parser  special reader for sites without RSS (e.g. 'sport5' reads the homepage)
+//   reporter  a reporter's own channel or site (Telegram / Bluesky posts count by default; outlets' accounts: false)
+//   official  a club / league / federation channel
+//   country + assist  a national outlet: its local-only stories show only with a known team/player or an Israeli angle
 
 // Google News locales: [hl, gl, ceid]
 export const GN_LOCALES = {
@@ -37,6 +40,9 @@ export const GN_LOCALES = {
   pl: ['pl', 'PL', 'PL:pl'],
   ja: ['ja', 'JP', 'JP:ja'],
   'en-IE': ['en-IE', 'IE', 'IE:en'],
+  'nl-BE': ['nl', 'BE', 'BE:nl'],
+  'fr-BE': ['fr', 'BE', 'BE:fr'],
+  'el-CY': ['el', 'CY', 'CY:el'],
   'pt-BR': ['pt-BR', 'BR', 'BR:pt-419'],
   'es-AR': ['es-419', 'AR', 'AR:es-419'],
   cs: ['cs', 'CZ', 'CZ:cs'],
@@ -120,12 +126,15 @@ export const SOURCES = [
 
   // ---------- ⚡ Reporters & outlets posting live (minutes, not hours) ----------
   { id: 'tg-romano', name: 'Fabrizio Romano', url: 'https://t.me/s/fabrizioromano', lang: 'en', weight: 3, parser: 'telegram', sport: 'football' },
-  { id: 'tg-sport5', name: 'ספורט 5', url: 'https://t.me/s/sport5israel', lang: 'he', weight: 3, parser: 'telegram' },
+  { id: 'tg-sport5', name: 'ספורט 5', url: 'https://t.me/s/sport5israel', lang: 'he', weight: 3, parser: 'telegram', reporter: false },
   { id: 'bs-shams', name: 'Shams Charania', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=shamsbot.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'basketball' },
   { id: 'bs-ornstein', name: 'David Ornstein', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=david-ornstein.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', every: 2 },
   { id: 'bs-jacobs', name: 'Ben Jacobs', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=jacobsben.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 2, parser: 'bluesky', sport: 'football', every: 2 },
-  { id: 'bs-athletic', name: 'The Athletic', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=theathleticfc.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football' },
-  { id: 'bs-bbcsport', name: 'BBC Sport', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=bbcsport.xmirror.bot&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky' },
+  { id: 'bs-athletic', name: 'The Athletic', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=theathleticfc.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', reporter: false },
+  { id: 'stein', name: 'Marc Stein', url: 'https://marcstein.substack.com/feed', lang: 'en', weight: 3, sport: 'basketball', reporter: true, every: 3 },
+  { id: 'dimarzio', name: 'Gianluca Di Marzio', url: 'https://gianlucadimarzio.com/rss', lang: 'it', weight: 3, sport: 'football', reporter: true, every: 2 },
+  { id: 'relevo', name: 'Relevo', url: 'https://www.relevo.com/rss/', lang: 'es', weight: 2, reporter: true, every: 3 },
+  { id: 'bs-bbcsport', name: 'BBC Sport', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=bbcsport.xmirror.bot&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', reporter: false },
 
   // ---------- World basketball (English) ----------
   { id: 'bbc-basket', name: 'BBC Sport', url: 'https://feeds.bbci.co.uk/sport/basketball/rss.xml', lang: 'en', weight: 3, sport: 'basketball' },
@@ -135,6 +144,7 @@ export const SOURCES = [
   { id: 'realgm', name: 'RealGM', url: 'https://basketball.realgm.com/rss/wiretap/0/0.xml', lang: 'en', weight: 2, sport: 'basketball' },
   { id: 'eurohoops', name: 'Eurohoops', url: 'https://www.eurohoops.net/en/feed/', lang: 'en', weight: 2, sport: 'basketball' },
   { id: 'hoopsrumors', name: 'Hoops Rumors', url: 'https://www.hoopsrumors.com/feed', lang: 'en', weight: 2, sport: 'basketball', every: 2 },
+  { id: 'talkbasket', name: 'TalkBasket', url: 'https://www.talkbasket.net/feed', lang: 'en', weight: 1, sport: 'basketball', every: 2, max: 60 },
   { id: 'sportando', name: 'Sportando', url: 'https://www.sportando.basketball/en/feed/', lang: 'en', weight: 1, sport: 'basketball' },
 
   // ---------- Top sports headlines (Google News) ----------
@@ -152,6 +162,9 @@ export const SOURCES = [
   { id: 'top-tr', name: 'Google News', url: gtop('tr'), lang: 'tr', country: 'Turkey', weight: 2, google: true, top: true, every: 8 },
   { id: 'top-gr', name: 'Google News', url: gtop('el'), lang: 'el', country: 'Greece', weight: 2, google: true, top: true, every: 8 },
   { id: 'top-nl', name: 'Google News', url: gtop('nl'), lang: 'nl', country: 'Netherlands', weight: 2, google: true, top: true, every: 8 },
+  { id: 'top-be', name: 'Google News', url: gtop('nl-BE'), lang: 'nl', country: 'Belgium', weight: 2, google: true, top: true, every: 8 },
+  { id: 'top-be-fr', name: 'Google News', url: gtop('fr-BE'), lang: 'fr', country: 'Belgium', weight: 1, google: true, top: true, every: 10 },
+  { id: 'top-cy', name: 'Google News', url: gtop('el-CY'), lang: 'el', country: 'Cyprus', weight: 1, google: true, top: true, every: 10 },
 
   // ---------- World (other languages, translated in the app) ----------
   { id: 'marca-laliga', name: 'Marca', url: 'https://e00-marca.uecdn.es/rss/futbol/primera-division.xml', lang: 'es', weight: 2, sport: 'football' },
@@ -182,7 +195,7 @@ export const SOURCES = [
     ['westham', 'West Ham United', 'UCCNOsmurvpEit9paBOzWtUg', 'en', { sport: 'football' }],
     ['saints', 'Southampton FC', 'UCxvXjfiIHQ2O6saVx_ZFqnw', 'en', { sport: 'football' }],
     ['ajax', 'AFC Ajax', 'UCGpf7WX7R1one-NwOvg_PbQ', 'en', { sport: 'football' }],
-  ].map(([id, name, ch, lang, extra]) => ({ id: `yt-${id}`, name: `${name} · YouTube`, url: ytFeed(ch), lang, weight: 1, parser: 'youtube', assist: true, every: 5, ...extra })),
+  ].map(([id, name, ch, lang, extra]) => ({ id: `yt-${id}`, name: `${name} · YouTube`, url: ytFeed(ch), lang, weight: 1, parser: 'youtube', assist: true, official: true, every: 5, ...extra })),
 
   // Israelis abroad: outlets that follow their clubs closely
   { id: 'netsdaily', name: 'NetsDaily', url: 'https://www.netsdaily.com/rss/index.xml', lang: 'en', weight: 1, sport: 'basketball', every: 3 },
@@ -203,5 +216,25 @@ export const SOURCES = [
   { id: 'novasports', name: 'Novasports', url: 'https://www.novasports.gr/rss', lang: 'el', country: 'Greece', weight: 2, assist: true, every: 3 },
   { id: 'vi-nl', name: 'Voetbal International', url: 'https://www.vi.nl/rss', lang: 'nl', country: 'Netherlands', weight: 2, sport: 'football', assist: true, every: 3 },
   { id: 'nu-voetbal', name: 'NU.nl', url: 'https://www.nu.nl/rss/Voetbal', lang: 'nl', country: 'Netherlands', weight: 1, sport: 'football', assist: true, every: 3 },
+  // Portugal, Netherlands, Belgium
+  { id: 'maisfutebol', name: 'Maisfutebol', url: 'https://maisfutebol.iol.pt/rss.xml', lang: 'pt', country: 'Portugal', weight: 2, sport: 'football', assist: true, every: 3 },
+  { id: 'zerozero', name: 'zerozero', url: 'https://www.zerozero.pt/rss/noticias.php', lang: 'pt', country: 'Portugal', weight: 1, sport: 'football', assist: true, every: 4, max: 50 },
+  { id: 'voetbalprimeur', name: 'VoetbalPrimeur', url: 'https://www.voetbalprimeur.nl/rss/nieuws.xml', lang: 'nl', country: 'Netherlands', weight: 1, sport: 'football', assist: true, every: 3 },
+  { id: 'ad-sport', name: 'AD', url: 'https://www.ad.nl/sport/rss.xml', lang: 'nl', country: 'Netherlands', weight: 2, assist: true, every: 3 },
+  { id: 'sporza', name: 'Sporza', url: 'https://sporza.be/nl.rss.xml', lang: 'nl', country: 'Belgium', weight: 2, assist: true, every: 3 },
+  { id: 'hln-sport', name: 'HLN', url: 'https://www.hln.be/sport/rss.xml', lang: 'nl', country: 'Belgium', weight: 2, assist: true, every: 3 },
+  { id: 'dhnet', name: 'La DH', url: 'https://www.dhnet.be/rss/section/sports.xml', lang: 'fr', country: 'Belgium', weight: 2, assist: true, every: 3, max: 60 },
+  { id: 'voetbalkrant', name: 'Voetbalkrant', url: 'https://www.voetbalkrant.com/nl/rss', lang: 'nl', country: 'Belgium', weight: 1, sport: 'football', assist: true, every: 5, max: 60 },
+  { id: 'walfoot', name: 'Walfoot', url: 'https://www.walfoot.be/rss', lang: 'fr', country: 'Belgium', weight: 1, sport: 'football', assist: true, every: 5, max: 60 },
+  // Turkey, Greece, Cyprus, Serbia
+  { id: 'aspor', name: 'A Spor', url: 'https://www.aspor.com.tr/rss/anasayfa.xml', lang: 'tr', country: 'Turkey', weight: 2, assist: true, every: 3, max: 60 },
+  { id: 'athletiko', name: 'Athletiko', url: 'https://www.athletiko.gr/feed', lang: 'el', country: 'Greece', weight: 1, assist: true, every: 3 },
+  { id: 'sportal-gr', name: 'Sportal', url: 'https://www.sportal.gr/feed', lang: 'el', country: 'Greece', weight: 1, assist: true, every: 3 },
+  { id: 'to10', name: 'to10', url: 'https://www.to10.gr/feed/', lang: 'el', country: 'Greece', weight: 1, assist: true, every: 5 },
+  { id: 'eurohoops-gr', name: 'Eurohoops', url: 'https://www.eurohoops.net/el/feed/', lang: 'el', country: 'Greece', weight: 2, sport: 'basketball', assist: true, every: 3 },
+  { id: 'cyprusmail-sport', name: 'Cyprus Mail', url: 'https://cyprus-mail.com/category/sport/feed/', lang: 'en', country: 'Cyprus', weight: 1, assist: true, every: 5 },
+  { id: 'sportklub', name: 'Sport Klub', url: 'https://sportklub.n1info.rs/feed/', lang: 'sr', country: 'Serbia', weight: 2, assist: true, every: 3 },
+  { id: 'novosti-sport', name: 'Novosti', url: 'https://www.novosti.rs/rss/sport', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 5, max: 60 },
+  { id: 'sportske', name: 'Sportske', url: 'https://www.sportske.net/rss', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 5 },
   { id: 'gsp', name: 'Gazeta Sporturilor', url: 'https://www.gsp.ro/rss.xml', lang: 'ro', country: 'Romania', weight: 1, assist: true, every: 5, max: 40 },
 ];

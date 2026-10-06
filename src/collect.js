@@ -188,6 +188,8 @@ export async function collect({ log = console.log, force = false } = {}) {
         breaking: tags.breaking,
         rival: src.rival || prev?.rival || null,
         social: !!raw.social, // a reporter's own post (Telegram / Bluesky)
+        reporter: src.reporter ?? !!raw.social, // a reporter (their own post, or their site); outlets' accounts set reporter: false
+        official: !!src.official, // a club / league / federation channel
         video: raw.video || null, // YouTube: 'press' | 'highlights'
       };
       if (!prev) fresh++;
