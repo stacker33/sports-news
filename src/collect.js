@@ -41,6 +41,8 @@ function entityIndex(db) {
 import { loadAthletes, resolveTeams, athleteSources, buildMatchers, COUNTRIES } from './athletes.js';
 import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candidateQueries, planQueries, recordQueries, watchSources, norm as watchNorm } from './watchlist.js';
 import { setTracked } from './youtube.js';
+import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
+import { editorialRank, loadRankConfig } from './rank.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'public', 'data');
@@ -417,6 +419,20 @@ export async function collect({ log = console.log, force = false } = {}) {
 
   // Sport5 coverage, second check: same-day Sport5 article about the same thing worded differently
   const s5probable = sport5Probable(stories, items, tokens);
+  // Source roles, evidence, truthful coverage, views and the editorial rank (src/roles.js, src/rank.js).
+  // Votes come from the previous run's feedback (loaded later in this run).
+  const s5check = sport5Check(meta, now);
+  const rankCfg = loadRankConfig(join(ROOT, 'config', 'editorial-rank.json'));
+  const heOf = new Map(athletes.filter((a) => a.name_he).map((a) => [a.name, a.name_he]));
+  const heName = (n) => heOf.get(n) || n;
+  for (const s of stories) {
+    const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
+    for (const x of s.sources) if (roles[x.link]) [x.o, x.r] = roles[x.link];
+    s.ev = ev;
+    s.cov = storyCoverage(s, s5check, ev);
+    s.v = storyViews(s, ev);
+    s.ed = editorialRank(s, { now, cfg: rankCfg, votes: state.feedback?.votes?.[s.id], heName });
+  }
 
   // Summaries: feed descriptions + article pages, most important stories first (Israeli / abroad, then popular & fresh)
   const sums = state.sums || {};
@@ -467,6 +483,13 @@ export async function collect({ log = console.log, force = false } = {}) {
   const health = sources.filter((s) => !s.trend && !s.watch).map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
   const okCount = health.filter((h) => h.ok).length;
 
+  // evidence for the app: the lead points into the story's sources when it is one of them (no repeated long links)
+  const slimEv = (s) => {
+    const { lead, outlets, il, foreign, attrib, attribBy, official, reporter } = s.ev;
+    const i = lead ? s.sources.slice(0, 8).findIndex((x) => x.link === lead.link) : -1;
+    const l = lead && { name: lead.name, status: lead.status, origin: lead.origin, role: lead.role, ...(i >= 0 ? { i } : { link: lead.link }) };
+    return { lead: l, outlets, il, foreign, ...(attrib ? { attrib, attribBy } : {}), ...(official ? { official } : {}), ...(reporter ? { reporter } : {}) };
+  };
   // What the app needs, nothing more (phones): ≤8 sources per story, no repeated links, no unused fields
   const slim = (s) => {
     const { summary: _s, seen: _seen, ...rest } = s;
@@ -475,8 +498,10 @@ export async function collect({ log = console.log, force = false } = {}) {
     return {
       ...rest,
       t,
-      sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}) })),
+      sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown, o, r }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}), ...(o ? { o, r } : {}) })),
       sum: s.ai?.he?.sum ? undefined : s.sum, // the language model's summary replaces the feed blurb
+      ...(s.ed ? { ed: { score: s.ed.score, reasons: s.ed.reasons, limits: s.ed.limits.map((l) => l.k).filter((k) => k !== 'headline'), ...(s.ed.votes ? { votes: s.ed.votes } : {}) } } : {}),
+      ...(s.ev ? { ev: slimEv(s) } : {}),
     };
   };
   // First screen: the newest 300 + everything Israeli / Israelis abroad; the rest loads right after

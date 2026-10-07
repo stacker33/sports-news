@@ -12,7 +12,7 @@ const T = {
     search: 'חיפוש…',
     empty: 'אין ידיעות להצגה',
     tabs: {
-      top: '🔥 הכי חם', foryou: '⭐ בשבילך', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
+      top: '🔥 הכי חם', foryou: '⭐ בשבילך', foreign: '🔎 גילוי מחו"ל', ilmon: '👁 מעקב ישראלי', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
       abroad: '✈️ ליגיונרים', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
@@ -42,7 +42,7 @@ const T = {
     },
     ilNames: { Israel: 'נבחרת ישראל', 'Maccabi Tel Aviv': 'מכבי תל אביב', 'Hapoel Tel Aviv': 'הפועל תל אביב', 'Hapoel Jerusalem': 'הפועל ירושלים', 'Maccabi Haifa': 'מכבי חיפה', 'Hapoel Beer Sheva': 'הפועל באר שבע', "Hapoel Be'er Sheva": 'הפועל באר שבע', 'Beitar Jerusalem': 'בית"ר ירושלים', 'Hapoel Holon': 'הפועל חולון', 'Bnei Herzliya': 'בני הרצליה', 'Maccabi Rishon LeZion': 'מכבי ראשון לציון', 'Hapoel Haifa': 'הפועל חיפה' },
     country: { Ireland: 'אירלנד', 'Republic of Ireland': 'אירלנד', Austria: 'אוסטריה', Kosovo: 'קוסובו', Serbia: 'סרביה', Turkiye: 'טורקיה', Turkey: 'טורקיה', Greece: 'יוון', Spain: 'ספרד', France: 'צרפת', Germany: 'גרמניה', Italy: 'איטליה', England: 'אנגליה', Scotland: 'סקוטלנד', Portugal: 'פורטוגל', Netherlands: 'הולנד', Belgium: 'בלגיה', Lithuania: 'ליטא', Latvia: 'לטביה', Poland: 'פולין', Hungary: 'הונגריה', Romania: 'רומניה', Cyprus: 'קפריסין', Montenegro: 'מונטנגרו', Slovenia: 'סלובניה', Croatia: 'קרואטיה', Bulgaria: 'בולגריה', Czechia: "צ'כיה", Switzerland: 'שווייץ', Monaco: 'מונקו', Norway: 'נורבגיה', Sweden: 'שוודיה', Denmark: 'דנמרק', Ukraine: 'אוקראינה' },
-    mix: { newest: '🕒 הכי חדש', popular: 'הכי פופולרי 🔥' },
+    mix: { newest: '🕒 הכי חדש', popular: 'הכי פופולרי 🔥', editorial: 'חשיבות לעורך 🧭' },
     forYou: {
       intro: (n) => `⭐ הטאב לומד ממה שאתם פותחים (${n} כתבות עד עכשיו), ומסתנכרן בין המחשב לטלפון.`,
       cold: 'עוד לא למדתי מה מעניין אתכם — פתחו כמה כתבות בטאבים האחרים, וכאן יופיעו ידיעות לפי הטעם שלכם. בינתיים: הכי חם.',
@@ -97,7 +97,7 @@ const T = {
     why: (sport, reason) => `סווג: ${sport} · לפי ${reason}`, sportName: { football: 'כדורגל', basketball: 'כדורסל', other: 'ספורט אחר' },
     reasons: { url: 'מדור האתר', section: 'מדור האתר', feed: 'מקור ייעודי לענף', names: 'שמות שחקנים/קבוצות', kw: 'מילות מפתח', 'kw-other': 'מילות מפתח של ענף אחר', 'kw-weak': 'מילות מפתח (חלש)', model: 'מודל למידה', 'model-weak': 'מודל למידה (ביטחון נמוך)', 'in-the-news': 'ההקשר החדשותי של הקבוצה', score: 'תוצאת המשחק', user: 'תיקון עורך', uncertain: 'אין ראיה ברורה', athlete: 'ישראלי בחו"ל', 'il-clubs': 'שמות מועדונים', tie: 'שוויון ראיות' },
     sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
-    s5Filter: '🔴 רק מה שלא בספורט 5', s5FilterTip: 'מציג רק ידיעות שעדיין לא סוקרו בספורט 5',
+    s5Filter: '🔴 רק בלי התאמה בספורט 5', s5FilterTip: 'ידיעות שלא נמצאה להן התאמה בספורט 5. התאמות אפשריות נשארות ומסומנות',
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
@@ -175,7 +175,7 @@ const T = {
     search: 'Search…',
     empty: 'No stories to show',
     tabs: {
-      top: '🔥 Top', foryou: '⭐ For you', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
+      top: '🔥 Top', foryou: '⭐ For you', foreign: '🔎 Foreign discovery', ilmon: '👁 Israeli monitoring', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
       abroad: '✈️ Israelis abroad', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
     },
     langs: { all: '🌍 Whole world (translated)', he: 'Hebrew only', en: 'English only' },
@@ -204,7 +204,7 @@ const T = {
       you: (x) => `Similar to what you read: ${x}`,
     },
     ilNames: {},
-    mix: { newest: '🕒 Newest', popular: 'Most popular 🔥' },
+    mix: { newest: '🕒 Newest', popular: 'Most popular 🔥', editorial: 'Editorial rank 🧭' },
     forYou: {
       intro: (n) => `⭐ This tab learns from what you open (${n} stories so far) and syncs between PC and phone.`,
       cold: "I haven't learned your taste yet — open a few stories in the other tabs and they'll shape this one. Meanwhile: Top stories.",
@@ -259,7 +259,7 @@ const T = {
     why: (sport, reason) => `Classified: ${sport} · by ${reason}`, sportName: { football: 'football', basketball: 'basketball', other: 'other sport' },
     reasons: { url: 'site section', section: 'site section', feed: 'sport-specific source', names: 'player/team names', kw: 'keywords', 'kw-other': "another sport's keywords", 'kw-weak': 'keywords (weak)', model: 'learned model', 'model-weak': 'learned model (low confidence)', 'in-the-news': "the club's news context", score: 'the score', user: 'editor correction', uncertain: 'no clear evidence', athlete: 'Israeli abroad', 'il-clubs': 'club names', tie: 'tied evidence' },
     sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
-    s5Filter: '🔴 Not on Sport5 only', s5FilterTip: 'Show only stories Sport5 has not covered yet',
+    s5Filter: '🔴 No Sport5 match only', s5FilterTip: 'Stories with no Sport5 match found. Possible matches stay, marked',
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
@@ -334,7 +334,7 @@ const T = {
   },
 };
 
-const TABS = ['top', 'foryou', 'ilFootball', 'ilBasketball', 'abroad', 'football', 'basketball', 'other'];
+const TABS = ['top', 'foryou', 'foreign', 'ilmon', 'ilFootball', 'ilBasketball', 'abroad', 'football', 'basketball', 'other'];
 const LANG_FILTERS = ['all', 'he', 'en'];
 
 // ---------- state (UI prefs remembered per device) ----------
@@ -366,6 +366,7 @@ const state = {
   notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
   mix: Number(store.get('mix', 40)),
+  mixF: Number(store.get('mixF', 80)), // foreign discovery keeps its own slider: editorial rank by default
   abroadView: store.get('abroadView', 'news') === 'players' ? 'players' : 'news', // Israelis abroad: 📰 news | 👤 players // 0 = newest … 100 = most popular
   affinity: null,
   tag: null, // topic filter (clicked tag)
@@ -594,6 +595,10 @@ function inTab(s, tab) {
   switch (tab) {
     case 'top': return (s.sport !== 'other' || s.big) && !s.local; // local leagues stay in their own tab
     case 'foryou': return true;
+    // foreign discovery: a foreign-origin report (an Israeli outlet covering it too doesn't remove it)
+    case 'foreign': return !!s.v?.includes('f') && (s.sport !== 'other' || s.big);
+    // Israeli monitoring: an Israeli-origin report or an Israeli subject
+    case 'ilmon': return !!s.v?.includes('i');
     case 'ilFootball': return s.israel && s.sport === 'football';
     case 'ilBasketball': return s.israel && s.sport === 'basketball';
     case 'abroad': return s.abroad || (state.teamNews && s.teams?.length > 0);
@@ -805,16 +810,18 @@ function visibleStories() {
   if (state.tab === 'top' || state.tab === 'foryou') list = list.filter((s) => s.sport !== 'other' || s.big);
   list.sort((a, b) => mix(b) - mix(a));
   // at the popular end, keep the list focused
-  return list.slice(0, state.mix >= 70 ? 120 : 300);
+  return list.slice(0, mixVal() >= 70 ? 120 : 300);
 }
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
+const mixVal = () => (state.tab === 'foreign' && !state.topic ? state.mixF : state.mix);
 function rankMix(list) {
-  const w = state.mix / 100;
+  const w = mixVal() / 100;
   const maxPop = Math.log1p(Math.max(1, ...list.map((s) => s.pop ?? s.score)));
   const now = Date.now();
+  const editorial = state.tab === 'foreign' && !state.topic;
   return (s) => {
-    const popN = Math.log1p(s.pop ?? s.score) / maxPop;
+    const popN = editorial ? (s.ed?.score ?? 0) / 100 : Math.log1p(s.pop ?? s.score) / maxPop;
     const freshN = Math.exp(-(now - s.first) / (6 * 3600e3)); // halves roughly every 4 hours
     return w * popN + (1 - w) * freshN;
   };
@@ -966,16 +973,60 @@ function s5Status(s) {
   const notable = s.big || s.sourceCount >= 3;
   if (s.s5?.where === 'channel') return { k: 'social', long: he ? 'רק בטלגרם/יוטיוב של ספורט 5' : 'Only on Sport5 Telegram/YouTube', short: he ? 'רק בערוצי ספורט 5' : 'Sport5 channels only', ic: 'send', link: s.s5.link, tip: L.s5ChannelTip };
   if (s.s5 && s.s5.newer >= 2) return { k: 'since', long: he ? `בספורט 5 מ-${hhmm(s.s5.at)} · +${s.s5.newer} פרסומים חדשים מאז` : `On Sport5 since ${hhmm(s.s5.at)} · +${s.s5.newer} newer`, short: he ? `בספורט 5 · +${s.s5.newer} חדשים` : `On Sport5 · +${s.s5.newer}`, ic: 'refresh', link: s.s5.link, tip: L.s5Tip };
-  if (s.s5?.probable) return { k: 'prob', long: he ? 'כנראה באתר ספורט 5' : 'Probably on the Sport5 site', short: he ? 'כנראה בספורט 5' : 'Probably on Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5ProbTip };
-  if (s.s5) return { k: 'on', long: he ? 'באתר ספורט 5' : 'On the Sport5 site', short: he ? 'באתר ספורט 5' : 'On Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5Tip };
-  // not covered: loud only where it matters (a story several outlets carry), quiet otherwise
-  return { k: notable ? 'not' : 'none', long: he ? 'לא נמצא בספורט 5' : 'Not found on Sport5', short: he ? 'לא בספורט 5' : 'Not on Sport5', ic: 'notfound', tip: L.s5NotTip(state.data ? ago(state.data.generatedAt) : '') };
+  if (s.s5?.probable) return { k: 'prob', long: he ? 'התאמה אפשרית בספורט 5' : 'Possible match on Sport5', short: he ? 'אולי בספורט 5' : 'Possible match', ic: 'oncheck', link: s.s5.link, tip: L.s5ProbTip };
+  if (s.s5) return { k: 'on', long: he ? 'נמצאה התאמה בספורט 5' : 'Match found on Sport5', short: he ? 'בספורט 5' : 'On Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5Tip };
+  // the check itself failed or is stale: say so, never "not on Sport5"
+  if (s.cov?.s5 === 'unavailable') return { k: 'none', long: he ? 'בדיקת הכיסוי לא זמינה' : 'Coverage check unavailable', short: he ? 'לא נבדק' : 'Not checked', ic: 'notfound', tip: he ? 'לא הצלחנו לקרוא את ספורט 5 לאחרונה, אז אי אפשר לדעת' : "Sport5 couldn't be read recently, so we can't tell" };
+  // no match: loud only where it matters (a story several outlets carry), quiet otherwise
+  const checked = s.cov?.checkedAt ? hhmm(s.cov.checkedAt) : '';
+  return { k: notable ? 'not' : 'none', long: he ? `לא נמצאה התאמה${checked ? ` · נבדק ${checked}` : ''}` : `No match found${checked ? ` · checked ${checked}` : ''}`, short: he ? 'אין התאמה' : 'No match', ic: 'notfound', tip: L.s5NotTip(checked || (state.data ? ago(state.data.generatedAt) : '')) };
+}
+
+// ---------- editorial explanation (discovery views) ----------
+const LIMITS = {
+  he: { single: 'מקור יחיד - דורש אימות', 'origin-unknown': 'המקור המקורי לא ידוע', cites: (a) => `מצטט את ${a}; הכתבה המקורית לא נאספה`, exclusive: 'כתוב "בלעדי" - לא אומת', time: 'זמן הפרסום לא ידוע', local: 'ליגה מקומית', 's5-unavailable': 'בדיקת ספורט 5 לא זמינה', page: 'דף מידע, לא ידיעה', headline: 'רק כותרת ותקציר - צריך לקרוא את המקור' },
+  en: { single: 'Single source - needs confirmation', 'origin-unknown': 'Original source unknown', cites: (a) => `Cites ${a}; original article not collected`, exclusive: 'Says "exclusive" - not verified', time: 'Publication time unknown', local: 'Local league', 's5-unavailable': 'Sport5 check unavailable', page: 'Reference page, not a news story', headline: 'Only headline/description available; source reading needed' },
+};
+function leadOf(s) {
+  const l = s.ev?.lead;
+  if (!l) return null;
+  return { ...l, link: l.link || s.sources[l.i]?.link || s.link };
+}
+function explainHtml(s) {
+  const he = state.ui === 'he';
+  const lang = he ? 'he' : 'en';
+  const view = state.tab === 'foreign' || state.tab === 'ilmon';
+  const out = [];
+  if (view && s.ed?.reasons?.length) {
+    const rs = s.ed.reasons.slice(0, 3).map((x) => esc(String(x[lang] || x.en).replace('{t}', x.at ? hhmm(x.at) : '?')));
+    out.push(`<p class="c-why" dir="auto"><span class="c-why-h">${he ? 'למה זה חשוב' : 'Why it matters'}</span> ${rs.join(' · ')}</p>`);
+  }
+  const l = leadOf(s);
+  const ev = s.ev || {};
+  const bits = [];
+  if (view && l) {
+    const nm = `<a href="${esc(l.link)}" target="_blank" rel="noopener">${esc(l.name)}</a>`;
+    if (l.status === 'attributed') bits.push(he ? `מקור: ${nm} (מצוטט ע"י ${ev.attribBy})` : `Source: ${nm} (cited by ${ev.attribBy})`);
+    else if (l.status === 'cites-uncollected') bits.push(he ? `מצטט את ${esc(ev.attrib)} · הדיווח הזר: ${nm}` : `Cites ${esc(ev.attrib)} · foreign report: ${nm}`);
+    else if (l.status === 'earliest') bits.push(he ? `הדיווח הזר המוקדם שנמצא: ${nm} (מקוריות לא ידועה)` : `Earliest foreign report seen: ${nm} (originality unknown)`);
+  }
+  if (view && ev.outlets >= 2) bits.push(he ? `${ev.outlets} כלי תקשורת (${ev.il} ישראליים, ${ev.foreign} זרים) - פרסום, לא אימות` : `${ev.outlets} outlets (${ev.il} Israeli, ${ev.foreign} foreign) - spread, not confirmation`);
+  const comp = s.cov?.comp || [];
+  if (comp.length) bits.push(`${he ? 'נמצא גם אצל המתחרים' : 'Also found on competitors'}: ${esc(comp.slice(0, 3).join(', '))}`);
+  if (bits.length) out.push(`<p class="c-cov" dir="auto">${bits.join(' · ')}</p>`);
+  if (view) {
+    const lim = (s.ed?.limits || []).map((k) => (k === 'cites' ? LIMITS[lang].cites(ev.attrib || '') : LIMITS[lang][k])).filter(Boolean);
+    lim.push(LIMITS[lang].headline);
+    out.push(`<p class="c-lim" dir="auto">${icon('alert', 12, 2)}${esc(lim.join(' · '))}</p>`);
+  }
+  return out.join('');
 }
 
 function cardHtmlV2(s, fresh) {
   const L = t();
   const d = disp(s);
   if (d.link === s.link && s.realLink) d.link = s.realLink;
+  if (state.tab === 'foreign' && leadOf(s)?.origin === 'foreign' && s.lang === 'he') d.link = leadOf(s).link;
   const he = state.ui === 'he';
   // headline in the app's language first, the original under it
   // a Hebrew article keeps its own headline; the model's Hebrew headline is for foreign ones
@@ -1037,6 +1088,7 @@ function cardHtmlV2(s, fresh) {
       <h2 dir="auto"><a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(main)}</a></h2>
       ${orig ? `<p class="orig" dir="auto">${esc(orig)}</p>` : ''}
       ${sum}
+      ${explainHtml(s)}
       <div class="c-meta">
         <b class="c-src">${esc(lead)}</b>
         ${s.sourceCount > 1 ? `<button type="button" class="src-more" aria-expanded="false">${esc(he ? `+${s.sourceCount - 1} מקורות` : `+${s.sourceCount - 1} sources`)}</button>` : ''}
@@ -1174,8 +1226,8 @@ function renderChrome() {
     (f) => `<button data-lf="${f}" aria-pressed="${f === state.langFilter}">${esc(t().langs[f])}</button>`
   ).join('');
   $('mixLabelNew').textContent = t().mix.newest;
-  $('mixLabelPop').textContent = t().mix.popular;
-  $('mix').value = state.mix;
+  $('mixLabelPop').textContent = state.tab === 'foreign' ? t().mix.editorial : t().mix.popular;
+  $('mix').value = mixVal();
 
   // Israeli tabs: filter by the opponent's press (Israel–Ireland → Irish press…)
   const rivalBar = $('rivalBar');
@@ -1474,7 +1526,7 @@ function renderList(freshIds = new Set()) {
   const he = state.ui === 'he';
   const searching = !!state.q.trim();
   const feedHead = V2 && !playersOnly
-    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : state.mix >= 50 ? (he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
+    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : mixVal() >= 50 ? (state.tab === 'foreign' ? (he ? 'מיון: חשיבות לעורך, אחר כך זמן' : 'Sorted: editorial rank, then time') : he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
     : '';
   const emptyV2 = V2 && !playersOnly && !list.length
     ? state.notS5
@@ -1987,8 +2039,13 @@ $('langFilter').addEventListener('click', (e) => {
   renderChrome(); renderList(); renderJustIn(); renderTrends();
 });
 $('mix').addEventListener('input', (e) => {
-  state.mix = Number(e.target.value);
-  store.set('mix', state.mix);
+  if (state.tab === 'foreign' && !state.topic) {
+    state.mixF = Number(e.target.value);
+    store.set('mixF', state.mixF);
+  } else {
+    state.mix = Number(e.target.value);
+    store.set('mix', state.mix);
+  }
   renderList();
 });
 $('rivalBar').addEventListener('click', (e) => {
@@ -2261,6 +2318,7 @@ function s5Badge(s) {
     return `<a class="badge s5${s.s5.newer >= 2 ? ' newer' : ''}${s.s5.probable ? ' probable' : ''}" href="${esc(s.s5.link)}" target="_blank" rel="noopener" title="${esc(s.s5.probable ? L.s5ProbTip : L.s5Tip)}">${esc(label)}</a>`;
   }
   // "not on Sport5" only where it matters (stories several outlets carry), so the feed isn't covered in red
+  if (s.cov?.s5 === 'unavailable') return '';
   return s.big || s.sourceCount >= 3 ? `<span class="badge s5 not" title="${esc(L.s5NotTip(state.data ? ago(state.data.generatedAt) : ''))}">${esc(L.s5Not)}</span>` : '';
 }
 // Hebrew text for the site's editing system: headline, summary, source

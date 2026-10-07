@@ -63,3 +63,51 @@ Nationality, club, Israel link and active status are never inferred. Jewish iden
 `test/watchlist.test.js` (no network): aliases, accents, Hebrew, whole words, name-only, ambiguity, club sports, stable IDs, query bounds and dedup, scheduling with budget, rotation, deferral, backoff and expiry, a one-source Greek interview with a verified Israeli, player ratings, YouTube exceptions with junk still rejected, language versus source country, other-sports exceptionality, and the registry's corrections.
 
 Stage 2 adds the tests for coverage labels (repeated reports are not independent confirmation; uncertain Sport5 coverage is never definitive absence), the views, and feedback weighting.
+
+## Stage 2 - source roles, editorial rank, two views
+
+### Source origin and role (`src/roles.js`)
+
+- **Origin** (Israeli / foreign / unknown) comes from the outlet, never the language: a Hebrew publisher name, a known Israeli outlet (The Jerusalem Post, Times of Israel, i24NEWS, Israel Hayom, ynetnews, Haaretz...), an Israeli domain, or a Hebrew direct feed. The Jerusalem Post is Israeli in English; Marca writing about Maccabi is foreign.
+- **Role**: Sport5 (the coverage reference), competitor (any other Israeli outlet), foreign press, official channel, reporter, aggregator (MSN, Yahoo...). Each story source in the app carries its origin and role.
+- Sport5 articles reached through any Google search (publisher "ספורט 5") now count as Sport5 coverage. Before, they were missed: in the test run, Sport5 matches went from 49 to 55.
+
+### Evidence
+
+- **Spread is not corroboration.** The story counts outlets (Israeli / foreign) and never asserts that they are independent (`independent: "unknown"`).
+- **Attribution** is explicit only: a reporting cue ("according to", "לפי", "דיווח", "según"...) together with an outlet name (Marca, The Athletic, Romano...; Hebrew spellings included). Similar titles alone prove nothing.
+- **Lead source**: the cited outlet when its article is in the story ("attributed"); otherwise the earliest foreign report, labelled "originality unknown"; "cites X" when X is cited but its article was not collected.
+- Only headlines and descriptions are read; every story says so.
+
+### Coverage labels
+
+- "Match found on Sport5", "Possible match on Sport5", "Found on Sport5 channels only", "No match found - last checked HH:MM", "Coverage check unavailable".
+- "No match found" is used only when a Sport5 site source was read successfully in the last 90 minutes; otherwise the label is "unavailable". The app never says "not published".
+- Competitors are listed separately ("Also found on competitors: ONE, Walla").
+- The "no Sport5 match" filter keeps possible and channel-only matches, marked.
+
+### Editorial rank (`src/rank.js`, `config/editorial-rank.json`)
+
+- Separate dimensions, each 0-1:
+  - Israeli relevance: verified connections only; pending people say "possibly Israel-linked (not verified)"
+  - importance
+  - news value: transfer, injury, coach change, interview, controversy, record; lower for live blogs, betting and generic ratings; reference pages are cut to 40%
+  - freshness, halved when the publication time is unknown
+  - attention and spread
+  - Sport5 and competitor coverage
+  - evidence: official, reporter, attributed, single source
+- Weighted average to 0-100, with up to 4 human-readable reasons in Hebrew and English.
+- Limitations are shown separately (single source, origin unknown, unverified "exclusive", time unknown, local league, check unavailable), so interest and evidence are not mixed.
+- Editor votes adjust the rank only with 3+ distinct devices on the story, scaled by the number of voters, and capped at +-6 points. One device voting many times counts once.
+- The popularity order is unchanged everywhere else.
+
+### Views
+
+- **גילוי מחו"ל / Foreign discovery**: stories with a foreign-origin report, including ones an Israeli outlet also covered. Sorted by the editorial rank. The slider has its own position here (default 80), so the other tabs keep theirs. The headline of an Israeli-led story opens the identified foreign report.
+- **מעקב ישראלי / Israeli monitoring**: stories with an Israeli-origin report or an Israeli subject. Cards cross-link the foreign report when there is one.
+- Cards in both views show why the story matters, the lead source and its status, outlet counts ("spread, not confirmation"), competitors, and limitations.
+- Views only filter what is shown: every source, Israeli ones included, is still collected (tested).
+
+### Tests
+
+`test/roles.test.js`: origin versus language, roles, Israeli sources still collected and views, repeated reports versus confirmation, titles versus attribution, unavailable or uncertain Sport5 coverage never shown as absence, the local-interview example, "exclusive" and pending people, reference pages, Hebrew names, feedback sparsity and the cap.

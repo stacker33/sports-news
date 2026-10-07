@@ -107,7 +107,7 @@ export function buildWatchMatchers(entries) {
       } else if (e.sport !== 'other' && storySport && storySport !== e.sport && !ctx.some((f) => f(text))) {
         continue; // a football name inside a basketball story: a namesake
       }
-      hits.push({ id: e.id, name: e.name, he: e.he || '', status: e.status, category: e.category, israelLink: e.status === 'verified' && !!e.israelLink, via });
+      hits.push({ id: e.id, name: e.name, he: e.he || '', type: e.type, status: e.status, category: e.category, israelLink: e.status === 'verified' && !!e.israelLink, via });
     }
     return hits;
   };
@@ -118,7 +118,7 @@ export function annotateWatch(s, match) {
   const text = [s.title, ...(s._members || []).map((m) => `${m.title} ${m.summary || ''}`)].join(' \n ');
   const hits = match(text, s.sport);
   if (!hits.length) return s;
-  s.watch = hits.map(({ id, name, he, status, israelLink, via, category }) => ({ id, name, he, status, israelLink, via, category }));
+  s.watch = hits.map(({ id, name, he, type, status, israelLink, via, category }) => ({ id, name, he, type, status, israelLink, via, category }));
   if (hits.some((h) => h.israelLink)) s.watchIsrael = true;
   if (hits.some((h) => h.category === 'world-star')) s.watchStar = true;
   return s;

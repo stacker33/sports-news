@@ -1,0 +1,19 @@
+{
+  "about": "Editorial rank (src/rank.js): deterministic, explainable. Each dimension scores 0-1; the rank is the weighted average (0-100) plus a bounded editor-feedback adjustment. Interest and evidence are separate: evidence quality is shown as limitations and only lightly weighted, so a promising tip is not buried, and it is never presented as confirmed.",
+  "weights": {
+    "israel": 3,
+    "importance": 2,
+    "news": 2,
+    "fresh": 2,
+    "attention": 1.5,
+    "coverage": 1.5,
+    "evidence": 0.75
+  },
+  "freshHalfLifeHours": 6,
+  "attentionFullAt": 30,
+  "feedback": {
+    "minVoters": 3,
+    "fullAtVoters": 8,
+    "maxPoints": 6
+  }
+}
