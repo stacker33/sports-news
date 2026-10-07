@@ -1,0 +1,1075 @@
+{
+  "about": "Editable retrieval vocabulary (brief, appendices B and C). Terms are building blocks for bounded queries (src/watchlist.js), never run one by one. A term matching a story is NOT evidence that what it describes happened (allegations, investigations, views of a named person).",
+  "families": {
+    "israel-connection": {
+      "purpose": "discover foreign reports with an Israeli angle",
+      "lang": "en",
+      "needsSportContext": true,
+      "terms": [
+        "Israeli player",
+        "Israeli footballer",
+        "Israeli basketball player",
+        "Israeli athlete",
+        "Israeli international",
+        "Israel international",
+        "Israeli striker",
+        "Israeli winger",
+        "Israeli midfielder",
+        "Israeli defender",
+        "Israeli goalkeeper",
+        "Israeli guard",
+        "Israeli forward",
+        "Israeli center",
+        "Israeli point guard",
+        "Israeli prospect",
+        "Israeli talent",
+        "Israeli teenager",
+        "Israeli wonderkid",
+        "Israeli youngster",
+        "Israeli coach",
+        "Israeli manager",
+        "Israeli agent",
+        "Israeli referee",
+        "Israeli owner",
+        "Israel national team",
+        "Israel squad",
+        "Israel U21",
+        "Israel U19",
+        "Israel U20 basketball",
+        "Israel women's national team",
+        "Israeli-born",
+        "born in Israel",
+        "Israeli passport",
+        "Israeli citizenship",
+        "eligible for Israel",
+        "represent Israel",
+        "switch allegiance to Israel",
+        "Jewish footballer",
+        "Jewish basketball player",
+        "Jewish athlete",
+        "Jewish heritage",
+        "Jewish roots",
+        "Israeli Premier League",
+        "Israeli league",
+        "Israel football",
+        "Israeli basketball",
+        "Ligat HaAl",
+        "Ligat Ha'al",
+        "Ligat Winner",
+        "move to Israel",
+        "offer from Israel",
+        "interest from Israel",
+        "Israeli club",
+        "Israeli clubs",
+        "return to Israel",
+        "played in Israel",
+        "spell in Israel",
+        "time in Israel",
+        "former Maccabi",
+        "former Hapoel",
+        "ex-Maccabi",
+        "ex-Hapoel"
+      ],
+      "note": "Jewish identity is retrieval vocabulary only - never evidence of Israeli citizenship or eligibility."
+    },
+    "transfers": {
+      "purpose": "transfers, contracts, selection, coaching changes",
+      "lang": "en",
+      "terms": [
+        "interest",
+        "interested in",
+        "target",
+        "transfer target",
+        "tracking",
+        "monitoring",
+        "scouting",
+        "shortlist",
+        "talks",
+        "negotiations",
+        "advanced talks",
+        "in talks",
+        "approach",
+        "contact",
+        "proposal",
+        "bid",
+        "offer",
+        "agreement",
+        "deal agreed",
+        "personal terms",
+        "medical",
+        "set to sign",
+        "close to signing",
+        "final details",
+        "signs",
+        "joins",
+        "announces signing",
+        "official announcement",
+        "contract signed",
+        "unveiled",
+        "contract extension",
+        "new contract",
+        "renewal",
+        "release clause",
+        "buyout clause",
+        "option",
+        "salary",
+        "wages",
+        "departure",
+        "exit",
+        "leaves",
+        "released",
+        "contract terminated",
+        "mutual agreement",
+        "free agent",
+        "out of contract",
+        "loan",
+        "loan deal",
+        "loan recall",
+        "recalled from loan",
+        "option to buy",
+        "obligation to buy",
+        "wants to leave",
+        "transfer request",
+        "unhappy",
+        "seeking an exit",
+        "open to offers",
+        "dropped",
+        "benched",
+        "left out",
+        "out of favour",
+        "frozen out",
+        "not in plans",
+        "surplus to requirements",
+        "returns to starting XI",
+        "earns a start",
+        "first start",
+        "back in contention",
+        "recalled to squad",
+        "sacked",
+        "dismissed",
+        "resigns",
+        "steps down",
+        "under pressure",
+        "replacement",
+        "interim coach",
+        "appointed",
+        "trade",
+        "trade rumors",
+        "trade rumours",
+        "trade request",
+        "waived",
+        "waivers",
+        "two-way contract",
+        "10-day contract",
+        "qualifying offer",
+        "player option",
+        "team option",
+        "linked with",
+        "reportedly",
+        "rumour",
+        "rumor"
+      ]
+    },
+    "interviews": {
+      "purpose": "interviews, quotes, personal stories",
+      "lang": "en",
+      "terms": [
+        "interview",
+        "exclusive interview",
+        "in-depth interview",
+        "sit-down interview",
+        "Q&A",
+        "podcast",
+        "press conference",
+        "pre-match",
+        "post-match",
+        "postgame",
+        "pregame",
+        "media availability",
+        "mixed zone",
+        "opens up",
+        "reveals",
+        "admits",
+        "confession",
+        "speaks out",
+        "breaks silence",
+        "untold story",
+        "responds",
+        "reacts",
+        "addresses",
+        "explains",
+        "clarifies",
+        "denies",
+        "statement",
+        "criticises",
+        "criticizes",
+        "slams",
+        "hits out",
+        "blasts",
+        "questions",
+        "takes aim at",
+        "feud",
+        "clash",
+        "row",
+        "dispute",
+        "falling out",
+        "confrontation",
+        "heated exchange",
+        "praises",
+        "hails",
+        "lauds",
+        "impressed by",
+        "backs",
+        "defends",
+        "special talent",
+        "regret",
+        "apology",
+        "apologises",
+        "apologizes",
+        "mistake",
+        "sorry",
+        "time at Maccabi",
+        "time at Hapoel",
+        "played in Israel",
+        "life in Israel",
+        "Tel Aviv memories",
+        "return to Tel Aviv",
+        "mental health",
+        "depression",
+        "addiction",
+        "rehab",
+        "recovery",
+        "personal struggle",
+        "family tragedy",
+        "bankruptcy",
+        "financial problems",
+        "retirement",
+        "life after football",
+        "life after basketball",
+        "new career",
+        "childhood",
+        "grew up",
+        "refugee",
+        "homeless",
+        "survived",
+        "family sacrifice",
+        "inspiring story"
+      ]
+    },
+    "performance": {
+      "purpose": "performances, records, injuries, discipline",
+      "lang": "en",
+      "terms": [
+        "brace",
+        "hat-trick",
+        "match winner",
+        "stoppage-time winner",
+        "wonder goal",
+        "stunning goal",
+        "solo goal",
+        "bicycle kick",
+        "player ratings",
+        "report card",
+        "man of the match",
+        "player of the match",
+        "team of the week",
+        "player of the month",
+        "clean sheet",
+        "career-high",
+        "season-high",
+        "double-double",
+        "triple-double",
+        "buzzer-beater",
+        "game-winner",
+        "clutch",
+        "poster dunk",
+        "record-breaking",
+        "breaks record",
+        "sets record",
+        "club record",
+        "league record",
+        "all-time",
+        "historic",
+        "milestone",
+        "youngest ever",
+        "oldest ever",
+        "first player since",
+        "first time since",
+        "first ever",
+        "fastest to reach",
+        "worst defeat",
+        "record defeat",
+        "winless run",
+        "losing streak",
+        "collapse",
+        "humiliation",
+        "eliminated",
+        "upset",
+        "shock win",
+        "underdog",
+        "giant-killing",
+        "stunning comeback",
+        "sensational comeback",
+        "injury",
+        "injury update",
+        "scan",
+        "MRI",
+        "surgery",
+        "ruled out",
+        "sidelined",
+        "setback",
+        "fitness concern",
+        "returns to training",
+        "back in training",
+        "injury comeback",
+        "cleared to play",
+        "return date",
+        "full training",
+        "suspension",
+        "suspended",
+        "ban",
+        "fine",
+        "disciplinary",
+        "sent off",
+        "red card",
+        "appeal",
+        "VAR controversy",
+        "refereeing error",
+        "referee apology",
+        "disallowed goal",
+        "controversial penalty",
+        "missed call"
+      ]
+    },
+    "israel-institutions": {
+      "purpose": "Israel, protests, security, sport bodies",
+      "lang": "en",
+      "needsSportContext": true,
+      "terms": [
+        "Israel boycott",
+        "boycott Israeli teams",
+        "ban Israel",
+        "suspend Israel",
+        "Israel suspension",
+        "expel Israel",
+        "refuses to play Israel",
+        "refuses to face Israeli",
+        "withdraws against Israeli",
+        "refuses handshake",
+        "no handshake",
+        "Palestine flag",
+        "Palestinian flags",
+        "pro-Palestinian banner",
+        "Free Palestine",
+        "protest",
+        "demonstration",
+        "fan protest",
+        "antisemitism",
+        "anti-Semitism",
+        "antisemitic chants",
+        "antisemitic abuse",
+        "Jewish fans",
+        "support for Israel",
+        "Israeli flag",
+        "hostages",
+        "October 7",
+        "October 7 victims",
+        "tribute",
+        "minute's silence",
+        "memorial",
+        "Israeli fans",
+        "Maccabi fans",
+        "Hapoel fans",
+        "away fans",
+        "fan violence",
+        "clashes",
+        "arrests",
+        "security concerns",
+        "security threat",
+        "police protection",
+        "heightened security",
+        "travel warning",
+        "neutral venue",
+        "relocated match",
+        "behind closed doors",
+        "return to Israel",
+        "matches in Israel",
+        "hosting rights",
+        "UEFA Israel",
+        "FIFA Israel",
+        "FIBA Israel",
+        "EuroLeague Israel",
+        "IOC Israel",
+        "CAS Israel"
+      ],
+      "note": "Matching a phrase does not establish the truth of an allegation or the views of a named person."
+    },
+    "unusual": {
+      "purpose": "unusual, viral, human-interest",
+      "lang": "en",
+      "terms": [
+        "bizarre",
+        "unusual",
+        "extraordinary",
+        "unprecedented",
+        "incredible scenes",
+        "chaotic scenes",
+        "viral",
+        "viral video",
+        "viral celebration",
+        "social media reaction",
+        "Instagram post",
+        "deleted post",
+        "TikTok",
+        "howler",
+        "blunder",
+        "own goal",
+        "miss of the season",
+        "embarrassing miss",
+        "kit mix-up",
+        "pitch invader",
+        "animal on pitch",
+        "power failure",
+        "floodlight failure",
+        "match abandoned",
+        "match delayed",
+        "tifo",
+        "choreography",
+        "banner",
+        "ultras",
+        "standing ovation",
+        "hostile reception",
+        "fan tribute",
+        "heartwarming",
+        "emotional tribute",
+        "touching gesture",
+        "surprise visit",
+        "young fan",
+        "charity donation",
+        "goal celebration",
+        "celebration controversy",
+        "trophy parade",
+        "dressing room celebrations",
+        "comeback story",
+        "career revival",
+        "remarkable turnaround",
+        "forgotten star",
+        "former wonderkid",
+        "where are they now",
+        "former Premier League striker",
+        "former Barcelona player",
+        "former Real Madrid player",
+        "lower league",
+        "non-league",
+        "amateur club",
+        "former Maccabi Haifa striker",
+        "ex-Hapoel Tel Aviv player",
+        "former Beitar player",
+        "former Israeli league player",
+        "coach storms out",
+        "player refuses substitution",
+        "goalkeeper scores",
+        "fan saves",
+        "wrong anthem",
+        "trophy broken"
+      ]
+    },
+    "business": {
+      "purpose": "ownership, business, rules, investigations",
+      "lang": "en",
+      "terms": [
+        "takeover",
+        "ownership",
+        "new owner",
+        "stake",
+        "investment",
+        "consortium",
+        "club sale",
+        "unpaid wages",
+        "salary arrears",
+        "debt",
+        "insolvency",
+        "administration",
+        "bankruptcy",
+        "financial crisis",
+        "transfer ban",
+        "registration ban",
+        "points deduction",
+        "financial fair play",
+        "PSR",
+        "salary cap",
+        "league expansion",
+        "new format",
+        "franchise",
+        "permanent licence",
+        "wild card",
+        "promotion",
+        "relegation",
+        "NBA Europe",
+        "EuroLeague expansion",
+        "EuroLeague shareholders",
+        "EuroLeague ownership",
+        "club valuation",
+        "licensing model",
+        "broadcast rights",
+        "TV rights",
+        "media rights",
+        "sponsorship",
+        "naming rights",
+        "prize money",
+        "new stadium",
+        "new arena",
+        "stadium capacity",
+        "arena capacity",
+        "attendance record",
+        "ticket prices",
+        "investigation",
+        "match-fixing",
+        "corruption",
+        "betting breach",
+        "illegal betting",
+        "doping",
+        "fraud",
+        "official statement",
+        "ruling",
+        "verdict",
+        "disciplinary decision",
+        "arbitration",
+        "appeal rejected"
+      ],
+      "developing": [
+        "Negreira",
+        "Super League",
+        "Manchester City charges",
+        "FIFA calendar",
+        "player workload"
+      ]
+    },
+    "other-sports-exceptional": {
+      "purpose": "what makes another sport's story exceptional",
+      "lang": "en",
+      "terms": [
+        "world record",
+        "historic gold",
+        "first ever",
+        "shock defeat",
+        "major upset",
+        "disqualified",
+        "doping ban",
+        "retirement announcement",
+        "comeback",
+        "serious injury",
+        "controversy",
+        "refuses to compete",
+        "Israel",
+        "Israeli",
+        "medal",
+        "final",
+        "gold"
+      ]
+    },
+    "hebrew": {
+      "purpose": "Hebrew vocabulary",
+      "lang": "he",
+      "groups": {
+        "transfers": [
+          "מועמד",
+          "על הכוונת",
+          "במשא ומתן",
+          "הגישו הצעה",
+          "סיכם",
+          "חתם",
+          "נחת",
+          "יעבור בדיקות",
+          "מתקרב",
+          "שוחרר",
+          "הושאל"
+        ],
+        "status": [
+          "לא בתוכניות",
+          "מחוץ לסגל",
+          "הודח מההרכב",
+          "איבד את מקומו",
+          "מעמדו התערער",
+          "מבקש לעזוב"
+        ],
+        "quotes": [
+          "בריאיון",
+          "בראיון",
+          "חשף",
+          "הודה",
+          "תקף",
+          "ביקר",
+          "התנצל",
+          "הגיב",
+          "שבר שתיקה",
+          "סיפר"
+        ],
+        "israeli": [
+          "ליגיונר",
+          "ליגיונרים",
+          "הישראלי",
+          "אקס מכבי",
+          "אקס הפועל",
+          "שיחק בישראל"
+        ],
+        "performance": [
+          "צמד",
+          "שלושער",
+          "שער ניצחון",
+          "בישול",
+          "שיא קריירה",
+          "דאבל דאבל",
+          "טריפל דאבל",
+          "מצטיין המשחק"
+        ],
+        "events": [
+          "סערה",
+          "תקרית",
+          "עימות",
+          "מחאה",
+          "סירב",
+          "הוחרם",
+          "הורחק",
+          "הושעה",
+          "נעצר",
+          "נפתחה חקירה"
+        ],
+        "personal": [
+          "התמכרות",
+          "דיכאון",
+          "פשיטת רגל",
+          "קאמבק",
+          "מחווה",
+          "הנצחה",
+          "סיפורו של",
+          "איפה הוא היום"
+        ]
+      }
+    }
+  },
+  "multilingual": {
+    "about": "Seed forms per language (appendix C): starting points, not full morphology. Matching uses whole words only.",
+    "es": {
+      "israel": [
+        "Israel",
+        "israelí",
+        "israelíes"
+      ],
+      "transfer": [
+        "fichaje",
+        "traspaso",
+        "oferta",
+        "interés",
+        "cesión",
+        "renovación"
+      ],
+      "interview": [
+        "entrevista",
+        "declaraciones",
+        "confiesa",
+        "revela",
+        "critica"
+      ],
+      "injury": [
+        "lesión",
+        "baja",
+        "sanción",
+        "expulsión"
+      ]
+    },
+    "fr": {
+      "israel": [
+        "Israël",
+        "israélien",
+        "israélienne"
+      ],
+      "transfer": [
+        "transfert",
+        "mercato",
+        "offre",
+        "prêt",
+        "prolongation"
+      ],
+      "interview": [
+        "entretien",
+        "interview",
+        "déclarations",
+        "révèle",
+        "critique"
+      ],
+      "injury": [
+        "blessure",
+        "absent",
+        "suspension",
+        "sanction"
+      ]
+    },
+    "de": {
+      "israel": [
+        "Israel",
+        "israelisch",
+        "israelischer",
+        "Israeli"
+      ],
+      "transfer": [
+        "Wechsel",
+        "Transfer",
+        "Angebot",
+        "Interesse",
+        "Leihe",
+        "Vertragsverlängerung"
+      ],
+      "interview": [
+        "Interview",
+        "Aussagen",
+        "verrät",
+        "Kritik"
+      ],
+      "injury": [
+        "Verletzung",
+        "verletzt",
+        "Ausfall",
+        "Sperre"
+      ]
+    },
+    "it": {
+      "israel": [
+        "Israele",
+        "israeliano",
+        "israeliana"
+      ],
+      "transfer": [
+        "mercato",
+        "trasferimento",
+        "offerta",
+        "prestito",
+        "rinnovo"
+      ],
+      "interview": [
+        "intervista",
+        "dichiarazioni",
+        "rivela",
+        "critica"
+      ],
+      "injury": [
+        "infortunio",
+        "assenza",
+        "squalifica"
+      ]
+    },
+    "pt": {
+      "israel": [
+        "Israel",
+        "israelense",
+        "israelita"
+      ],
+      "transfer": [
+        "transferência",
+        "contratação",
+        "proposta",
+        "empréstimo",
+        "renovação"
+      ],
+      "interview": [
+        "entrevista",
+        "declarações",
+        "revela",
+        "critica"
+      ],
+      "injury": [
+        "lesão",
+        "lesionado",
+        "suspensão"
+      ]
+    },
+    "nl": {
+      "israel": [
+        "Israël",
+        "Israëlisch",
+        "Israëlische"
+      ],
+      "transfer": [
+        "transfer",
+        "interesse",
+        "aanbod",
+        "huur",
+        "contractverlenging"
+      ],
+      "interview": [
+        "interview",
+        "uitspraken",
+        "onthult",
+        "kritiek"
+      ],
+      "injury": [
+        "blessure",
+        "geblesseerd",
+        "schorsing"
+      ]
+    },
+    "el": {
+      "israel": [
+        "Ισραήλ",
+        "Ισραηλινός",
+        "Ισραηλινή"
+      ],
+      "transfer": [
+        "μεταγραφή",
+        "πρόταση",
+        "συμφωνία",
+        "συμβόλαιο"
+      ],
+      "interview": [
+        "συνέντευξη",
+        "δηλώσεις",
+        "αποκάλυψε"
+      ],
+      "injury": [
+        "τραυματισμός",
+        "τιμωρία"
+      ]
+    },
+    "tr": {
+      "israel": [
+        "İsrail",
+        "İsrailli"
+      ],
+      "transfer": [
+        "transfer",
+        "teklif",
+        "anlaşma",
+        "sözleşme",
+        "kiralık"
+      ],
+      "interview": [
+        "röportaj",
+        "açıklama",
+        "eleştiri"
+      ],
+      "injury": [
+        "sakatlık",
+        "sakatlandı",
+        "ceza"
+      ]
+    },
+    "sr": {
+      "israel": [
+        "Izrael",
+        "izraelski",
+        "Израел"
+      ],
+      "transfer": [
+        "transfer",
+        "ponuda",
+        "ugovor",
+        "pojačanje"
+      ],
+      "interview": [
+        "intervju",
+        "izjava",
+        "otkrio"
+      ],
+      "injury": [
+        "povreda",
+        "suspenzija",
+        "kazna"
+      ]
+    },
+    "hr": {
+      "israel": [
+        "Izrael",
+        "izraelski"
+      ],
+      "transfer": [
+        "transfer",
+        "ponuda",
+        "ugovor",
+        "pojačanje"
+      ],
+      "interview": [
+        "intervju",
+        "izjava",
+        "otkrio"
+      ],
+      "injury": [
+        "ozljeda",
+        "suspenzija",
+        "kazna"
+      ]
+    },
+    "pl": {
+      "israel": [
+        "Izrael",
+        "izraelski"
+      ],
+      "transfer": [
+        "transfer",
+        "oferta",
+        "kontrakt",
+        "wypożyczenie"
+      ],
+      "interview": [
+        "wywiad",
+        "powiedział",
+        "ujawnił"
+      ],
+      "injury": [
+        "kontuzja",
+        "zawieszenie"
+      ]
+    },
+    "ro": {
+      "israel": [
+        "Israel",
+        "israelian"
+      ],
+      "transfer": [
+        "transfer",
+        "ofertă",
+        "contract",
+        "împrumut"
+      ],
+      "interview": [
+        "interviu",
+        "declarații",
+        "dezvăluie"
+      ],
+      "injury": [
+        "accidentare",
+        "suspendare"
+      ]
+    },
+    "hu": {
+      "israel": [
+        "Izrael",
+        "izraeli"
+      ],
+      "transfer": [
+        "átigazolás",
+        "ajánlat",
+        "szerződés"
+      ],
+      "interview": [
+        "interjú",
+        "nyilatkozat"
+      ],
+      "injury": [
+        "sérülés",
+        "eltiltás"
+      ]
+    },
+    "ru": {
+      "israel": [
+        "Израиль",
+        "израильский"
+      ],
+      "transfer": [
+        "трансфер",
+        "предложение",
+        "контракт",
+        "аренда"
+      ],
+      "interview": [
+        "интервью",
+        "заявил",
+        "рассказал"
+      ],
+      "injury": [
+        "травма",
+        "дисквалификация"
+      ]
+    },
+    "ar": {
+      "israel": [
+        "إسرائيل",
+        "إسرائيلي",
+        "إسرائيليين"
+      ],
+      "transfer": [
+        "انتقال",
+        "صفقة",
+        "عرض",
+        "عقد",
+        "إعارة"
+      ],
+      "interview": [
+        "مقابلة",
+        "تصريحات",
+        "كشف"
+      ],
+      "injury": [
+        "إصابة",
+        "إيقاف",
+        "عقوبة"
+      ]
+    },
+    "clubScripts": [
+      "Μακάμπι",
+      "Χάποελ",
+      "Makabi",
+      "Hapoel",
+      "Макаби",
+      "Хапоел"
+    ]
+  },
+  "querySets": {
+    "about": "The small, rotated set of discovery queries actually run (strategy C), with a 3-day window. Google News returns nothing when an OR group is combined with another term, so each query is either a flat OR of phrases or two plain words. Sport context comes from the phrase itself and from the sports check every discovery result must pass (non-sports results are rejected as 'general-feed').",
+    "israeliAngle": [
+      {
+        "lang": "en",
+        "q": "\"Israeli footballer\" OR \"Israeli international\" OR \"Israeli winger\" OR \"Israeli striker\" OR \"Israeli goalkeeper\""
+      },
+      {
+        "lang": "en",
+        "q": "\"Israeli basketball player\" OR \"Israeli guard\" OR \"Israeli forward\" OR \"Israeli center\""
+      },
+      {
+        "lang": "en",
+        "q": "\"former Maccabi\" OR \"former Hapoel\" OR \"ex-Maccabi\" OR \"ex-Hapoel\" OR \"played in Israel\""
+      },
+      {
+        "lang": "es",
+        "q": "israelí fútbol"
+      },
+      {
+        "lang": "it",
+        "q": "israeliano calcio"
+      },
+      {
+        "lang": "de",
+        "q": "israelischer Fußballer OR israelische Nationalspieler"
+      },
+      {
+        "lang": "fr",
+        "q": "israélien football"
+      },
+      {
+        "lang": "nl",
+        "q": "Israëlische voetballer"
+      },
+      {
+        "lang": "el",
+        "q": "Μακάμπι OR Χάποελ"
+      },
+      {
+        "lang": "tr",
+        "q": "İsrailli futbolcu"
+      }
+    ],
+    "exceptional": [
+      {
+        "lang": "en",
+        "q": "\"refuses substitution\" OR \"wrong anthem\" OR \"goalkeeper scores\" OR \"match abandoned\" OR \"pitch invader\""
+      },
+      {
+        "lang": "en",
+        "q": "\"coach storms out\" OR \"buzzer-beater\" OR \"career revival\" OR \"untold story\""
+      },
+      {
+        "lang": "en",
+        "q": "\"world record\" OR \"doping ban\" OR \"major upset\" OR \"historic gold\""
+      }
+    ]
+  }
+}

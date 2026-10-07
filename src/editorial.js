@@ -14,7 +14,11 @@ export const isScoop = (s) => (s.social || []).some((p) => !/[א-ת]/.test(p)) &
 export const major = (s) => !!s.tags?.some((g) => MAJOR.has(g.id));
 
 const TRANSFER = /\b(transfer|signs?|signed|signing|here we go|loan|bid|fee|release clause|buyout|contract extension|extension|free agent|traded?|waived|joins|move to|agreement)\b|העברה|מעבר ל|חתם|חותם|השאלה|הצעה|סעיף שחרור|טרייד|הארכת חוזה|מצטרף/i;
-const LOW_VALUE = /\b(how to watch|where to watch|tv channel|live stream(ing)?|odds|betting|prediction|predicted line-?ups?|preview and prediction|player ratings|live:|live updates|as it happened|minute-by-minute|recap and highlights|quiz)\b|^live\b|איפה לצפות|שידור חי|ניחושים|הימורים|תחזית למשחק/i;
+const LOW_VALUE = /\b(how to watch|where to watch|tv channel|live stream(ing)?|odds|betting|prediction|predicted line-?ups?|preview and prediction|live:|live updates|as it happened|minute-by-minute|recap and highlights|quiz)\b|^live\b|איפה לצפות|שידור חי|ניחושים|הימורים|תחזית למשחק/i;
+
+// player ratings: low for a generic match, but a rating of a tracked Israeli is what the desk writes about
+const RATINGS = /\bplayer ratings\b|\bratings?:|\breport card\b|\bmarks out of 10\b|\bpagelle\b|\bnotes? des joueurs\b|\bcalificaciones\b|\bnoten\b|\bcijfers\b/i;
+const trackedIsraeli = (s) => !!(s.israel || s.abroad || s.athletes?.length || s.watchIsrael);
 
 const text = (s) => [s.title, s.t?.en?.title, ...(s._members || []).slice(0, 6).map((m) => m.title)].filter(Boolean).join(' \n ');
 
@@ -25,6 +29,7 @@ export function editorialBoost(s) {
   if (s.tags?.some((g) => EDITOR_COMPS.has(g.id))) k *= 1.25;
   if (isScoop(s) || TRANSFER.test(t)) k *= 1.3;
   if (LOW_VALUE.test(s.title) || LOW_VALUE.test(s.t?.en?.title || '')) k *= 0.6;
+  else if (RATINGS.test(s.title) && !trackedIsraeli(s)) k *= 0.6;
   if (k === 1) return s;
   const r2 = (x) => Math.round(x * 100) / 100;
   return { ...s, score: r2(s.score * k), pop: r2(s.pop * k) };
@@ -32,7 +37,13 @@ export function editorialBoost(s) {
 
 // Other sports: the events worth an editor's time
 const BIG_EVENT = /super bowl|world series|stanley cup final|nba finals|wimbledon|roland[- ]garros|french open|australian open|us open|atp finals|wta finals|davis cup final|grand prix|\bgp\b|world champion|\bolympic|olympics|tour de france|giro d'italia|vuelta|ryder cup|the masters|world cup final|title fight|undisputed|heavyweight title|world title|ufc \d{3}|גראנד סלאם|וימבלדון|רולאן גארוס|אליפות העולם|אולימפי|טור דה פראנס|גראנד פרי|פורמולה 1|סופרבול|קרב על התואר/i;
-export const bigEvent = (s) => BIG_EVENT.test(text(s));
+// ...or an exceptional story (a record, a doping ban, a shock defeat) that is spreading or about a famous name
+const EXCEPTIONAL = /world record|doping|banned for|disqualified|stripped of|shock (defeat|win)|major upset|historic (gold|first|win)|first ever|\bretire(s|ment)\b|\bdies\b|\bdied\b|death of|collapsed|arrested|שיא עולם|סימום|פרש מ|תלה את|נפטר/i;
+export const bigEvent = (s) => {
+  const t = text(s);
+  if (BIG_EVENT.test(t)) return true;
+  return EXCEPTIONAL.test(t) && !!(s.watchStar || (s.langs?.length || 0) >= 2 || (s.sourceCount || 0) >= 4);
+};
 
 // ---------- local leagues: interesting only with a reason ----------
 // Big for Sport5's editors: England, Spain, Italy, Germany, France, the European cups, NBA / EuroLeague / EuroCup,
@@ -51,13 +62,13 @@ const STARS = /mourinho|ronaldo|messi|neymar|ancelotti|guardiola|klopp|ibrahimov
 export const memberLocal = (m, src) => (src?.country ? LOCAL_COUNTRIES.has(src.country) : LOCAL_LANGS.has(m.lang));
 
 export function markLocal(s, isLocal) {
-  if (s.israel || s.abroad || s.athletes?.length) return s; // Israeli angle
+  if (trackedIsraeli(s)) return s; // Israeli angle (incl. a verified watchlist person)
   // a big league / EuroLeague club — in the story's own sport (PAOK football news isn't EuroCup basketball)
   if ((s.comps || []).some((c) => BIG_COMPS.has(c) && (BASKET_COMPS.has(c) ? s.sport === 'basketball' : s.sport !== 'basketball'))) return s;
   const named = new Set((s._members || []).flatMap((m) => (m.ents || []).filter((id) => id.startsWith('c-'))));
   if ([...named].some((c) => EURO_CUPS.has(c))) return s; // a European cup game
   if ((s.langs?.length || 0) >= 3 || s.trending || s.reddit) return s; // spreading / viral
-  if (STARS.test(text(s))) return s; // a famous name
+  if (s.watchStar || STARS.test(text(s))) return s; // a famous name (the registry, else the short list)
   if (!(s._members || []).length || !s._members.every(isLocal)) return s; // someone outside the local market covers it
   const r2 = (x) => Math.round(x * 100) / 100;
   return { ...s, local: true, score: r2(s.score * 0.35), pop: r2(s.pop * 0.35) };

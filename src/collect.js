@@ -39,6 +39,8 @@ function entityIndex(db) {
   return entityCache.index;
 }
 import { loadAthletes, resolveTeams, athleteSources, buildMatchers, COUNTRIES } from './athletes.js';
+import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candidateQueries, planQueries, recordQueries, watchSources, norm as watchNorm } from './watchlist.js';
+import { setTracked } from './youtube.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'public', 'data');
@@ -46,6 +48,7 @@ const KEEP_ITEMS_H = 48; // raw items remembered between runs
 const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
+const WATCH_BUDGET = 6; // watchlist / discovery queries per run (src/watchlist.js)
 
 
 const itemId = (link, title) => {
@@ -90,6 +93,13 @@ export async function collect({ log = console.log, force = false } = {}) {
     athleteSport: Object.fromEntries(athletes.map((a) => [a.name, a.sport])),
   };
 
+  // Watchlist (verified registry + bounded discovery queries); YouTube keeps a podcast / women's / youth video
+  // only when it names someone tracked
+  const watchEntries = await loadWatchlist(ROOT);
+  const watchMatch = buildWatchMatchers(watchEntries);
+  setTracked((title) => ctx.matchers.players(String(title).toLowerCase()).length > 0 || watchMatch(title).some((h) => h.israelLink));
+  const watchCandidates = candidateQueries(watchEntries, await loadVocabulary(ROOT), { skipNames: new Set(athletes.map((a) => watchNorm(a.name))) });
+
   const now = Date.now();
 
   // Israeli teams vs foreign opponents → news from the opponent's country (refreshed every 30 min)
@@ -115,7 +125,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     } catch {}
   }
 
-  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch)];
+  const watchPlan = planQueries(watchCandidates, state.watchSched, { now, budget: WATCH_BUDGET });
+  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch), ...watchSources(watchPlan.run)];
   const srcById = new Map(sources.map((s) => [s.id, s]));
   const due = sources.filter((s) => {
     const m = meta[s.id];
@@ -126,6 +137,12 @@ export async function collect({ log = console.log, force = false } = {}) {
   });
 
   const results = await pool(due, 12, (s) => fetchFeed(s));
+  // watch query schedule: success resets, failure backs off; queries no longer generated are forgotten
+  const watchRun = watchPlan.run.filter((c) => due.some((d) => d.id === c.id));
+  const watchSched = recordQueries(state.watchSched, watchRun, watchRun.map((c) => {
+    const r = results[due.findIndex((d) => d.id === c.id)];
+    return r?.ok ? { ok: true, count: r.value.length } : { ok: false };
+  }), now, new Set(watchCandidates.map((c) => c.id)));
   // what was filtered out and why (diagnostics for misses): article link → { t, src, title, link, why }
   const rejected = new Map((state.rejected || []).filter((r) => now - r.at < 24 * 3600e3).map((r) => [r.link, r]));
   const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, title: String(raw.title).slice(0, 200), link: raw.link, why });
@@ -384,9 +401,11 @@ export async function collect({ log = console.log, force = false } = {}) {
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
     .map((s) => applySignals(s, signals))
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
+    // watchlist people / clubs named in the story (only verified entries may carry an Israel link)
+    .map((s) => annotateWatch(s, watchMatch))
     // Other sports (NFL, MLB, NHL, tennis, cycling…): only big events — finals, Grand Slams, Grand Prix, Olympics… —
     // or a story carried internationally (8+ sources in 3+ languages); anything Israeli is always kept
-    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))
+    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || s.watchIsrael || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))
     // editors' priorities: big competitions, transfers and scoops up; betting / how-to-watch / live blogs down
     .map(editorialBoost)
     // local leagues (Greece, Portugal, Turkey…): low and out of Hot / brief / Telegram unless there's a reason
@@ -445,7 +464,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   for (const id of Object.keys(sums)) if (!liveIds.has(id)) delete sums[id];
 
-  const health = sources.filter((s) => !s.trend).map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
+  const health = sources.filter((s) => !s.trend && !s.watch).map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
   const okCount = health.filter((h) => h.ok).length;
 
   // What the app needs, nothing more (phones): ≤8 sources per story, no repeated links, no unused fields
@@ -464,6 +483,14 @@ export async function collect({ log = console.log, force = false } = {}) {
   const byNew = [...stories].sort((a, b) => b.first - a.first);
   const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad)].map((s) => s.id));
   const head = { generatedAt: now, tookMs: Date.now() - started, sources: { total: sources.length, ok: okCount, fetched: due.length } };
+  await writeJson(join(DATA, 'watch.json'), {
+    generatedAt: now,
+    registry: { verified: watchEntries.filter((e) => e.status === 'verified').length, pending: watchEntries.filter((e) => e.status === 'pending').length, sourceOnly: watchEntries.filter((e) => e.status === 'source-only').length },
+    budget: WATCH_BUDGET,
+    ran: watchRun.map((c) => ({ id: c.id, mode: c.mode, locale: c.locale, q: c.q, ok: meta[c.id]?.ok !== false, count: meta[c.id]?.count ?? 0 })),
+    deferred: watchPlan.deferred.slice(0, 60),
+    hits: stories.filter((s) => s.watch).length,
+  });
   await writeJson(join(DATA, 'news-more.json'), { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) });
   await writeJson(join(DATA, 'news.json'), {
     ...head,
@@ -484,7 +511,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   // Source health for the "system" panel: last check, last success, consecutive failures; quiet ≠ failed
-  const sourceHealth = sources.filter((s) => !s.trend).map((s) => {
+  const sourceHealth = sources.filter((s) => !s.trend && !s.watch).map((s) => {
     const m = meta[s.id] || {};
     return { id: s.id, name: s.name, ok: m.ok !== false, last: m.last || null, lastOk: m.lastOk || (m.ok ? m.last : null), failStreak: m.failStreak || 0, count: m.count ?? 0, error: m.ok === false ? m.error : undefined };
   });
@@ -506,7 +533,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
