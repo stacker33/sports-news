@@ -482,6 +482,7 @@ function toast(text) {
   const el = document.createElement('div');
   el.className = 'toast';
   el.textContent = text;
+  if (V2) el.insertAdjacentHTML('afterbegin', `<span class="t-ok">${icon('check', 16)}</span>`);
   document.body.append(el);
   setTimeout(() => el.remove(), 3500);
 }
@@ -905,7 +906,72 @@ function cardHtml(s, fresh) {
   </article>`;
 }
 
-// ---------- new design: the familiar card, cleaned: few labels, one-line summary, icon actions ----------
+// ---------- new design (Claude Design handoff, "1a · status column"): Sport5 status + time in a fixed column,
+// headline → original → one-line AI summary (expands: summary, key facts, quotes), actions on hover; phones: card "m" ----------
+const ICON_PATHS = {
+  copy: ['M11 9h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z', 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'],
+  mail: ['M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'm22 6-10 7L2 6'],
+  wa: ['M7.9 20A9 9 0 1 0 4 16.1L2 22Z', 'M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1'],
+  code: ['m16 18 6-6-6-6', 'm8 6-6 6 6 6'],
+  up: ['M7 10v12', 'M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z'],
+  down: ['M17 14V2', 'M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z'],
+  claim: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', 'm16 11 2 2 4-4'],
+  wrong: ['M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z', 'm9.5 10.5 5 5', 'm14.5 10.5-5 5'],
+  send: ['M22 2 11 13', 'M22 2 15 22 11 13 2 9 22 2z'],
+  flag: ['M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z', 'M4 22v-7'],
+  bell: ['M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9', 'M10.3 21a1.94 1.94 0 0 0 3.4 0'],
+  kbd: ['M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z', 'M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8'],
+  moon: ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
+  sun: ['M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0', 'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'],
+  search: ['M3 11a8 8 0 1 0 16 0a8 8 0 1 0-16 0', 'm21 21-4.3-4.3'],
+  filter: ['M22 3H2l8 9.46V19l4 2v-8.54L22 3z'],
+  chev: ['m6 9 6 6 6-6'],
+  check: ['M20 6 9 17l-5-5'],
+  x: ['M18 6 6 18M6 6l12 12'],
+  notfound: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'm4.9 4.9 14.2 14.2'],
+  oncheck: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'm8 12 3 3 5-6'],
+  refresh: ['M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8', 'M21 3v5h-5', 'M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16', 'M8 16H3v5'],
+  play: ['M2.5 17a24 24 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.6 49.6 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24 24 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.6 49.6 0 0 1-16.2 0A2 2 0 0 1 2.5 17', 'm10 15 5-3-5-3z'],
+  flame: ['M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z'],
+  ai: ['M12 3l1.9 5.8L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.2z', 'M19 17v4M17 19h4'],
+  trend: ['M22 7 13.5 15.5 8.5 10.5 2 17', 'M16 7h6v6'],
+  plus: ['M12 5v14M5 12h14'],
+  alert: ['m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3', 'M12 9v4', 'M12 17h.01'],
+  news: ['M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2', 'M18 14h-8', 'M15 18h-5', 'M10 6h8v4h-8V6Z'],
+  board: ['M3 5h18v14H3z', 'M12 5v14', 'M6.5 10v4', 'M16 10h2.5v4H16z'],
+  zap: ['M13 2 3 14h9l-1 8 10-12h-9l1-8z'],
+  ball: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'm12 7.5 3.8 2.8-1.4 4.4H9.6l-1.4-4.4z', 'M12 2v5.5M21.5 9.5l-5.7.8M18 20l-3.6-5.3M6 20l3.6-5.3M2.5 9.5l5.7.8'],
+  bball: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'M12 2v20', 'M2 12h20', 'M5 5c3 3.5 3 10.5 0 14', 'M19 5c-3 3.5-3 10.5 0 14'],
+  tennis: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'M6 4.5c3 4 3 11 0 15', 'M18 4.5c-3 4-3 11 0 15'],
+  eyeoff: ['M9.88 9.88a3 3 0 1 0 4.24 4.24', 'M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68', 'M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61', 'm2 2 20 20'],
+  globe: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'M2 12h20', 'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'],
+  more: ['M5 12h.01M12 12h.01M19 12h.01'],
+  radar: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'M7 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0', 'M12 12 19 5'],
+  book: ['M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20'],
+  msg: ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+  quote: ['M7 7h4v4c0 3-1.5 5-4 6', 'M15 7h4v4c0 3-1.5 5-4 6'],
+};
+// a line icon as an SVG string (1.75 stroke; 2 for the small ones)
+function icon(name, size = 16, sw) {
+  const paths = ICON_PATHS[name] || [];
+  return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw || (size <= 14 ? 2 : 1.75)}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`;
+}
+// "🔥 הכי חם" → "הכי חם" (the new design draws icons, not emoji)
+const noEmoji = (s) => String(s || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+
+// Sport5 status for the status column: kind, long + short label, icon, link, tooltip
+function s5Status(s) {
+  const L = t();
+  const he = state.ui === 'he';
+  const notable = s.big || s.sourceCount >= 3;
+  if (s.s5?.where === 'channel') return { k: 'social', long: he ? 'רק בטלגרם/יוטיוב של ספורט 5' : 'Only on Sport5 Telegram/YouTube', short: he ? 'רק בערוצי ספורט 5' : 'Sport5 channels only', ic: 'send', link: s.s5.link, tip: L.s5ChannelTip };
+  if (s.s5 && s.s5.newer >= 2) return { k: 'since', long: he ? `בספורט 5 מ-${hhmm(s.s5.at)} · +${s.s5.newer} פרסומים חדשים מאז` : `On Sport5 since ${hhmm(s.s5.at)} · +${s.s5.newer} newer`, short: he ? `בספורט 5 · +${s.s5.newer} חדשים` : `On Sport5 · +${s.s5.newer}`, ic: 'refresh', link: s.s5.link, tip: L.s5Tip };
+  if (s.s5?.probable) return { k: 'prob', long: he ? 'כנראה באתר ספורט 5' : 'Probably on the Sport5 site', short: he ? 'כנראה בספורט 5' : 'Probably on Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5ProbTip };
+  if (s.s5) return { k: 'on', long: he ? 'באתר ספורט 5' : 'On the Sport5 site', short: he ? 'באתר ספורט 5' : 'On Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5Tip };
+  // not covered: loud only where it matters (a story several outlets carry), quiet otherwise
+  return { k: notable ? 'not' : 'none', long: he ? 'לא נמצא בספורט 5' : 'Not found on Sport5', short: he ? 'לא בספורט 5' : 'Not on Sport5', ic: 'notfound', tip: L.s5NotTip(state.data ? ago(state.data.generatedAt) : '') };
+}
+
 function cardHtmlV2(s, fresh) {
   const L = t();
   const d = disp(s);
@@ -921,44 +987,74 @@ function cardHtmlV2(s, fresh) {
   const isHot = s.breaking && s.sourceCount >= 2 && Date.now() - s.first < HOT_HOURS * 3600e3;
   const unseen = isUnseen(s);
   const foreignLink = d.link === s.link && s.lang !== 'he' && s.lang !== 'en';
-  // labels: Sport5 status, one "heat" label, sport (on mixed tabs), up to 2 topics
-  const heat = s.social?.length ? `<span class="badge social" title="${esc(L.socialTip)}">⚡ ${esc(s.social[0])}</span>`
-    : isHot ? `<span class="badge hot">${esc(L.hot)}</span>`
-    : s.breaking ? `<span class="badge hot soft">${esc(L.v2.breaking)}</span>` : '';
+  const st = s5Status(s);
+  const stInner = `${icon(st.ic, 14, 2)}<span class="lbl-long">${esc(st.long)}</span><span class="lbl-short">${esc(st.short)}</span>`;
+  const status = st.link
+    ? `<a class="s5st s5st--${st.k}" href="${esc(st.link)}" target="_blank" rel="noopener" title="${esc(st.tip || '')}">${stInner}</a>`
+    : `<span class="s5st s5st--${st.k}" title="${esc(st.tip || '')}">${stInner}</span>`;
+  // labels, at most 3: scoop (reporter) · hot · sport on mixed tabs · topics
   const mixed = state.tab === 'top' || state.tab === 'foryou';
-  const sport = mixed && L.sportName[s.sport] ? `<span class="badge sport">${esc(L.sportName[s.sport])}</span>` : '';
-  const topics = (s.tags || []).slice(0, 2)
-    .map((g) => `<button type="button" class="tag${g.il ? ' il' : ''}${g.id === state.tag ? ' on' : ''}" data-tag="${esc(g.id)}">${esc(tagName(g))}</button>`).join('');
-  // one-line summary; a tap opens the rest (and the key facts)
+  const reporter = (s.social || []).find((p) => !/[א-ת]/.test(p));
+  const labels = [
+    reporter ? `<span class="lb lb--scoop" title="${esc(L.socialTip)}">${esc(he ? `סקופ · ${reporter}` : `Scoop · ${reporter}`)}</span>` : '',
+    isHot ? `<span class="lb lb--hot">${icon('flame', 12, 2)}${esc(noEmoji(L.hot))}</span>` : '',
+    mixed && L.sportName[s.sport] ? `<span class="lb lb--sport">${esc(L.sportName[s.sport])}</span>` : '',
+    ...(s.tags || []).map((g) => `<button type="button" class="lb lb--topic tag${g.id === state.tag ? ' on' : ''}" data-tag="${esc(g.id)}">${esc(tagName(g))}</button>`),
+    s.uncertain ? `<span class="lb lb--sport" title="${esc(L.uncertainTip)}">?</span>` : '',
+  ].filter(Boolean).slice(0, 3).join('');
+  // summary: one line; a tap opens the full summary, key facts and quotes
   const aiSum = s.ai?.[state.ui]?.sum;
   const rawSum = s.sum?.text ? ((s.sum.lang === 'he' || s.sum.lang === 'en') ? s.sum.text : s.sum[state.ui] || s.sum[he ? 'en' : 'he'] || s.sum.text) : '';
   const sumText = aiSum || rawSum;
   const facts = aiSum && he ? s.ai.he.facts || [] : [];
-  const quotes = quotesHtml(s);
-  const sum = sumText ? `<div class="sum1${quotes ? ' has-q' : ''}" role="button" tabindex="0" title="${esc(L.v2.sumMore)}"><p dir="auto">${esc(sumText)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}${quotes}</div>` : '';
+  const quotes = he ? s.ai?.he?.quotes || [] : [];
+  const sum = sumText
+    ? `<button type="button" class="c-sum" aria-expanded="false">${aiSum ? `<span class="c-ai">${icon('ai', 15)}</span>` : ''}<span class="c-sum-t" dir="auto">${esc(sumText)}</span><span class="c-more">${he ? 'עוד' : 'More'}</span></button>
+      <div class="c-exp" hidden>
+        <div class="c-exp-sum">${aiSum ? `<span class="c-ai">${icon('ai', 15)}</span>` : ''}<p dir="auto">${esc(sumText)}</p></div>
+        ${aiSum ? `<p class="c-note">${esc(L.aiNote)}</p>` : ''}
+        ${facts.length ? `<div class="c-facts"><span class="c-facts-h">${he ? 'עובדות מפתח' : 'Key facts'}</span>${facts.map((f) => `<span class="c-fact" dir="auto">${esc(f)}</span>`).join('')}</div>` : ''}
+        ${quotes.map((q, i) => `<div class="c-quote"><span class="c-q-ic">${icon('quote', 15)}</span><span class="c-q-t"><b>״${esc(q.he)}״</b> <span>— ${esc(q.who)}</span></span><button type="button" class="quote-copy" data-q="${i}">${icon('copy', 15)}${he ? 'העתקת ציטוט' : 'Copy quote'}</button></div>`).join('')}
+        <button type="button" class="c-less">${he ? 'פחות' : 'Less'}</button>
+      </div>`
+    : '';
   const srcs = s.sources.length > 1
     ? `<ul class="srcs" hidden>${s.sources.map((x) => `<li><b>${esc(x.name)}</b>${x.unknown ? '' : ` · ${timeEl(x.published)}`} <a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`).join('')}</ul>`
     : '';
-  const img = s.image ? `<img class="thumb" src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+  const mine = !!claimFor(s)?.mine;
+  const img = s.image
+    ? `<div class="c-thumb"><img src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()">${s.video ? `<span class="c-play">${icon('play', 18)}</span>` : ''}</div>`
+    : '';
   return `<article class="card v2card${fresh ? ' fresh' : ''}${unseen ? ' unseen' : ''}" data-id="${esc(s.id)}">
-    <div class="body">
-      <div class="badges">${s5Badge(s)}<span class="claim-slot">${claimBadge(s)}</span>${heat}${sport}${topics}${s.uncertain ? `<span class="badge uncertain" title="${esc(L.uncertainTip)}">?</span>` : ''}</div>
+    <div class="c-stat">
+      ${status}
+      ${s.dateUnknown ? '' : `<div class="c-when"><b>${esc(hhmm(s.first))}</b><span>${timeEl(s.first)}</span></div>`}
+      ${unseen ? `<span class="c-new"><i></i>${he ? 'חדש מאז הביקור' : 'New since your visit'}</span>` : ''}
+    </div>
+    <div class="c-main">
+      ${labels ? `<div class="c-labels">${labels}</div>` : ''}
       <h2 dir="auto"><a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(main)}</a></h2>
       ${orig ? `<p class="orig" dir="auto">${esc(orig)}</p>` : ''}
       ${sum}
-      <div class="meta">
-        <span class="src">${esc(lead)}${s.sourceCount > 1 ? ` <button type="button" class="src-more" aria-expanded="false" title="${esc(L.v2.sources)}">+${s.sourceCount - 1}</button>` : ''}</span>
-        ${s.dateUnknown ? '' : `<span class="when"><b>${esc(hhmm(s.first))}</b> · ${timeEl(s.first)}</span>`}
-        ${s.video && s.video !== d.link ? `<a class="ico" href="${esc(s.video)}" target="_blank" rel="noopener" title="${esc(L.videoTip)}">🎥</a>` : ''}
-        ${foreignLink ? `<a class="ico" href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener" title="${esc(L.readOriginal)}">🌐</a>` : ''}
-        <span class="acts">
-          <span class="votes" title="${esc(voteTip(s))}"><button type="button" class="vote-btn${myVotes[s.id] === 1 ? ' on' : ''}" data-vote="1" aria-label="${esc(L.vote.up)}" title="${esc(L.vote.up)}">👍${voteN(s, 'up')}</button><button type="button" class="vote-btn${myVotes[s.id] === -1 ? ' on' : ''}" data-vote="-1" aria-label="${esc(L.vote.down)}" title="${esc(L.vote.down)}">👎${voteN(s, 'down')}</button></span>
-          <button type="button" class="claim-btn${claimFor(s)?.mine ? ' on' : ''}" title="${esc(L.claim)}" aria-label="${esc(L.claim)}">🙋</button>
-          <button type="button" class="copy-btn" title="${esc(L.copy)}" aria-label="${esc(L.copy)}">📋</button>
-          <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">✉️</button>
-          <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${WA_ICON}</button>${embedBtn(s)}
-          <button type="button" class="fix-btn" title="${esc(`${L.fix.title}\n${L.why(L.sportName[s.sport] || s.sport, L.reasons[s.why] || s.why || '—')}`)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${L.fix.btn}</button>
-        </span>
+      <div class="c-meta">
+        <b class="c-src">${esc(lead)}</b>
+        ${s.sourceCount > 1 ? `<button type="button" class="src-more" aria-expanded="false">${esc(he ? `+${s.sourceCount - 1} מקורות` : `+${s.sourceCount - 1} sources`)}</button>` : ''}
+        <span class="claim-slot">${claimBadge(s)}</span>
+        ${s.video && s.video !== d.link ? `<a class="c-ico" href="${esc(s.video)}" target="_blank" rel="noopener" title="${esc(L.videoTip)}">${icon('play', 15)}</a>` : ''}
+        ${foreignLink ? `<a class="c-ico" href="${esc(translateUrl(s.link))}" target="_blank" rel="noopener" title="${esc(L.readOriginal)}">${icon('globe', 15)}</a>` : ''}
+        <span class="c-sp"></span>
+        <div class="acts">
+          <button type="button" class="vote-btn${myVotes[s.id] === 1 ? ' on' : ''}" data-vote="1" aria-label="${esc(L.vote.up)}" title="${esc(L.vote.up)}">${icon('up', 15)}${voteN(s, 'up')}</button>
+          <button type="button" class="vote-btn${myVotes[s.id] === -1 ? ' on' : ''}" data-vote="-1" aria-label="${esc(L.vote.down)}" title="${esc(L.vote.down)}">${icon('down', 15)}${voteN(s, 'down')}</button>
+          <span class="c-div" aria-hidden="true"></span>
+          <button type="button" class="claim-btn${mine ? ' on' : ''}" title="${esc(L.claim)}">${icon('claim', 15)}<span class="c-claim-t">${mine ? (he ? 'אתה על זה' : "You're on it") : (he ? 'אני על זה' : "I'm on it")}</span></button>
+          <button type="button" class="copy-btn" title="${esc(L.copy)}">${icon('copy', 15)}<span class="cp-long">${he ? 'העתקה לאתר' : 'Copy for site'}</span><span class="cp-short">${he ? 'העתקה' : 'Copy'}</span></button>
+          <button type="button" class="mail-btn" title="${esc(L.mail)}" aria-label="${esc(L.mail)}">${icon('mail', 15)}</button>
+          <button type="button" class="share-btn" title="${esc(L.share)}" aria-label="${esc(L.share)}">${icon('wa', 15)}</button>
+          ${embedCode(s) ? `<button type="button" class="embed-btn" title="${esc(t().x2.embed)}" aria-label="${esc(t().x2.embed)}">${icon('code', 15)}</button>` : ''}
+          <button type="button" class="fix-btn" title="${esc(`${L.fix.title}\n${L.why(L.sportName[s.sport] || s.sport, L.reasons[s.why] || s.why || '—')}`)}" aria-label="${esc(L.fix.title)}" aria-expanded="false">${icon('wrong', 15)}</button>
+          <button type="button" class="more-btn" aria-expanded="false" aria-label="${he ? 'עוד פעולות' : 'More actions'}">${icon('more', 18, 2.5)}</button>
+        </div>
       </div>
       <div class="fix-menu" hidden>${['football', 'basketball', 'other']
         .filter((sp) => sp !== s.sport)
@@ -969,21 +1065,34 @@ function cardHtmlV2(s, fresh) {
     ${img}
   </article>`;
 }
-// summary line opens / closes; "+N" opens the other sources
-function toggleSum(el) { el.classList.toggle('open'); }
+// summary opens / closes; "+N sources" opens the list
+function toggleSum(card, open) {
+  const exp = card.querySelector('.c-exp');
+  if (!exp) return;
+  const next = open ?? exp.hidden;
+  exp.hidden = !next;
+  card.classList.toggle('open', next);
+  card.querySelector('.c-sum')?.setAttribute('aria-expanded', String(next));
+}
 $('list').addEventListener('click', (e) => {
   if (!V2) return;
-  const sum = e.target.closest('.sum1');
-  if (sum && !e.target.closest('button, a')) return toggleSum(sum);
+  const card = e.target.closest('.v2card');
+  if (!card) return;
+  if (e.target.closest('.c-sum')) return toggleSum(card, true);
+  if (e.target.closest('.c-less')) return toggleSum(card, false);
+  const mb = e.target.closest('.more-btn');
+  if (mb) {
+    const acts = card.querySelector('.acts');
+    acts.classList.toggle('more-open');
+    mb.setAttribute('aria-expanded', String(acts.classList.contains('more-open')));
+    return;
+  }
   const more = e.target.closest('.src-more');
   if (more) {
-    const ul = more.closest('.card').querySelector('.srcs');
+    const ul = card.querySelector('.srcs');
     ul.hidden = !ul.hidden;
     more.setAttribute('aria-expanded', String(!ul.hidden));
   }
-});
-$('list').addEventListener('keydown', (e) => {
-  if (V2 && (e.key === 'Enter' || e.key === ' ') && e.target.classList?.contains('sum1')) { e.preventDefault(); toggleSum(e.target); }
 });
 // language, newest↔popular and topics sit behind one button; search + Sport5 filter stay visible
 function filtersActive() {
@@ -1001,6 +1110,29 @@ $('themeBtn').addEventListener('click', () => {
   applyTheme();
   renderChrome();
 });
+const PANEL_IC = { news: 'news', scores: 'board', justin: 'zap', trends: 'trend' };
+function renderChromeV2() {
+  const he = state.ui === 'he';
+  const btn = (el, ic, label) => { if (el) el.innerHTML = `${icon(ic, 16)}<span class="hb-t">${esc(label)}</span>`; };
+  $('tgBtn').innerHTML = `${icon('send', 16)}<span class="hb-t" id="tgLabel">${esc(he ? 'טלגרם' : 'Telegram')}</span>`;
+  btn($('reportBtn'), 'flag', he ? 'דיווח' : 'Report');
+  btn($('bellBtn'), 'bell', he ? 'התראות' : 'Alerts');
+  btn($('keysBtn'), 'kbd', he ? 'קיצורים' : 'Shortcuts');
+  const th = store.get('theme', 'auto');
+  const dark = th === 'dark' || (th === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  $('themeBtn').innerHTML = icon(dark ? 'sun' : 'moon', 16);
+  document.querySelector('.bar .logo').innerHTML = icon('radar', 16, 2);
+  $('searchBtn').innerHTML = icon('search', 20);
+  $('s5Filter').innerHTML = `<span class="sw" aria-hidden="true"><i></i></span>${esc(noEmoji(t().s5Filter))}`;
+  $('search').placeholder = he ? 'חיפוש קבוצה, שחקן או מילה — בכל שפה' : 'Search a team, player or word — any language';
+  const n = [state.league !== 'all', state.when !== 'all', state.srcType !== 'all', state.langFilter !== 'all', !!state.topic, state.notS5].filter(Boolean).length;
+  $('filtersBtn').innerHTML = `${icon('filter', 14, 2)}<span class="lbl">${esc(t().v2.filters)}</span>${n ? `<b class="fcount">${n}</b>` : ''}`;
+}
+$('searchBtn').addEventListener('click', () => {
+  const open = !document.body.classList.contains('show-search');
+  document.body.classList.toggle('show-search', open);
+  if (open) $('search').focus();
+});
 function renderChrome() {
   document.documentElement.lang = state.ui;
   document.documentElement.dir = state.ui === 'he' ? 'rtl' : 'ltr';
@@ -1017,6 +1149,7 @@ function renderChrome() {
   $('keysBtn').title = t().x2.keysBtn;
   $('keysBtn').setAttribute('aria-label', t().x2.keysBtn);
   renderFilterRow();
+  if (V2) renderChromeV2();
   $('reportBtn').title = t().report.btn;
   $('reportBtn').setAttribute('aria-label', t().report.btn);
   $('s5Filter').textContent = t().s5Filter;
@@ -1031,7 +1164,7 @@ function renderChrome() {
   const counts = {};
   if (state.data) for (const tab of TABS) counts[tab] = state.data.stories.filter((s) => inTab(s, tab) && (tab === 'abroad' || langOkFor(s))).length;
   $('tabs').innerHTML = TABS.map(
-    (tab) => `<button class="tab${tab === 'abroad' ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(t().tabs[tab])}${
+    (tab) => `<button class="tab${tab === 'abroad' ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(V2 ? noEmoji(t().tabs[tab]) : t().tabs[tab])}${
       state.data ? `<span class="count">${counts[tab]}</span>` : ''
     }</button>`
   ).join('');
@@ -1084,11 +1217,11 @@ function renderChrome() {
   }
 
   $('sideTabs').innerHTML = ['scores', 'justin', 'trends'].map(
-    (p) => `<button data-panel="${p}" aria-pressed="${p === state.panel}">${esc(t().side[p])}</button>`
+    (p) => `<button data-panel="${p}" aria-pressed="${p === state.panel}">${V2 ? icon(PANEL_IC[p], 14, 2) + esc(noEmoji(t().side[p])) : esc(t().side[p])}</button>`
   ).join('');
   $('bottomNav').innerHTML = ['news', 'scores', 'justin', 'trends'].map((v) => {
     const active = v === 'news' ? state.view === 'news' : state.view === 'panel' && state.panel === v;
-    return `<button data-nav="${v}" aria-pressed="${active}">${esc(t().nav[v])}</button>`;
+    return `<button data-nav="${v}" aria-pressed="${active}">${V2 ? `${icon(PANEL_IC[v], 22)}<span>${esc(noEmoji(t().nav[v]))}</span>` : esc(t().nav[v])}</button>`;
   }).join('');
   $('scoresPane').hidden = state.panel !== 'scores';
   $('justinPane').hidden = state.panel !== 'justin';
@@ -1213,10 +1346,23 @@ function briefHtml() {
     const d = disp(s);
     return (he ? (s.lang === 'he' ? s.title : s.ai?.he?.title || (s.t?.he?.from ? s.t.he.title : '')) : s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : '') || d.title;
   };
+  if (V2) {
+    const sportIc = (s) => (s.sport === 'basketball' ? 'bball' : s.sport === 'football' ? 'ball' : 'tennis');
+    return `<section class="brief-card brief-v2"><div class="brief-head"><span class="bh-ic">${icon('sun', 22)}</span><div class="bh-t"><b>${esc(noEmoji(t().x2.brief.title))}</b><span>${esc(he ? `${items.length} הידיעות החשובות מהלילה · לפי מקורות ותפוצה` : `The night's ${items.length} biggest stories · by sources and spread`)}</span></div><button type="button" class="small-btn" id="briefHide">${icon('eyeoff', 14, 2)}${esc(t().x2.brief.hide)}</button></div><ol>${items
+      .map((s, i) => `<li data-id="${esc(s.id)}"><span class="bn">${i + 1}</span><span class="bt">${esc(hhmm(s.first))}</span><span class="bi">${icon(sportIc(s), 14, 2)}</span><span class="bx"><a href="${esc(s.realLink || disp(s).link)}" target="_blank" rel="noopener" dir="auto">${esc(title(s))}</a><span class="bs">${esc(s.sources[0]?.name || '')}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}</span></span></li>`)
+      .join('')}</ol></section>`;
+  }
   return `<section class="brief-card"><div class="brief-head"><b>${esc(t().x2.brief.title)}</b><button type="button" class="small-btn" id="briefHide">${esc(t().x2.brief.hide)}</button></div><ol>${items
     .map((s) => `<li data-id="${esc(s.id)}"><span class="bt">${esc(hhmm(s.first))}</span><span class="bi">${catIcon(s)}</span><a href="${esc(s.realLink || disp(s).link)}" target="_blank" rel="noopener" dir="auto">${esc(title(s))}</a><span class="bs">${esc(s.sources[0]?.name || '')}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}</span></li>`)
     .join('')}</ol></section>`;
 }
+$('list').addEventListener('click', (e) => {
+  if (!e.target.closest('#showAllBtn')) return;
+  state.notS5 = false;
+  store.set('notS5', false);
+  renderChrome();
+  renderList();
+});
 $('list').addEventListener('click', (e) => {
   if (!e.target.closest('#briefHide')) return;
   store.set('briefHidden', state.data.brief.day);
@@ -1318,8 +1464,19 @@ function renderList(freshIds = new Set()) {
     : '');
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
   const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
-  $('list').innerHTML = cardsRow + (playersOnly ? '' : banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + webHtml());
-  $('empty').hidden = list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
+  // new design: the feed sits in one frame with a header (tab · sort · count) and its own empty state
+  const he = state.ui === 'he';
+  const searching = !!state.q.trim();
+  const feedHead = V2 && !playersOnly
+    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : state.mix >= 50 ? (he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
+    : '';
+  const emptyV2 = V2 && !playersOnly && !list.length
+    ? state.notS5
+      ? `<div class="empty-v2"><span class="ev-ic ev-ok">${icon('check', 22)}</span><b>${esc(he ? 'הכל מכוסה — אין ידיעות שלא בספורט 5' : 'All covered — nothing missing from Sport5')}</b><span>${esc(he ? `הרדאר ממשיך לסרוק ${state.data?.sources?.total || ''} מקורות. ידיעה חדשה תופיע כאן אוטומטית.` : 'The radar keeps scanning. A new story will appear here automatically.')}</span><button type="button" class="small-btn" id="showAllBtn">${esc(he ? 'הצג גם מה שבספורט 5' : 'Show covered stories too')}</button></div>`
+      : `<div class="empty-v2"><span class="ev-ic">${icon('search', 22)}</span><b>${esc(t().empty)}</b></div>`
+    : '';
+  $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + emptyV2 + webHtml());
+  $('empty').hidden = V2 || list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
   paintClaims();
   if (seenObserver) {
     seenObserver.disconnect();
@@ -1378,10 +1535,25 @@ function renderTrends() {
   const reddit = T.reddit.length
     ? `<h3>${esc(L.reddit)}</h3>${subs.map((sub) => `<div class="tr-sub">r/${esc(sub)}</div><ul class="tr-reddit">${T.reddit.filter((r) => r.sub === sub).map((r) => `<li dir="auto">${r.link ? `<a href="${esc(r.link)}" target="_blank" rel="noopener" dir="auto">${esc(r.title)}</a>` : `<span dir="auto">${esc(r.title)}</span>`}</li>`).join('')}</ul>`).join('')}`
     : '';
+  if (V2) {
+    // new design: one list at a time, an Israel / World toggle
+    const geo = store.get('trendGeo', T.google.il.length ? 'il' : 'world');
+    const seg = `<div class="tr-seg" role="group">${['il', 'world'].map((g) => `<button type="button" data-geo="${g}" aria-pressed="${geo === g}">${esc(g === 'il' ? L.il : L.world)}</button>`).join('')}</div>`;
+    $('trendsPane').innerHTML = `<div class="trends trends-v2"><div class="tr-top2"><b>${esc(noEmoji(L.head))}</b>${seg}</div>${list(geo === 'il' ? T.google.il : T.google.world)}
+      ${spikes}${wiki}${reddit}<p class="tr-note">${esc(L.note(ago(T.at)))}</p></div>`;
+    return;
+  }
   $('trendsPane').innerHTML = `<div class="trends"><p class="tr-note">${esc(L.note(ago(T.at)))}</p>
     <h3>${esc(L.head)}</h3><div class="tr-geo">🇮🇱 ${esc(L.il)}</div>${list(T.google.il)}<div class="tr-geo">🌍 ${esc(L.world)}</div>${list(T.google.world)}
     ${spikes}${wiki}${reddit}</div>`;
 }
+// trends: Israel / World toggle (new design)
+$('trendsPane').addEventListener('click', (e) => {
+  const g = e.target.closest('[data-geo]');
+  if (!g) return;
+  store.set('trendGeo', g.dataset.geo);
+  renderTrends();
+});
 // an Israeli whose page views jumped → open their stories in Israelis abroad
 $('trendsPane').addEventListener('click', (e) => {
   const b = e.target.closest('[data-athlete-go]');
@@ -2044,6 +2216,8 @@ function paintClaims() {
     const slot = card.querySelector('.claim-slot');
     if (slot) slot.innerHTML = claimBadge(s);
     card.querySelector('.claim-btn')?.classList.toggle('on', !!claimFor(s)?.mine);
+    const lbl = card.querySelector('.c-claim-t');
+    if (lbl) lbl.textContent = claimFor(s)?.mine ? (state.ui === 'he' ? 'אתה על זה' : "You're on it") : state.ui === 'he' ? 'אני על זה' : "I'm on it";
   });
 }
 async function toggleClaim(s) {
@@ -2191,7 +2365,7 @@ document.addEventListener('keydown', (e) => {
   if (code === 'KeyJ') return void kMove(1);
   if (code === 'KeyK') return void kMove(-1);
   if (!kCard || !document.contains(kCard)) return;
-  const act = { Enter: 'h2 a', KeyO: 'h2 a', KeyC: '.copy-btn', KeyM: '.mail-btn', KeyW: '.share-btn', KeyH: '.claim-btn', KeyE: '.embed-btn', KeyS: V2 ? '.sum1' : '.sum-btn' }[code];
+  const act = { Enter: 'h2 a', KeyO: 'h2 a', KeyC: '.copy-btn', KeyM: '.mail-btn', KeyW: '.share-btn', KeyH: '.claim-btn', KeyE: '.embed-btn', KeyS: V2 ? '.c-sum' : '.sum-btn' }[code];
   if (!act) return;
   e.preventDefault();
   click(act);
