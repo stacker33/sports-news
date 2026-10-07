@@ -20,6 +20,7 @@ const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googlea
 const ENDPOINT = `${BASE_URL}/chat/completions`;
 const MODEL = process.env.AI_MODEL || 'gemini-flash-latest';
 const FALLBACK = process.env.AI_MODEL_FALLBACK || 'gemini-flash-lite-latest';
+const ALT = process.env.AI_MODEL_ALT || 'gemini-2.5-flash'; // backup strong model when the main one is overloaded
 const PER_REQUEST = 5; // stories per summary request (smaller = faster answer from the strong model)
 const STRONG_TIMEOUT = 75000; // the strong model thinks before it answers; past this, the light one takes the call
 const GOOGLE = /generativelanguage\.googleapis\.com/.test(process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com');
@@ -193,6 +194,20 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
       if (m === MODEL && MODEL !== FALLBACK && (slow || /HTTP (429|404|400|5\d\d)/.test(e.message))) {
         const daily = !slow && (/HTTP (404|400)/.test(e.message) || (/HTTP 429/.test(e.message) && /per ?day|PerDay|daily/i.test(e.message)));
         if (daily) st.mainOffDay = day;
+        // an overloaded / slow strong model → first the backup strong model (often less busy), then the light one
+        if (!daily && ALT && ALT !== MODEL && ALT !== FALLBACK && !st.altOff) {
+          st.used++;
+          st.hourly.push(now);
+          try {
+            const out = await callModel(token, ALT, system, user, { quick: true, timeout: STRONG_TIMEOUT });
+            st.model = ALT;
+            st.strong = { ...st.strong, alt: ALT, altOk: true };
+            return out;
+          } catch (e2) {
+            if (/HTTP (404|400)/.test(e2.message)) st.altOff = true; // that model doesn't exist (anymore) here
+            st.strong = { ...st.strong, alt: ALT, altOk: false, altErr: String(e2.message).slice(0, 80) };
+          }
+        }
         st.used++;
         st.hourly.push(now);
         const out = await callModel(token, FALLBACK, system, user);
