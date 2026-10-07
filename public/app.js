@@ -13,7 +13,7 @@ const T = {
     empty: 'אין ידיעות להצגה',
     tabs: {
       top: '🔥 הכי חם', foryou: '⭐ בשבילך', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
-      abroad: '✈️ ישראלים בחו"ל', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
+      abroad: '✈️ ליגיונרים', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
     langName: { en: 'אנגלית', es: 'ספרדית', it: 'איטלקית', de: 'גרמנית', fr: 'צרפתית', pt: 'פורטוגזית', nl: 'הולנדית', tr: 'טורקית', el: 'יוונית', sr: 'סרבית', ro: 'רומנית', hu: 'הונגרית', pl: 'פולנית', ja: 'יפנית', cs: "צ'כית", he: 'עברית' },
@@ -51,13 +51,13 @@ const T = {
       because: 'כי קראתם על',
     },
     wiki: (w) => `📚 ויקיפדיה: ${w.views.toLocaleString()} צפיות${w.ratio >= 2 ? ` (×${w.ratio})` : ''}`,
-    feat: { football: 'כדורגל', basketball: 'כדורסל', other: 'ענפים אחרים', israel: 'ספורט ישראלי', abroad: 'ישראלים בחו"ל' },
+    feat: { football: 'כדורגל', basketball: 'כדורסל', other: 'ענפים אחרים', israel: 'ספורט ישראלי', abroad: 'ליגיונרים' },
     teamSeg: { players: 'שחקנים', teams: '+ חדשות הקבוצות' },
     side: { scores: '📊 תוצאות', justin: '⚡ עכשיו', trends: '🔥 טרנדים' },
     trends: {
       head: '🔍 מה מחפשים עכשיו בגוגל', il: 'בישראל', world: 'בעולם', none: 'אין כרגע חיפוש ספורט חם',
       stories: (n) => (n === 1 ? 'ידיעה אחת ברדאר' : `${n} ידיעות ברדאר`), searching: '🔎 אין עדיין ידיעה — הרדאר מחפש',
-      wiki: '📖 הכי נקראים בוויקיפדיה (אתמול)', spikes: '✈️ ישראלים בחו"ל — קפיצה בצפיות', reddit: '💬 חם ב-Reddit',
+      wiki: '📖 הכי נקראים בוויקיפדיה (אתמול)', spikes: '✈️ ליגיונרים — קפיצה בצפיות', reddit: '💬 חם ב-Reddit',
       note: (ago) => `ספורט בלבד · Google Trends מ-10 מדינות, ויקיפדיה ו-Reddit · עודכן ${ago}`, views: 'צפיות', empty: 'הנתונים יגיעו בעדכון הבא',
     },
     nav: { news: '📰 חדשות', scores: '📊 תוצאות', justin: '⚡ עכשיו', trends: '🔥 טרנדים' },
@@ -83,7 +83,7 @@ const T = {
       words: 'לפחות אחת מהמילים (בכל שפה, מופרדות בפסיקים)', wordsPh: 'אבדיה, Avdija, טרייד', wordsNote: 'מחפש גם בתרגומים ובתקצירים — מילה בעברית מוצאת גם כתבות ביוונית או בספרדית',
       tags: 'קבוצות / שחקנים / מסגרות', tagsPh: 'התחילו להקליד ובחרו מהרשימה', sport: 'ענף', scope: 'היקף', sites: 'אתרים (לא חובה, מופרדים בפסיקים)', sitesPh: 'ONE, ספורט 5, ESPN',
       hours: 'זמן', notify: '🔔 התראה כשמגיעה ידיעה חדשה בנושא', save: 'שמירה', del: 'מחיקה', cancel: 'ביטול', nameNeeded: 'צריך שם ולפחות מילה, תגית או סינון',
-      all: 'הכל', football: '⚽ כדורגל', basketball: '🏀 כדורסל', other: '🏅 אחר', il: '🇮🇱 ישראלי וישראלים בחו"ל', world: '🌍 עולמי',
+      all: 'הכל', football: '⚽ כדורגל', basketball: '🏀 כדורסל', other: '🏅 אחר', il: '🇮🇱 ישראלי וליגיונרים', world: '🌍 עולמי',
       h: (n) => (n === 1 ? 'שעה אחרונה' : n === 48 ? 'יומיים' : `${n} שעות אחרונות`), matches: (n) => `${n} ידיעות מתאימות עכשיו`, banner: (n) => `${n} ידיעות`, clear: '✕',
     },
     fix: {
@@ -128,7 +128,7 @@ const T = {
     sumTranslated: 'תורגם אוטומטית',
     scoresLoading: 'טוען תוצאות…',
     noGames: 'אין משחקים ביום הזה',
-    abroadGames: 'משחקי הישראלים בחו"ל',
+    abroadGames: 'משחקי הליגיונרים',
     pc: {
       last: 'משחק אחרון', next: 'הבא', season: 'העונה', news: 'חדשות', vs: 'נגד', at: 'אצל',
       didntPlay: 'לא שיחק', notSince: (d) => `לא שיחק מאז ${d}`, ofGames: (a, b) => `שיחק ב-${a} מתוך ${b} משחקים`, missed: (h, a) => `לא שיחק ב${h}–${a}`, rating: 'ציון', games: 'משחקים', goals: 'שערים', assists: 'בישולים',
@@ -142,11 +142,11 @@ const T = {
       blocked: 'הדפדפן חוסם התראות לאתר הזה. אפשר לשנות בהגדרות האתר בדפדפן.',
       unsupported: 'הדפדפן הזה לא תומך בהתראות.',
       note: 'ההתראות עובדות כל עוד האפליקציה פתוחה (גם ברקע). בטלפון: הוסיפו למסך הבית.',
-      abroad: '✈️ ישראלים בחו"ל',
+      abroad: '✈️ ליגיונרים',
       israel: '🇮🇱 ספורט ישראלי',
       big: '🔥 ידיעות גדולות / מתפרצות',
       all: '📰 כל ידיעה חדשה',
-      scores: '⚽ שערים ותוצאות של קבוצות הישראלים בחו"ל',
+      scores: '⚽ שערים ותוצאות של קבוצות הליגיונרים',
       test: 'שלח התראת בדיקה',
       close: 'סגור',
       testBody: 'ההתראות עובדות ✔',
@@ -159,7 +159,7 @@ const T = {
       sugNew: (n, t) => `ישראלי בחו"ל שלא ברשימה: ${n} (${t}) — להוסיף?`,
       doRemove: 'הסר', doUpdate: 'עדכן', doAdd: 'הוסף', doIgnore: 'התעלם',
       noSug: 'הרשימה מעודכנת לפי הסגלים ✔',
-      title: 'ישראלים בחו"ל — עריכת רשימה',
+      title: 'ליגיונרים — עריכת רשימה',
       name: 'שם (אנגלית)', name_he: 'שם (עברית)', team: 'קבוצה', team_he: 'קבוצה (עברית)', country: 'מדינה', sport: 'ענף',
       alt: 'כתיבים נוספים (בפסיקים)', team_alt: 'שמות נוספים לקבוצה',
       football: 'כדורגל', basketball: 'כדורסל',
@@ -1320,9 +1320,14 @@ function playerCardsHtml() {
     .map((v) => `<button type="button" data-av="${v}" aria-pressed="${state.abroadView === v}">${esc(v === 'news' ? L.viewNews : L.viewPlayers)}</button>`)
     .join('')}</div>`;
   if (state.abroadView === 'news') {
-    return `<div class="pcards-wrap">${head}<div class="pminis">${groups
-      .map(([sp, list]) => `<span class="pmini-label">${esc(L[sp])}</span>${list.map((x) => x.mini).join('')}`)
-      .join('')}</div></div>`;
+    // the 5 with the most news in the last 24h (the selected one stays visible) + a button for everyone
+    const since = Date.now() - 24 * 3600e3;
+    const newsN = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name) && (s.latest || s.first) > since).length;
+    const top = all.map((x) => ({ ...x, n: newsN(x.a.name) })).sort((p, q) => q.n - p.n).slice(0, 5);
+    const sel = state.athlete && !top.some((x) => x.a.name === state.athlete) && all.find((x) => x.a.name === state.athlete);
+    if (sel) top[top.length - 1] = sel;
+    const allBtn = `<button type="button" class="pmini pmini-all" data-av="players">${esc(he ? `כל השחקנים (${all.length})` : `All players (${all.length})`)}</button>`;
+    return `<div class="pcards-wrap">${head}<div class="pminis">${top.map((x) => x.mini).join('')}${allBtn}</div></div>`;
   }
   return `<div class="pcards-wrap">${head}${groups
     .map(([sp, list]) => `<h4 class="pgroup">${esc(L[sp])} <span class="muted">(${list.length})</span></h4><div class="pcards">${list.map((x) => x.full).join('')}</div>`)

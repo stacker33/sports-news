@@ -93,7 +93,7 @@ export function morningBrief(stories, prev, now) {
 function briefingText(top, athletes, cards, gameInfo, now, siteUrl) {
   const lines = top.map((s) => `${icon(s, false)} <a href="${esc(s.realLink || s.link)}">${esc(titleHe(s))}</a>`);
   const abroad = abroadLines(athletes, cards, gameInfo, now);
-  return `☀️ <b>בוקר טוב — מה קרה בלילה בעולם</b>\n\n${lines.join('\n')}${abroad.length ? `\n\n✈️ <b>הישראלים בחו"ל</b>\n${abroad.join('\n')}` : ''}\n\n<a href="${esc(siteUrl)}">לכל החדשות ברדאר ספורט</a>`;
+  return `☀️ <b>בוקר טוב — מה קרה בלילה בעולם</b>\n\n${lines.join('\n')}${abroad.length ? `\n\n✈️ <b>הליגיונרים</b>\n${abroad.join('\n')}` : ''}\n\n<a href="${esc(siteUrl)}">לכל החדשות ברדאר ספורט</a>`;
 }
 
 async function send(token, chat, text, preview) {
