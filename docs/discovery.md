@@ -111,3 +111,69 @@ Stage 2 adds the tests for coverage labels (repeated reports are not independent
 ### Tests
 
 `test/roles.test.js`: origin versus language, roles, Israeli sources still collected and views, repeated reports versus confirmation, titles versus attribution, unavailable or uncertain Sport5 coverage never shown as absence, the local-interview example, "exclusive" and pending people, reference pages, Hebrew names, feedback sparsity and the cap.
+
+## Stage 3 - watch controls, diagnostics, feedback evaluation
+
+### Watchlist page (`public/watch.html`, linked as "מעקב" in the header)
+
+- **Entries:** every registry entry with its status (verified / pending / recognition only / excluded) and the basis or reason. Each entry shows whether it is searched and why not, its club, whether it is an ambiguous name, and how many stories mention it now. Details show the generated searches.
+- **Controls per entry:** on/off, priority, languages, and "temporary until" (expiry and renewal). A verification form sets status, basis and note; "verified" without a basis and a note is refused.
+- **Searches:** every query with why it exists, its state (ran / not due yet / over budget / backoff), last check, results, error, next run, and its value.
+- **Families and temporary tracking:**
+  - Discovery families can be turned on or off, with a priority.
+  - Temporary entries show their expiry.
+  - Active collection subscriptions ("follow in the radar", 6 hours) can be renewed.
+  - The page states that topics saved in the app are display filters only, and add no collection.
+  - Instant web search status.
+- **Quality:** described below.
+
+**Saving.** The published site is static, so a browser cannot change the shared configuration.
+- On the site, changes are a draft in this browser only, as the page says. "Export file" or "Copy" produces `config/watchlist-overrides.json` for the admin to commit; "Import file" loads one, after validation.
+- In local mode (`npm start`), "Save" writes the file through `PUT /api/watchlist-overrides`, rebuilds the registry and runs the radar.
+- The validation rules are shared by the page, the server and the build script (`public/watchlist-rules.js`).
+- On/off, priority, languages and expiry apply on the next run. Status changes go through `scripts/build-watchlist.mjs`.
+
+**Instant web search** (`worker/`): still not configured (`SEARCH_URL` is empty). The radar works without it, and the page says so. Setup is in `worker/README.md` and needs a Cloudflare account, which only you can create.
+
+### Discovery provenance and metrics (`src/metrics.js`, in `public/data/watch.json`)
+
+- Every item records `via` (the first source or search that found it, and when) and `paths` (every source that found it since). Items collected before this change are marked approximate and left out of timing and first-found numbers.
+- **Per search:**
+  - stories it found
+  - unique stories (no other source found any of their articles)
+  - unique and relevant stories
+  - items also found elsewhere (redundancy)
+  - first finds
+  - rejected items by reason
+- **Discovery delay:** median minutes from publication to collection, using trustworthy times only, by watch searches / Google / direct feeds. First reading: Google results arrive a median of 216 minutes after publication (37 items), direct feeds 5 minutes (9 items). Both samples are small.
+- **Usefulness:** from editor votes, always with the sample size, overall and per view. Under 10 voted stories it says "too few to judge".
+- **Rejection reasons** (24 hours) and why stories ranked low in foreign discovery.
+- These are measurements only: they never change collection, and there is no recall or precision claim.
+
+### Structured vote reasons
+
+A 👎 offers a reason: not relevant, already covered, duplicate, wrong person or team. 👍 counts as "useful". The reasons are a fixed list, so no free text goes through the public feedback channel. One reason per device per story; the latest wins.
+
+### Evaluation set (`test/fixtures/eval-real.json`, `scripts/evaluate.mjs`)
+
+- 11 real headlines observed in the radar's own data, hand-labelled. They are kept apart from the synthetic fixtures (`eval-synthetic.json`), which test the evaluator itself.
+- `node scripts/evaluate.mjs` checks them against the current local data and names each miss by cause: source/query, filter, identity, clustering, ranking, view. Examples older than the 48-hour data window are skipped, not counted as misses.
+- **What it found:**
+  - **The 1,200-story cap cut a day-old Israeli story.** A Spanish story about Roy Revivo was dropped for space while newer world stories stayed. Fixed: Israeli-angle stories in the 36-hour window are kept first (`capStories`).
+  - **A Reddit r/soccer post was attached to a PAOK contract story** by the existing signal matching. "Viral" then exempted the story from "local". Not fixed in this stage; it remains in the set as a known miss.
+- **Current result:** 10 of 11 as expected. One miss (ranking: the PAOK story).
+- This is a small set: it shows misses and their causes, not recall or precision.
+
+### Tests
+
+`test/stage3.test.js` (no network; the feedback channel is mocked):
+- override validation, and overrides changing the searches (off, languages, priority, expiry, families)
+- the reasons an entry is or is not searched
+- conservative query value
+- trustworthy discovery delay
+- usefulness with sample size
+- vote reasons (fixed list, one per device)
+- the evaluator's cause for every miss type
+- the story cap
+
+Full suite: 92 tests.

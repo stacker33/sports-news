@@ -1,0 +1,30 @@
+{
+  "about": "SYNTHETIC fixtures (made up, not observed): one per miss cause, to test scripts/evaluate.mjs itself. Real observed examples live in eval-real.json.",
+  "now": "2026-10-08T12:00:00Z",
+  "examples": [
+    { "id": "s-ok", "observed": "2026-10-08", "match": "Synthetic Israeli winger scores", "expect": { "view": "f", "israeliAngle": true } },
+    { "id": "s-source", "observed": "2026-10-08", "match": "Never collected headline", "expect": { "view": "f" } },
+    { "id": "s-filter", "observed": "2026-10-08", "match": "Synthetic betting odds page", "expect": { "view": "f" } },
+    { "id": "s-identity", "observed": "2026-10-08", "match": "Synthetic interview with unknown Israeli", "expect": { "israeliAngle": true } },
+    { "id": "s-cap", "observed": "2026-10-08", "match": "Synthetic old Israeli story", "expect": { "view": "f" } },
+    { "id": "s-merged", "observed": "2026-10-08", "match": "Synthetic merged item", "expect": { "view": "f" } },
+    { "id": "s-view", "observed": "2026-10-08", "match": "Synthetic domestic only", "expect": { "view": "f" } },
+    { "id": "s-old", "observed": "2026-10-01", "match": "Synthetic expired example", "expect": { "view": "f" } }
+  ],
+  "data": {
+    "items": [
+      { "id": "i1", "title": "Synthetic Israeli winger scores", "published": 1791460000000 },
+      { "id": "i3", "title": "Synthetic interview with unknown Israeli", "published": 1791460000000 },
+      { "id": "i4", "title": "Synthetic old Israeli story", "published": 1791300000000 },
+      { "id": "i5", "title": "Synthetic merged item", "published": 1791460000000 },
+      { "id": "i6", "title": "Synthetic domestic only", "published": 1791460000000 }
+    ],
+    "rejected": [{ "title": "Synthetic betting odds page", "why": "junk" }],
+    "stories": [
+      { "id": "s1", "title": "Synthetic Israeli winger scores", "abroad": true, "v": ["f"], "latest": 1791460000000, "ed": { "score": 70 } },
+      { "id": "s3", "title": "Synthetic interview with unknown Israeli", "v": ["f"], "latest": 1791460000000, "ed": { "score": 40 } },
+      { "id": "s6", "title": "Synthetic domestic only", "v": ["i"], "latest": 1791400000000, "ed": { "score": 40 } }
+    ]
+  },
+  "expected": { "s-ok": null, "s-source": "source/query", "s-filter": "filter", "s-identity": "identity", "s-cap": "ranking", "s-merged": "clustering", "s-view": "view", "s-old": "out-of-window" }
+}

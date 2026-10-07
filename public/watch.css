@@ -1,0 +1,56 @@
+/* Watchlist page (watch.html): reuses the app's color tokens from style.css */
+body.wl { max-width: 980px; margin: 0 auto; padding: 0 16px 48px; }
+.wl-head { display: flex; align-items: center; gap: 12px; padding: 14px 0 8px; border-bottom: 1px solid var(--line); }
+.wl-head h1 { margin: 0; font-size: 20px; }
+.wl-back { color: var(--muted); text-decoration: none; font-size: 14px; }
+.wl-sp { flex: 1; }
+.wl-lang, .wl-bar button, .wl-main button, .wl-main select, .wl-main input:not([type="checkbox"]) {
+  font: inherit; font-size: 13.5px; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px;
+}
+.wl-main button, .wl-bar button, .wl-lang { cursor: pointer; }
+.wl-bar button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.wl-bar button:disabled { opacity: .5; cursor: default; }
+.wl-mode { margin: 10px 0; padding: 8px 12px; border-radius: 8px; background: var(--surface-2); font-size: 13.5px; }
+.wl-mode.local { background: var(--accent-soft); }
+.wl-muted { color: var(--muted); font-size: 12.5px; }
+.wl-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.wl-tabs button { font: inherit; font-size: 14px; background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.wl-tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
+.wl-bar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 0; background: var(--bg); border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.wl-msg { font-size: 12.5px; color: var(--accent); }
+.wl-msg.warn, .warn { color: var(--hot); }
+.wl-main h2 { font-size: 15px; margin: 18px 0 8px; }
+.wl-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+.wl-filters input[type="search"] { flex: 1 1 180px; min-width: 0; }
+.wl-chk { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; }
+.wl-entry { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 12px; margin-bottom: 8px; }
+.wl-entry.changed { border-color: var(--accent); }
+.wl-e-top { display: flex; gap: 10px; align-items: flex-start; }
+.wl-e-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.wl-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.wl-badge { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.wl-badge.ok, .wl-badge.st-verified { background: var(--accent-soft); color: var(--accent); }
+.wl-badge.warn, .wl-badge.st-excluded { background: var(--hot-soft); color: var(--hot); }
+.wl-badge.st-pending { background: var(--il-soft); color: var(--il); }
+.wl-note { margin: 5px 0 0; }
+.wl-det { flex: none; }
+.wl-e-body { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); display: grid; gap: 10px; }
+.wl-ctrls, .wl-verify { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13.5px; }
+.wl-verify { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 0; }
+.wl-verify legend { font-size: 12.5px; color: var(--muted); padding: 0 4px; }
+.wl-grow { flex: 1 1 200px; display: flex; gap: 6px; align-items: center; }
+.wl-grow input { flex: 1; min-width: 0; }
+.wl-err { margin: 0; color: var(--hot); font-size: 12.5px; }
+.wl-qs { display: grid; gap: 6px; }
+.wl-q { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--surface); }
+.wl-q code { display: block; font-size: 12.5px; overflow-wrap: anywhere; text-align: left; }
+.wl-q-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.wl-fam { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.wl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 20px; }
+.wl-grid ul { margin: 0; padding-inline-start: 18px; font-size: 13.5px; }
+.wl-more { margin: 8px auto; display: block; }
+.wl-empty { color: var(--muted); padding: 30px 0; text-align: center; }
+@media (max-width: 600px) {
+  .wl-e-top { flex-direction: column; }
+  .wl-ctrls label, .wl-verify label { width: 100%; display: flex; justify-content: space-between; gap: 8px; }
+}

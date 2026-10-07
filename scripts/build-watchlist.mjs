@@ -10,6 +10,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { norm, entryId, needsContext } from '../src/watchlist.js';
+import { validateOverrides } from '../public/watchlist-rules.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p, fallback) => {
@@ -22,7 +23,10 @@ const read = async (p, fallback) => {
 
 const seed = await read('config/watchlist-seed.json');
 const athletes = await read('config/athletes.json', []);
-const overrides = await read('config/watchlist-overrides.json', { entries: {} });
+// editor decisions, validated (an invalid change is reported and skipped, never half-applied)
+const checked = validateOverrides(await read('config/watchlist-overrides.json', { entries: {} }));
+for (const err of checked.errors) console.warn('override skipped:', err);
+const overrides = checked.clean;
 const kb = await read('public/data/entities.json', { players: {}, teams: {}, countries: {} });
 const ISRAEL = 6;
 const FRESH_DAYS = 45; // a club older than this in the knowledge base is reported as possibly stale

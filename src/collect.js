@@ -22,7 +22,8 @@ import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
 import { loadSignals } from './signals.js';
-import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources } from './trends.js';
+import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources, FOLLOW_HOURS } from './trends.js';
+import { queryMetrics, discoveryDelay, usefulness, lowRankReasons } from './metrics.js';
 import { loadWikipedia } from './wikipedia.js';
 import { loadEntityDb, refreshEntityDb, buildEntityIndex, findEntities } from './entities.js';
 import { fillSummaries } from './summaries.js';
@@ -39,7 +40,7 @@ function entityIndex(db) {
   return entityCache.index;
 }
 import { loadAthletes, resolveTeams, athleteSources, buildMatchers, COUNTRIES } from './athletes.js';
-import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candidateQueries, planQueries, recordQueries, watchSources, norm as watchNorm } from './watchlist.js';
+import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candidateQueries, planQueries, recordQueries, watchSources, norm as watchNorm, entryLocales, entryPriority, searchable, loadOverrides } from './watchlist.js';
 import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
 import { editorialRank, loadRankConfig } from './rank.js';
@@ -77,6 +78,14 @@ async function writeJson(path, data) {
   await rename(tmp, path);
 }
 
+// Keep at most `max` stories (sorted newest first): Israeli-angle stories first, then the newest; order kept
+export function capStories(stories, max) {
+  if (stories.length <= max) return stories;
+  const keep = new Set(stories.filter((s) => s.israel || s.abroad || s.watchIsrael).slice(0, max));
+  for (const s of stories) if (keep.size < max) keep.add(s);
+  return stories.filter((s) => keep.has(s));
+}
+
 // force = fetch every source regardless of its interval (used after editing the athlete list)
 export async function collect({ log = console.log, force = false } = {}) {
   const started = Date.now();
@@ -100,7 +109,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   const watchEntries = await loadWatchlist(ROOT);
   const watchMatch = buildWatchMatchers(watchEntries);
   setTracked((title) => ctx.matchers.players(String(title).toLowerCase()).length > 0 || watchMatch(title).some((h) => h.israelLink));
-  const watchCandidates = candidateQueries(watchEntries, await loadVocabulary(ROOT), { skipNames: new Set(athletes.map((a) => watchNorm(a.name))) });
+  const editorsNames = new Set(athletes.map((a) => watchNorm(a.name)));
+  const vocab = await loadVocabulary(ROOT);
+  const watchCandidates = candidateQueries(watchEntries, vocab, { skipNames: editorsNames });
 
   const now = Date.now();
 
@@ -147,7 +158,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   }), now, new Set(watchCandidates.map((c) => c.id)));
   // what was filtered out and why (diagnostics for misses): article link → { t, src, title, link, why }
   const rejected = new Map((state.rejected || []).filter((r) => now - r.at < 24 * 3600e3).map((r) => [r.link, r]));
-  const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, title: String(raw.title).slice(0, 200), link: raw.link, why });
+  const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, sid: src.id, title: String(raw.title).slice(0, 200), link: raw.link, why });
   let fresh = 0;
 
   results.forEach((r, idx) => {
@@ -192,6 +203,10 @@ export async function collect({ log = console.log, force = false } = {}) {
         image: raw.image,
         publisher: raw.publisher,
         sourceId: src.id,
+        // discovery provenance: the source / query that found it first, and every source that found it since
+        // (items collected before provenance existed: their last source and first-seen time, marked approximate)
+        via: prev?.via || (prev ? { src: prev.sourceId, at: prev.seen ?? prev.published, approx: true } : { src: src.id, at: now }),
+        paths: [...new Set([...(prev?.paths || (prev ? [prev.sourceId] : [])), src.id])].slice(0, 10),
         lang: src.lang,
         weight: src.weight,
         google: !!src.google,
@@ -414,8 +429,10 @@ export async function collect({ log = console.log, force = false } = {}) {
     .map((s) => markLocal(s, (m) => memberLocal(m, srcById.get(m.sourceId))))
     // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
-    .sort((a, b) => b.latest - a.latest)
-    .slice(0, MAX_STORIES);
+    .sort((a, b) => b.latest - a.latest);
+  // The cap keeps the newest stories, but an Israeli-angle story inside the 36-hour window is never cut for space
+  // (found by the evaluation set: a day-old Spanish story about Roy Revivo was dropped for space)
+  stories.splice(0, stories.length, ...capStories(stories, MAX_STORIES));
 
   // Sport5 coverage, second check: same-day Sport5 article about the same thing worded differently
   const s5probable = sport5Probable(stories, items, tokens);
@@ -433,6 +450,14 @@ export async function collect({ log = console.log, force = false } = {}) {
     s.v = storyViews(s, ev);
     s.ed = editorialRank(s, { now, cfg: rankCfg, votes: state.feedback?.votes?.[s.id], heName });
   }
+  // quality numbers for the watchlist page (src/metrics.js): measured, never fed back into collection
+  const rejectedNow = [...rejected.values()];
+  const quality = {
+    queries: queryMetrics(stories, new Set(watchCandidates.map((c) => c.id)), rejectedNow),
+    delay: discoveryDelay(items),
+    usefulness: usefulness(state.feedback?.votes, stories),
+    low: lowRankReasons(stories, rejectedNow),
+  };
 
   // Summaries: feed descriptions + article pages, most important stories first (Israeli / abroad, then popular & fresh)
   const sums = state.sums || {};
@@ -508,13 +533,33 @@ export async function collect({ log = console.log, force = false } = {}) {
   const byNew = [...stories].sort((a, b) => b.first - a.first);
   const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad)].map((s) => s.id));
   const head = { generatedAt: now, tookMs: Date.now() - started, sources: { total: sources.length, ok: okCount, fetched: due.length } };
+  // The watchlist page's data: every entry with its state, every query with why it exists, its schedule and its value
+  const hitsBy = {};
+  for (const s of stories) for (const h of s.watch || []) hitsBy[h.id] = (hitsBy[h.id] || 0) + 1;
+  const deferredBy = new Map(watchPlan.deferred.map((d) => [d.id, d]));
+  const ranIds = new Set(watchRun.map((c) => c.id));
   await writeJson(join(DATA, 'watch.json'), {
     generatedAt: now,
     registry: { verified: watchEntries.filter((e) => e.status === 'verified').length, pending: watchEntries.filter((e) => e.status === 'pending').length, sourceOnly: watchEntries.filter((e) => e.status === 'source-only').length },
     budget: WATCH_BUDGET,
-    ran: watchRun.map((c) => ({ id: c.id, mode: c.mode, locale: c.locale, q: c.q, ok: meta[c.id]?.ok !== false, count: meta[c.id]?.count ?? 0 })),
-    deferred: watchPlan.deferred.slice(0, 60),
+    entries: watchEntries.map((e) => ({
+      id: e.id, name: e.name, he: e.he || '', aliases: e.aliases || [], type: e.type, sport: e.sport, category: e.category, status: e.status,
+      basis: e.israelLink?.basis || null, note: e.israelLink?.note || e.why || '', team: e.team?.en || '', ambiguous: !!e.ambiguous,
+      enabled: e.enabled !== false, priority: entryPriority(e), langs: entryLocales(e), ...(e.until ? { until: e.until } : {}),
+      searched: searchable(e, editorsNames), queries: watchCandidates.filter((c) => c.entryIds.includes(e.id)).map((c) => c.id), hits: hitsBy[e.id] || 0,
+    })),
+    queries: watchCandidates.map((c) => ({
+      id: c.id, mode: c.mode, ...(c.family ? { family: c.family } : {}), priority: c.priority, locale: c.locale, q: c.q, why: c.why, entryIds: c.entryIds,
+      last: watchSched[c.id]?.last || null, fails: watchSched[c.id]?.fails || 0, count: watchSched[c.id]?.count ?? null, error: meta[c.id]?.ok === false ? meta[c.id].error : null,
+      state: ranIds.has(c.id) ? 'ran' : deferredBy.get(c.id)?.why || 'not due yet', nextAt: deferredBy.get(c.id)?.nextAt || null,
+      value: quality.queries[c.id] || null,
+    })),
+    families: ['israeliAngle', 'exceptional'].map((key) => ({ key, enabled: vocab.familyOverrides?.[key]?.enabled !== false, priority: vocab.familyOverrides?.[key]?.priority || null, queries: (vocab.querySets?.[key] || []).length })),
+    // temporary "follow in the radar" searches (an active collection subscription, unlike a saved display topic)
+    follows: Object.entries(state.userSearch || {}).map(([q, t]) => ({ q, since: t.since, expires: t.since + FOLLOW_HOURS * 3600e3 })),
+    overrides: await loadOverrides(ROOT), // the current editor decisions (the page starts its draft from these)
     hits: stories.filter((s) => s.watch).length,
+    quality: { ...quality, queries: undefined },
   });
   await writeJson(join(DATA, 'news-more.json'), { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) });
   await writeJson(join(DATA, 'news.json'), {

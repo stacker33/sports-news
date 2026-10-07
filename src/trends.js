@@ -129,7 +129,7 @@ export function nextTrendSearches(board, prev = {}, now = Date.now()) {
 
 // Editors' "follow this search" (from the site's web search): a Google News search in Hebrew + English for 6 hours.
 // Not "assist": the results are what the editor asked for (non-sport items are still dropped by the triage).
-const FOLLOW_HOURS = 6;
+export const FOLLOW_HOURS = 6;
 const MAX_FOLLOWS = 10;
 export function nextUserSearches(prev = {}, added = [], now = Date.now()) {
   const out = {};

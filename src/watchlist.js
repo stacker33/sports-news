@@ -12,6 +12,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { gnews } from '../config/sources.js';
+import { validateOverrides, activeNow, LOCALES } from '../public/watchlist-rules.js';
 
 // ---------- names ----------
 const FOLD = { 'ı': 'i', 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss', 'æ': 'ae', 'œ': 'oe', 'ð': 'd', 'þ': 'th' };
@@ -47,20 +48,44 @@ export function needsContext(name, kbDuplicates = 0) {
   return parts.length < 2 || COMMON_SURNAMES.has(parts.at(-1)) || kbDuplicates > 1;
 }
 
-export async function loadWatchlist(root) {
+// Editor overrides (config/watchlist-overrides.json), validated. Status changes are applied by the build script
+// (scripts/build-watchlist.mjs); the run-time fields (enabled, priority, langs, until) apply on the next run.
+export async function loadOverrides(root) {
+  try {
+    return validateOverrides(JSON.parse(await readFile(join(root, 'config', 'watchlist-overrides.json'), 'utf8'))).clean;
+  } catch {
+    return { entries: {}, families: {} };
+  }
+}
+const RUNTIME = ['enabled', 'priority', 'langs', 'until'];
+export function applyOverrides(entries, overrides = {}, now = Date.now()) {
+  return entries.map((e) => {
+    const o = overrides.entries?.[e.id];
+    if (!o) return e;
+    const out = { ...e };
+    for (const k of RUNTIME) if (k in o) out[k] = o[k];
+    // a temporary entry past its date is off (the page shows it as expired, with a renew option)
+    if (!activeNow(o, now)) out.enabled = false;
+    return out;
+  });
+}
+export async function loadWatchlist(root, now = Date.now()) {
   try {
     const j = JSON.parse(await readFile(join(root, 'config', 'watchlist.json'), 'utf8'));
-    return j.entries || [];
+    return applyOverrides(j.entries || [], await loadOverrides(root), now);
   } catch {
     return [];
   }
 }
 export async function loadVocabulary(root) {
+  let v;
   try {
-    return JSON.parse(await readFile(join(root, 'config', 'vocabulary.json'), 'utf8'));
+    v = JSON.parse(await readFile(join(root, 'config', 'vocabulary.json'), 'utf8'));
   } catch {
-    return { families: {}, multilingual: {}, querySets: {} };
+    v = { families: {}, multilingual: {}, querySets: {} };
   }
+  v.familyOverrides = (await loadOverrides(root)).families;
+  return v;
 }
 
 // ---------- matching ----------
@@ -148,42 +173,57 @@ function orGroups(terms, extra = '', size = 6) {
   return groups;
 }
 
-// Every possible watch query (before budgeting). Editors' list athletes already have their own feeds,
-// so they are skipped here (`skipNames`).
-//  A - verified Israelis: name-only, English plus the club's country language
-//  C - discovery: an Israeli angle or exceptional-story terms, always with sport context
+// Which languages an entry is searched in: the editor's choice, else English plus the club's country language
+export function entryLocales(e) {
+  if (Array.isArray(e.langs) && e.langs.length) return e.langs.filter((l) => LOCALES.includes(l));
+  const loc = LOCALE_OF[KB_COUNTRY[e.team?.country]];
+  return ['en', ...(loc && loc !== 'en' && loc !== 'en-GB' ? [loc] : [])];
+}
+// abroad first; players at Israeli clubs are already covered by the Hebrew press
+export const entryPriority = (e) => e.priority || (e.team?.country === 6 ? 'low' : e.team?.country ? 'high' : 'normal');
+// Searched by name? Only verified people, enabled, not on the editors' list (they have their own feeds)
+export function searchable(e, skipNames = new Set()) {
+  if (e.status !== 'verified') return { yes: false, why: e.status === 'pending' ? 'pending verification - not searched' : 'recognition only - not searched' };
+  if (e.type === 'club') return { yes: false, why: 'club - covered by club and league feeds' };
+  if (e.enabled === false) return { yes: false, why: e.until ? 'temporary tracking expired' : 'disabled by an editor' };
+  if (skipNames.has(norm(e.name))) return { yes: false, why: "on the editors' ליגיונרים list - has its own feeds" };
+  return { yes: true, why: 'verified - name search' };
+}
+
+// Every possible watch query (before budgeting), each with the reason it exists.
+//  A - verified people: name-only, in each of their languages (ambiguous names with their club)
+//  C - discovery families: an Israeli angle or exceptional-story phrases (results must pass the sports check)
 export function candidateQueries(entries, vocab = {}, { skipNames = new Set() } = {}) {
   const out = [];
-  const add = (mode, priority, q, locale, entryIds = []) => {
+  const add = (mode, priority, q, locale, entryIds, why, family) => {
     if (q.length > MAX_Q) return;
-    out.push({ id: queryId(q, locale), mode, priority, q, locale, lang: locale === 'en-GB' ? 'en' : locale, entryIds });
+    out.push({ id: queryId(q, locale), mode, priority, q, locale, lang: locale === 'en-GB' ? 'en' : locale, entryIds, why, ...(family ? { family } : {}) });
   };
-  const verified = entries.filter((e) => e.status === 'verified' && e.type !== 'club' && !skipNames.has(norm(e.name)));
-  for (const sport of ['football', 'basketball', 'other']) {
-    const people = verified.filter((e) => e.sport === sport);
-    // name-only, unambiguous names (ambiguous ones get their team as context)
-    const plain = people.filter((e) => !e.ambiguous);
-    // abroad first; players at Israeli clubs are already covered by the Hebrew press
-    const prio = (e) => e.priority || (e.team?.country === 6 ? 'low' : e.team?.country ? 'high' : 'normal');
-    for (const p of ['high', 'normal', 'low']) {
-      const tier = plain.filter((e) => prio(e) === p);
-      const names = tier.flatMap((e) => [e.name, ...(e.aliases || []).filter((a) => norm(a) !== norm(e.name))]);
-      for (const g of orGroups([...new Set(names)])) add('A', p, `(${g.map(quote).join(' OR ')}) when:2d`, 'en', tier.filter((e) => g.includes(e.name)).map((e) => e.id));
-    }
-    for (const e of people.filter((x) => x.ambiguous && x.team?.en)) add('A', prio(e), `${quote(e.name)} ${quote(e.team.en)} when:2d`, 'en', [e.id]);
-    // local-language press of the club's country (one query per country)
-    const byLocale = new Map();
-    for (const e of plain) {
-      const loc = LOCALE_OF[KB_COUNTRY[e.team?.country]];
-      if (!loc || loc === 'en' || loc === 'en-GB') continue;
-      byLocale.set(loc, [...(byLocale.get(loc) || []), e]);
-    }
-    for (const [loc, list] of byLocale) {
-      for (const g of orGroups(list.map((e) => e.name))) add('A', 'normal', `(${g.map(quote).join(' OR ')}) when:2d`, loc, list.filter((e) => g.includes(e.name)).map((e) => e.id));
+  const people = entries.filter((e) => searchable(e, skipNames).yes);
+  const groups = new Map(); // sport|priority|locale → entries
+  for (const e of people.filter((x) => !x.ambiguous)) {
+    for (const loc of entryLocales(e)) {
+      const k = `${e.sport}|${entryPriority(e)}|${loc}`;
+      groups.set(k, [...(groups.get(k) || []), e]);
     }
   }
-  for (const { lang, q } of vocab.querySets?.israeliAngle || []) add('C', 'normal', `${q} when:3d`, lang);
-  for (const { lang, q } of vocab.querySets?.exceptional || []) add('C', 'low', `${q} when:3d`, lang);
+  for (const [k, list] of groups) {
+    const [sport, prio, loc] = k.split('|');
+    const names = list.flatMap((e) => [e.name, ...(e.aliases || []).filter((a) => norm(a) !== norm(e.name))]);
+    for (const g of orGroups([...new Set(names)])) {
+      const ids = list.filter((e) => g.includes(e.name) || (e.aliases || []).some((a) => g.includes(a))).map((e) => e.id);
+      add('A', prio, `(${g.map(quote).join(' OR ')}) when:2d`, loc, ids, `name search: verified ${sport} people (${ids.length}), ${loc}`);
+    }
+  }
+  for (const e of people.filter((x) => x.ambiguous && x.team?.en)) {
+    for (const loc of entryLocales(e)) add('A', entryPriority(e), `${quote(e.name)} ${quote(e.team.en)} when:2d`, loc, [e.id], `name + club: "${e.name}" is an ambiguous name`);
+  }
+  const fam = vocab.familyOverrides || {};
+  const families = [['israeliAngle', 'normal', 'discovery: Israeli angle'], ['exceptional', 'low', 'discovery: exceptional stories']];
+  for (const [key, prio, why] of families) {
+    if (fam[key]?.enabled === false) continue;
+    for (const { lang, q, enabled } of vocab.querySets?.[key] || []) if (enabled !== false) add('C', fam[key]?.priority || prio, `${q} when:3d`, lang, [], `${why} (${lang})`, key);
+  }
   // the same query twice (two groups producing identical text) runs once
   return [...new Map(out.map((x) => [x.id, x])).values()];
 }

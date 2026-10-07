@@ -99,7 +99,7 @@ const T = {
     sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
     s5Filter: '🔴 רק בלי התאמה בספורט 5', s5FilterTip: 'ידיעות שלא נמצאה להן התאמה בספורט 5. התאמות אפשריות נשארות ומסומנות',
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
-    vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
+    vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)`, whyQ: 'למה?', thanks: 'תודה, נרשם', reasons: { irrelevant: 'לא רלוונטי', covered: 'כבר סוקר', duplicate: 'כפילות', identity: 'זיהוי שגוי (אדם/קבוצה אחרים)' } },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     web: {
       head: (n) => `🌐 מהרשת — Google News (${n})`, loading: '🌐 מחפש ברשת…', none: '🌐 לא נמצאו ברשת ידיעות נוספות', error: '🌐 החיפוש ברשת לא זמין כרגע',
@@ -261,7 +261,7 @@ const T = {
     sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
     s5Filter: '🔴 No Sport5 match only', s5FilterTip: 'Stories with no Sport5 match found. Possible matches stay, marked',
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
-    vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
+    vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)`, whyQ: 'Why?', thanks: 'Thanks, noted', reasons: { irrelevant: 'Not relevant', covered: 'Already covered', duplicate: 'Duplicate', identity: 'Wrong person / team' } },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     web: {
       head: (n) => `🌐 From the web — Google News (${n})`, loading: '🌐 Searching the web…', none: '🌐 Nothing more on the web', error: '🌐 Web search is unavailable right now',
@@ -1169,6 +1169,7 @@ function renderChromeV2() {
   const btn = (el, ic, label) => { if (el) el.innerHTML = `${icon(ic, 16)}<span class="hb-t">${esc(label)}</span>`; };
   $('tgBtn').innerHTML = `${icon('send', 16)}<span class="hb-t" id="tgLabel">${esc(he ? 'טלגרם' : 'Telegram')}</span>`;
   btn($('reportBtn'), 'flag', he ? 'דיווח' : 'Report');
+  btn($('watchLink'), 'radar', he ? 'מעקב' : 'Watchlist');
   btn($('bellBtn'), 'bell', he ? 'התראות' : 'Alerts');
   btn($('keysBtn'), 'kbd', he ? 'קיצורים' : 'Shortcuts');
   const th = store.get('theme', 'auto');
@@ -2166,6 +2167,25 @@ $('list').addEventListener('click', (e) => {
   card.querySelectorAll('.vote-btn').forEach((b) => b.classList.toggle('on', Number(b.dataset.vote) === next));
   const s5 = !s.s5 ? 'none' : s.s5.where === 'channel' ? 'channel' : s.s5.probable ? 'probable' : 'site';
   sendFeedback({ type: 'vote', id: s.id, vote: next, title: (s.ai?.he?.title || s.title).slice(0, 200), sport: s.sport, israel: !!s.israel, s5, link: s.link });
+  // a 👎 asks why (optional, one tap): the reasons feed the radar's evaluation
+  card.querySelector('.vote-why')?.remove();
+  if (next === -1) {
+    const L = t().vote;
+    const row = document.createElement('div');
+    row.className = 'vote-why';
+    row.innerHTML = `<span>${esc(L.whyQ)}</span>${Object.entries(L.reasons).map(([k, v]) => `<button type="button" data-why="${k}">${esc(v)}</button>`).join('')}`;
+    (card.querySelector('.c-main') || card).appendChild(row);
+  }
+});
+$('list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-why]');
+  if (!b) return;
+  const card = b.closest('.card');
+  const s = state.data?.stories.find((x) => x.id === card?.dataset.id);
+  if (!s || myVotes[s.id] !== -1) return;
+  const s5 = !s.s5 ? 'none' : s.s5.where === 'channel' ? 'channel' : s.s5.probable ? 'probable' : 'site';
+  sendFeedback({ type: 'vote', id: s.id, vote: -1, reason: b.dataset.why, title: (s.ai?.he?.title || s.title).slice(0, 200), sport: s.sport, israel: !!s.israel, s5, link: s.link });
+  b.closest('.vote-why').innerHTML = `<span>${esc(t().vote.thanks)}</span>`;
 });
 function openReport() {
   const L = t().report;
