@@ -961,3 +961,4 @@ body.v2 .mix input[type="range"] { width: 110px; accent-color: var(--brand); }
   body.v2 .layout { grid-template-columns: minmax(0, 860px) 400px; justify-content: center; }
 }
 body.v2 .pmini-all { font-weight: 700; color: var(--brand); border-style: dashed; }
+body.v2 .lb--local { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line2); }

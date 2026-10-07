@@ -119,7 +119,7 @@ const SEG_DROP = /^(cars?|auto|motors|lifestyle|food|travel|tech|tecnologia|real
 // a site's own name/homepage instead of a headline (Google sometimes returns "- sport5.co.il")
 export const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*$|אתר ערוץ הספורט/i;
 // betting / odds / live-score widgets / puzzles: not news (any language)
-export const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|en directo|minuto a minuto|in diretta|liveticker|per 90|stats for .{2,40}?\d{4}\/\d{4}|fantasy|start.{0,4}sit|connections: sports edition|wordle|crossword|puzzle no\.?|hints and answers)\b/i;
+export const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|en directo|minuto a minuto|in diretta|liveticker|per 90|stats for .{2,40}?\d{4}\/\d{4}|fantasy|start.{0,4}sit|connections: sports edition|wordle|crossword|puzzle no\.?|hints and answers| live \d{1,2}-\d{1,2}-\d{2})\b/i;
 
 // Many sites put the sport in the URL path (/sport/rugby-league/…, /israeli-soccer/…, /nba/…) or a folder id
 function sectionFromUrl(link) {

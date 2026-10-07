@@ -592,7 +592,7 @@ function readTopicForm() {
 
 function inTab(s, tab) {
   switch (tab) {
-    case 'top': return s.sport !== 'other' || s.big;
+    case 'top': return (s.sport !== 'other' || s.big) && !s.local; // local leagues stay in their own tab
     case 'foryou': return true;
     case 'ilFootball': return s.israel && s.sport === 'football';
     case 'ilBasketball': return s.israel && s.sport === 'basketball';
@@ -996,6 +996,7 @@ function cardHtmlV2(s, fresh) {
   const mixed = state.tab === 'top' || state.tab === 'foryou';
   const reporter = (s.social || []).find((p) => !/[א-ת]/.test(p));
   const labels = [
+    s.local ? `<span class="lb lb--local" title="${esc(he ? 'ליגה מקומית — מוצג נמוך ברשימה' : 'Local league — shown lower')}">${he ? 'מקומי' : 'Local'}</span>` : '',
     reporter ? `<span class="lb lb--scoop" title="${esc(L.socialTip)}">${esc(he ? `סקופ · ${reporter}` : `Scoop · ${reporter}`)}</span>` : '',
     isHot ? `<span class="lb lb--hot">${icon('flame', 12, 2)}${esc(noEmoji(L.hot))}</span>` : '',
     mixed && L.sportName[s.sport] ? `<span class="lb lb--sport">${esc(L.sportName[s.sport])}</span>` : '',

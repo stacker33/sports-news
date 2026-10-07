@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify, JUNK_TITLE, SITE_TITLE } from './classify.js';
-import { editorialBoost, bigEvent } from './editorial.js';
+import { editorialBoost, bigEvent, markLocal, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap } from './ai.js';
@@ -389,6 +389,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     .filter((s) => s.sport !== 'other' || s.israel || s.abroad || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))
     // editors' priorities: big competitions, transfers and scoops up; betting / how-to-watch / live blogs down
     .map(editorialBoost)
+    // local leagues (Greece, Portugal, Turkey…): low and out of Hot / brief / Telegram unless there's a reason
+    .map((s) => markLocal(s, (m) => memberLocal(m, srcById.get(m.sourceId))))
     // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
     .sort((a, b) => b.latest - a.latest)

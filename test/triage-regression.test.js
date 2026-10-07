@@ -57,3 +57,24 @@ test('ranking: big competitions and transfers up, how-to-watch down', () => {
   assert.equal(editorialBoost({ ...base, title: 'מכבי ת"א ניצחה', tags: [{ id: 'c-ligat' }] }).score, 12.5);
   assert.equal(editorialBoost({ ...base, title: 'A quiet story' }).score, 10);
 });
+
+test('local leagues: low unless Israeli, big competition, European cup, viral or a star', async () => {
+  const { markLocal, memberLocal } = await import('../src/editorial.js');
+  const greek = { country: 'Greece' };
+  const isLocal = (m) => memberLocal(m, m.src);
+  const st = (title, extra = {}, members) => ({ score: 10, pop: 10, title, langs: ['el'], _members: members || [{ title, lang: 'el', src: greek, ents: [] }], ...extra });
+  // PAOK's domestic news, only Greek outlets → local
+  const paok = markLocal(st('ΠΑΟΚ: ο Μιχαηλίδης στην αποστολή'), isLocal);
+  assert.equal(paok.local, true);
+  assert.equal(paok.score, 3.5);
+  // exceptions
+  assert.ok(!markLocal(st('Ολυμπιακός κέρδισε', { comps: ['c-euroleague'], sport: 'basketball' }), isLocal).local); // EuroLeague club
+  assert.ok(markLocal(st('Η οψιόν στο συμβόλαιο του Μιχαηλίδη', { comps: ['c-eurocup'], sport: 'football' }), isLocal).local); // PAOK football ≠ EuroCup basketball
+  assert.ok(!markLocal(st('PAOK - Lyon', {}, [{ title: 'PAOK - Lyon', lang: 'el', src: greek, ents: ['c-uel'] }]), isLocal).local); // a European cup game
+  assert.ok(!markLocal(st('Ο Μουρίνιο θυμωμένος', { _members: [{ title: 'Mourinho furious', lang: 'el', src: greek, ents: [] }] }), isLocal).local); // a star
+  assert.ok(!markLocal(st('Ο Λιόρ Ρεφαέλοφ', { abroad: true }), isLocal).local); // Israeli angle
+  assert.ok(!markLocal(st('PAOK coach sacked', { langs: ['el', 'en', 'tr'] }), isLocal).local); // spreading
+  assert.ok(!markLocal(st('PAOK news', {}, [{ title: 'PAOK news', lang: 'el', src: greek, ents: [] }, { title: 'PAOK news', lang: 'en', src: null, ents: [] }]), isLocal).local); // an English outlet covers it
+  // a Spanish story is never local
+  assert.ok(!markLocal(st('El Betis gana', { langs: ['es'] }, [{ title: 'El Betis gana', lang: 'es', src: { country: 'Spain' }, ents: [] }]), isLocal).local);
+});

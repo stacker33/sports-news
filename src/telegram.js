@@ -77,7 +77,7 @@ export function briefingTop(stories, now) {
   const rank = (s) => (s.pop ?? s.score) + (s.langs?.length >= 3 ? 2 : 0) + (s.big ? 1 : 0);
   let il = 0;
   return stories
-    .filter((s) => !s.dateUnknown && now - s.first < 10 * 3600e3 && (s.sport !== 'other' || s.big))
+    .filter((s) => !s.dateUnknown && !s.local && now - s.first < 10 * 3600e3 && (s.sport !== 'other' || s.big))
     .sort((a, b) => rank(b) - rank(a))
     .filter((s) => !s.israel || ++il <= 3)
     .slice(0, 10);
@@ -147,7 +147,7 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
       (s.sport === 'other' && s.big && s.sourceCount >= 6) || // other sports: only the biggest
       (s.abroad && (s.sourceCount >= 2 || s.social?.length)) ||
       (s.israel && (s.big || s.sourceCount >= 4 || (s.breaking && s.sourceCount >= 2)));
-    const fresh = stories.filter((s) => !st.sent[keyOf.get(s)] && !s.dateUnknown && now - s.first < 90 * 60000 && worth(s));
+    const fresh = stories.filter((s) => !st.sent[keyOf.get(s)] && !s.dateUnknown && !s.local && now - s.first < 90 * 60000 && worth(s));
     // Hebrew for headlines that only exist in English (one batch per run)
     heMap = new Map();
     const needHe = [...new Set([...top, ...fresh.slice(0, PER_RUN * 2)])].filter((s) => !isHe(titleHe(s)));
