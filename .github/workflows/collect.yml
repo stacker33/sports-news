@@ -1,7 +1,9 @@
-# Runs the collector on GitHub's servers every ~5 minutes and publishes the app to GitHub Pages.
-# Free for public repositories. The previous run's state is downloaded from the live site,
-# so nothing is committed to the repo on each run.
-name: Collect news
+# DISCOVERY VERSION (trial) - a separate copy of the radar with its own address.
+# Runs the collector on GitHub's servers and publishes the app to this repository's GitHub Pages.
+# The previous run's state is downloaded from this version's live site; on the very first run it starts from
+# the main radar's live data. Deliberately NO Telegram settings: this version can never post to the channel or
+# message the admin. Its feedback / correction / claim channels are its own (see src/feedback.js).
+name: Collect news (discovery)
 
 on:
   schedule:
@@ -18,8 +20,10 @@ permissions:
 
 concurrency:
   group: pages
-  # a newer run replaces one that is stuck (a deployment "waiting" for hours blocked every run on 2026-10-06)
   cancel-in-progress: true
+
+env:
+  MAIN_SITE: https://stacker33.github.io/sports-news
 
 jobs:
   collect:
@@ -41,39 +45,32 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
 
-      - name: Restore previous state from the live site
+      - name: Restore previous state (this site, else the main radar on the first run)
         run: |
           mkdir -p public/data
-          # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
-          curl -sfL "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json \
-            || echo "No previous state (first run)"
-          curl -sfL "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json \
-            || echo "No topic knowledge base yet (built over the first runs)"
+          t=$(date +%s)
+          if ! curl -sfL "${{ steps.pages.outputs.base_url }}/data/state.json?t=$t" -o public/data/state.json; then
+            # first run: start from the main radar's articles, but not its editors' votes, follows or channel positions
+            curl -sfL "$MAIN_SITE/data/state.json?t=$t" -o public/data/state.json && node -e "
+              const fs = require('fs'); const f = 'public/data/state.json'; const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+              for (const k of ['feedback', 'tg', 'healthAlerts', 'adminGreeted', 'userSearch', 'watchSched']) delete s[k];
+              if (s.corrections) delete s.corrections.since;
+              fs.writeFileSync(f, JSON.stringify(s));" \
+              || echo "No previous state (first run)"
+          fi
+          curl -sfL "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$t" -o public/data/entities.json \
+            || curl -sfL "$MAIN_SITE/data/entities.json?t=$t" -o public/data/entities.json \
+            || echo "No topic knowledge base yet"
 
       - name: Collect
         run: node src/collect.js
         env:
-          # Hebrew headlines + summaries (src/ai.js). Add the key under Settings → Secrets and variables → Actions.
+          # Hebrew headlines + summaries (src/ai.js). Optional: add AI_API_KEY under Settings → Secrets → Actions.
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          # optional repository variables to switch provider/model (empty = Gemini Flash-Lite)
           AI_BASE_URL: ${{ vars.AI_BASE_URL }}
           AI_MODEL: ${{ vars.AI_MODEL }}
           AI_DAILY_CAP: ${{ vars.AI_DAILY_CAP }}
-          # Telegram channel (src/telegram.js): bot token as a secret, channel ("@name") as a repository variable
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
-          TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
-
-      - name: Tell the admin if the collection failed
-        if: failure()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
-        run: |
-          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_ADMIN_CHAT" ]; then
-            curl -s "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d chat_id="$TELEGRAM_ADMIN_CHAT" \
-              --data-urlencode text="⚠️ רדאר ספורט: ריצת האיסוף נכשלה — $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null
-          fi
+          # no TELEGRAM_* on purpose (see the top of this file)
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -82,7 +79,6 @@ jobs:
       - id: deploy
         uses: actions/deploy-pages@v4
 
-      # GitHub pauses scheduled workflows after 60 days without repo activity; re-enabling resets that.
       - name: Keep schedule alive
         if: github.event_name == 'schedule'
         continue-on-error: true

@@ -3,7 +3,7 @@
 // commits (config/watchlist-overrides.json). In local mode (npm start) the same changes can be saved directly.
 import { validateOverrides, PRIORITIES, LOCALES, activeNow } from './watchlist-rules.js';
 
-const FEEDBACK_TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
+const FEEDBACK_TOPIC = 'https://ntfy.sh/sports-radar-disc-feedback-c8a04d373ec8351d';
 const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem('sr.' + k)) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem('sr.' + k, JSON.stringify(v)); } catch {} },

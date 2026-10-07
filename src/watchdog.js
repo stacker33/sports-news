@@ -33,7 +33,8 @@ async function gh(path, opts = {}) {
 async function telegram(text) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chat = process.env.TELEGRAM_ADMIN_CHAT;
-  if (DRY || !token || !chat) return console.log('[telegram]', text);
+  // REPAIR_ONLY (the discovery trial): self-repair still runs, messages only go to the run log
+  if (DRY || process.env.REPAIR_ONLY || !token || !chat) return console.log('[telegram]', text);
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

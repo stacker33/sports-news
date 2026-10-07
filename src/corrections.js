@@ -5,7 +5,7 @@
 // display; it becomes a training example for the sport model only when two different devices sent the same fix,
 // and each device is limited per day.
 
-const TOPIC = 'https://ntfy.sh/sports-radar-fix-b5e962ea3039dbb3';
+const TOPIC = 'https://ntfy.sh/sports-radar-disc-fix-3f39227ed9b681cb';
 const KEEP_DAYS = 14;
 const MAX_PER_RUN = 300; // a flood of messages can't take over the feed
 const PER_DEVICE_DAY = 40;

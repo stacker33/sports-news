@@ -454,7 +454,7 @@ const seenObserver = 'IntersectionObserver' in window
 // ---------- category corrections ----------
 // Each fix: { id, links, sport?, israel?, hide?, t }. Applied to the matching story on this device at once, and sent
 // to a public ntfy.sh topic that the collector reads every run (it then trains the sport model on it).
-const FIX_TOPIC = 'https://ntfy.sh/sports-radar-fix-b5e962ea3039dbb3';
+const FIX_TOPIC = 'https://ntfy.sh/sports-radar-disc-fix-3f39227ed9b681cb';
 const FIX_DAYS = 3;
 let fixes = store.get('fixes', []).filter((f) => Date.now() - f.t < FIX_DAYS * 864e5);
 
@@ -2139,7 +2139,7 @@ $('list').addEventListener('click', (e) => {
 // ---------- 📣 reports + 👍/👎 votes (the pilot's feedback) ----------
 // Both go to a public ntfy.sh topic; the collector forwards reports to the admin's private Telegram and adds the
 // votes up in data/votes.json (shown here as counts, and the labelled set for measuring the radar).
-const FEEDBACK_TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
+const FEEDBACK_TOPIC = 'https://ntfy.sh/sports-radar-disc-feedback-c8a04d373ec8351d';
 let myVotes = store.get('votes', {});
 let voteCounts = {};
 const voteN = (s, k) => { const n = voteCounts[s.id]?.[k] || 0; return n ? `<small>${n}</small>` : ''; };
@@ -2255,7 +2255,7 @@ $('sysBody').addEventListener('click', (e) => e.target.id === 'sysClose' && $('s
 // ---------- 🙋 "I'm on it": which editor is writing which story ----------
 // Each claim / unclaim is a message on a public ntfy.sh topic; every browser reads the last 8 hours of it every
 // minute, so all editors see who took what. A claim lasts 8 hours (or until undone). Only a first name is shared.
-const CLAIM_TOPIC = 'https://ntfy.sh/sports-radar-claims-fc75c54a0494b149';
+const CLAIM_TOPIC = 'https://ntfy.sh/sports-radar-disc-claims-11d945fb3c8b2aae';
 const CLAIM_HOURS = 8;
 const deviceId = store.get('deviceId', '') || (() => { const id = Math.random().toString(36).slice(2, 10); store.set('deviceId', id); return id; })();
 let claims = new Map(); // story id → { name, device, links, t }

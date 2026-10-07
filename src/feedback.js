@@ -5,7 +5,7 @@
 //     set for measuring the radar (which top stories editors find useful) and, later, for ranking
 // Limits per device per day keep a flood from taking over.
 
-const TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
+const TOPIC = 'https://ntfy.sh/sports-radar-disc-feedback-c8a04d373ec8351d';
 const KEEP_DAYS = 30;
 const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;

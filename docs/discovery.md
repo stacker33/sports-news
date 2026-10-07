@@ -177,3 +177,15 @@ A 👎 offers a reason: not relevant, already covered, duplicate, wrong person o
 - the story cap
 
 Full suite: 92 tests.
+
+## Trial site (separate address)
+
+Planned address: `https://stacker33.github.io/sports-news-discovery/`, from a separate repository. The main site and repository are untouched.
+
+- **No Telegram:** `collect.yml` passes no Telegram settings, so the trial can never post to the channel or message the admin.
+- **Its own channels:** feedback, corrections and claims use the trial's own ntfy topics, so trial votes and corrections never reach the live radar.
+- **Trial label:** a "גרסת ניסיון" (trial version) label next to the site name.
+- **Watchdog, repair only:** `watchdog.yml` runs `src/watchdog.js` with `REPAIR_ONLY=1` and no Telegram settings. If the trial site stops updating, it cancels collect runs stuck for 12+ minutes and starts a fresh one. Alerts go only to the run log. Tested with a mocked network: it repairs, and sends nothing even when Telegram settings are present.
+- **Your part, after publishing:**
+  - An optional `AI_API_KEY` secret.
+  - Two cron-job.org jobs: `collect.yml` every 5 minutes, and `watchdog.yml` every 15 minutes. GitHub's own schedule is unreliable.

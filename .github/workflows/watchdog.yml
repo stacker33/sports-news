@@ -1,7 +1,9 @@
-# Watchdog: checks every 15 minutes that the live site is still updating; if not, cancels stuck collect runs,
-# starts a fresh one and tells the admin on Telegram (src/watchdog.js). Its own concurrency group, so a stuck
-# collect run can't block it.
-name: Watchdog
+# DISCOVERY VERSION (trial) watchdog - REPAIR ONLY, NO MESSAGES.
+# Every 15 minutes: if this version's site has stopped updating, cancel collect runs stuck for 12+ minutes and
+# start a fresh one (src/watchdog.js). It never messages anyone: REPAIR_ONLY is set and no Telegram settings are
+# passed, so alerts are only written to the run log. GitHub's own schedule is unreliable; a cron-job.org job that
+# dispatches this workflow every 15 minutes makes it dependable.
+name: Watchdog (discovery, repair only)
 
 on:
   schedule:
@@ -27,7 +29,7 @@ jobs:
         with:
           node-version: 22
 
-      # when it went stale / when we last alerted, kept between runs
+      # when it went stale, kept between runs
       - name: Restore watchdog state
         uses: actions/cache/restore@v4
         with:
@@ -35,13 +37,14 @@ jobs:
           key: watchdog-${{ github.run_id }}
           restore-keys: watchdog-
 
-      - name: Check the live site
+      - name: Check this version's site and repair it if stuck
         run: node src/watchdog.js
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
+          SITE_URL: https://stacker33.github.io/sports-news-discovery
+          REPAIR_ONLY: '1'
+          # no TELEGRAM_* on purpose
 
       - name: Save watchdog state
         if: always()
