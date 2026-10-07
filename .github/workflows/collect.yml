@@ -18,7 +18,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  # a newer run replaces one that is stuck (a deployment "waiting" for hours blocked every run on 2026-10-06)
+  cancel-in-progress: true
 
 jobs:
   collect:

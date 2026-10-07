@@ -345,7 +345,7 @@ const store = {
 // New design (preview): desk rows on desktop, a clean feed on phones, Sport5 colors. ?design=2 / ?design=1
 const designParam = new URLSearchParams(location.search).get('design');
 if (designParam === '2' || designParam === '1') store.set('design', Number(designParam));
-const V2 = store.get('design', 1) === 2;
+const V2 = store.get('design', 2) === 2; // the new design is the default; ?design=1 keeps the old one
 document.body.classList.toggle('v2', V2);
 function applyTheme() {
   const th = V2 ? store.get('theme', 'auto') : 'auto';

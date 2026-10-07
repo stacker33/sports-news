@@ -678,7 +678,7 @@ body.v2 .tab-abroad { border-color: transparent; }
 body.v2 .filters { flex: 0 1 auto; flex-wrap: nowrap; gap: 12px; padding: 14px 0 14px; padding-inline: 24px 0; max-width: none; }
 body.v2 #search { width: 340px; flex: none; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--line2); border-radius: 3px; background: var(--bg); color: var(--text); font-size: 14px; }
 body.v2 #search:focus { outline: 2px solid var(--text); outline-offset: -1px; }
-body.v2 .filters #langFilter, body.v2 .filters .mix { display: none; }
+body.v2 .filters #langFilter { display: none; }
 body.v2 .s5-filter { height: 40px; display: inline-flex; align-items: center; gap: 10px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 3px; background: transparent; color: var(--text); font: 600 13px Heebo, sans-serif; white-space: nowrap; flex: none; cursor: pointer; }
 body.v2 .s5-filter .sw { width: 32px; height: 18px; border-radius: 9px; background: var(--line2); position: relative; flex: none; }
 body.v2 .s5-filter .sw i { position: absolute; top: 2px; inset-inline-end: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
@@ -943,4 +943,16 @@ body.v2 .acts .more-btn, body.v2 .cp-short { display: none; }
   body.v2 .cp-long { display: none; }
   body.v2 .cp-short { display: inline; }
   body.v2 .acts .claim-btn, body.v2 .acts .copy-btn { font-size: 13px; padding: 0 6px; }
+}
+/* newest ↔ most popular: always visible (editors use it all the time) */
+body.v2 .filters .mix { display: inline-flex; height: 40px; box-sizing: border-box; padding: 0 12px; gap: 8px; border: 1px solid var(--line2); border-radius: 3px; font: 600 12.5px Heebo, sans-serif; color: var(--muted); flex: none; }
+body.v2 .mix input[type="range"] { width: 110px; accent-color: var(--brand); }
+@media (min-width: 701px) { body.v2 #search { width: 240px; } }
+@media (max-width: 700px) {
+  body.v2 .filters { display: flex; flex-wrap: wrap; padding: 8px 12px; gap: 8px; }
+  body.v2 .filters #search { display: none; }
+  body.v2.show-search .filters #search { display: block; }
+  body.v2 .filters .mix { flex: 1 1 100%; height: 40px; }
+  body.v2 .filters .mix input[type="range"] { flex: 1; width: auto; }
+  body.v2 .s5-filter { flex: 1 1 100%; justify-content: flex-start; }
 }
