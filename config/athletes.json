@@ -37,5 +37,6 @@
   {"name":"Or Ashkenazi","name_he":"אור אשכנזי","alt":[],"team":"Lipscomb Bisons","team_he":"ליפסקומב","team_alt":["Lipscomb"],"country":"usa","sport":"basketball","college":true},
   {"name":"Eyal Harel","name_he":"אייל הראל","alt":[],"team":"Idaho State Bengals","team_he":"איידהו סטייט","team_alt":["Idaho State"],"country":"usa","sport":"basketball","college":true},
   {"name":"Roi Behar","name_he":"","alt":[],"team":"Bryant Bulldogs","team_he":"בראיינט","team_alt":["Bryant"],"country":"usa","sport":"basketball","college":true},
-  {"name":"Or Faran","name_he":"","alt":[],"team":"Mercyhurst Lakers","team_he":"מרסיהרסט","team_alt":["Mercyhurst"],"country":"usa","sport":"basketball","college":true}
+  {"name":"Or Faran","name_he":"","alt":[],"team":"Mercyhurst Lakers","team_he":"מרסיהרסט","team_alt":["Mercyhurst"],"country":"usa","sport":"basketball","college":true},
+  {"name":"Emanuel Sharp","name_he":"עמנואל שארפ","alt":["Emmanuel Sharp","אמנואל שארפ"],"team":"Sacramento Kings","team_he":"סקרמנטו","team_alt":[],"country":"usa","sport":"basketball"}
 ]
