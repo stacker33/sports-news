@@ -20,7 +20,10 @@ const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googlea
 const ENDPOINT = `${BASE_URL}/chat/completions`;
 const MODEL = process.env.AI_MODEL || 'gemini-flash-latest';
 const FALLBACK = process.env.AI_MODEL_FALLBACK || 'gemini-flash-lite-latest';
-const PER_REQUEST = 10;
+const PER_REQUEST = 8; // stories per summary request (smaller = faster answer from the strong model)
+const STRONG_TIMEOUT = 75000; // the strong model thinks before it answers; past this, the light one takes the call
+const GOOGLE = /generativelanguage\.googleapis\.com/.test(process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com');
+let reasoningParamOk = GOOGLE; // Gemini accepts reasoning_effort; dropped for good if a provider rejects it
 const HEADLINES_PER_REQUEST = 30;
 const DAILY_CAP = Number(process.env.AI_DAILY_CAP) || 400; // under the free tier's daily request limit (the provider's real limits may be lower)
 const PER_HOUR = Math.ceil(DAILY_CAP / 20); // spread the day's budget
@@ -99,7 +102,7 @@ function storyInput(s, sums, heName) {
 // The story's earliest article: stays the same while the lead article changes
 const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
 
-async function callModel(token, model, system, user) {
+async function callModel(token, model, system, user, { quick = false, timeout = 90000 } = {}) {
   const res = await fetch(ENDPOINT, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', accept: 'application/json' },
@@ -108,12 +111,14 @@ async function callModel(token, model, system, user) {
       temperature: 0.3,
       max_tokens: 8000,
       response_format: { type: 'json_object' },
+      // translation needs little "thinking": a low reasoning budget answers in seconds instead of minutes
+      ...(quick && reasoningParamOk ? { reasoning_effort: 'low' } : {}),
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },
       ],
     }),
-    signal: AbortSignal.timeout(90000),
+    signal: AbortSignal.timeout(timeout),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 700)}`); // long enough to tell a per-day quota from a per-minute one
   const body = await res.text();
@@ -162,15 +167,28 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     st.used++;
     st.hourly.push(now);
     const m = model(strong);
+    const opts = m === MODEL ? { quick: true, timeout: STRONG_TIMEOUT } : {};
+    const t0 = Date.now();
     try {
-      const out = await callModel(token, m, system, user);
+      let out;
+      try {
+        out = await callModel(token, m, system, user, opts);
+      } catch (e) {
+        // a provider that doesn't know reasoning_effort: never send it again, retry once without it
+        if (!(opts.quick && reasoningParamOk && /HTTP 400/.test(e.message) && /reasoning/i.test(e.message))) throw e;
+        reasoningParamOk = false;
+        out = await callModel(token, m, system, user, { timeout: STRONG_TIMEOUT });
+      }
       st.model = m;
+      if (m === MODEL) st.strong = { ok: true, ms: Date.now() - t0, at: now };
       return out;
     } catch (e) {
       // the main model: daily quota gone / unknown model → the light one for the rest of the day;
-      // a per-minute limit or an overload (5xx) → the light one just for this call
-      if (m === MODEL && MODEL !== FALLBACK && /HTTP (429|404|400|5\d\d)/.test(e.message)) {
-        const daily = /HTTP (404|400)/.test(e.message) || (/HTTP 429/.test(e.message) && /per ?day|PerDay|daily/i.test(e.message));
+      // a per-minute limit, an overload (5xx) or too slow (timeout) → the light one just for this call
+      const slow = /abort|timeout/i.test(e.message);
+      if (m === MODEL) st.strong = { ok: false, ms: Date.now() - t0, at: now, err: String(e.message).slice(0, 120) };
+      if (m === MODEL && MODEL !== FALLBACK && (slow || /HTTP (429|404|400|5\d\d)/.test(e.message))) {
+        const daily = !slow && (/HTTP (404|400)/.test(e.message) || (/HTTP 429/.test(e.message) && /per ?day|PerDay|daily/i.test(e.message)));
         if (daily) st.mainOffDay = day;
         st.used++;
         st.hourly.push(now);
