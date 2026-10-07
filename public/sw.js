@@ -1,6 +1,6 @@
 // Service worker: app shell works offline; news data always network-first.
-const CACHE = 'sports-radar-v37';
-const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'scores.js', 'learn.js', 'manifest.webmanifest', 'icon.svg'];
+const CACHE = 'sports-radar-v38'; // keep in step with the ?v= on the files in index.html
+const SHELL = ['./', 'index.html', 'style.css?v=38', 'app.js?v=38', 'scores.js?v=38', 'learn.js?v=38', 'manifest.webmanifest', 'icon.svg'];
 
 // Clicking a notification opens the story (or focuses the app)
 self.addEventListener('notificationclick', (e) => {
@@ -33,7 +33,8 @@ self.addEventListener('fetch', (e) => {
 
   // Network first for everything same-origin; fall back to cache when offline
   e.respondWith(
-    fetch(e.request)
+    // no-cache: always ask the server whether the file changed (a cheap 304 when it didn't), so a new version shows at once
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
