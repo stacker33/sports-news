@@ -20,10 +20,13 @@ const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googlea
 const ENDPOINT = `${BASE_URL}/chat/completions`;
 const MODEL = process.env.AI_MODEL || 'gemini-flash-latest';
 const FALLBACK = process.env.AI_MODEL_FALLBACK || 'gemini-flash-lite-latest';
-const PER_REQUEST = 8; // stories per summary request (smaller = faster answer from the strong model)
+const PER_REQUEST = 5; // stories per summary request (smaller = faster answer from the strong model)
 const STRONG_TIMEOUT = 75000; // the strong model thinks before it answers; past this, the light one takes the call
 const GOOGLE = /generativelanguage\.googleapis\.com/.test(process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com');
-let reasoningParamOk = GOOGLE; // Gemini accepts reasoning_effort; dropped for good if a provider rejects it
+// thinking budget for the strong model: off if the model allows it, else low; a level the model rejects is skipped for good
+const REASONING = GOOGLE ? ['none', 'low'] : [];
+let reasoningLevel = 0;
+const reasoningParamOk = () => reasoningLevel < REASONING.length;
 const HEADLINES_PER_REQUEST = 30;
 const DAILY_CAP = Number(process.env.AI_DAILY_CAP) || 400; // under the free tier's daily request limit (the provider's real limits may be lower)
 const PER_HOUR = Math.ceil(DAILY_CAP / 20); // spread the day's budget
@@ -112,7 +115,7 @@ async function callModel(token, model, system, user, { quick = false, timeout = 
       max_tokens: 8000,
       response_format: { type: 'json_object' },
       // translation needs little "thinking": a low reasoning budget answers in seconds instead of minutes
-      ...(quick && reasoningParamOk ? { reasoning_effort: 'low' } : {}),
+      ...(quick && reasoningParamOk() ? { reasoning_effort: REASONING[reasoningLevel] } : {}),
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },
@@ -175,12 +178,12 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         out = await callModel(token, m, system, user, opts);
       } catch (e) {
         // a provider that doesn't know reasoning_effort: never send it again, retry once without it
-        if (!(opts.quick && reasoningParamOk && /HTTP 400/.test(e.message) && /reasoning/i.test(e.message))) throw e;
-        reasoningParamOk = false;
-        out = await callModel(token, m, system, user, { timeout: STRONG_TIMEOUT });
+        if (!(opts.quick && reasoningParamOk() && /HTTP 400/.test(e.message) && /reasoning|thinking|budget/i.test(e.message))) throw e;
+        reasoningLevel++; // this level is not allowed for this model: try the next one
+        out = await callModel(token, m, system, user, opts);
       }
       st.model = m;
-      if (m === MODEL) st.strong = { ok: true, ms: Date.now() - t0, at: now };
+      if (m === MODEL) st.strong = { ok: true, ms: Date.now() - t0, at: now, effort: REASONING[reasoningLevel] || 'default', tokens: lastUsage?.total_tokens || null };
       return out;
     } catch (e) {
       // the main model: daily quota gone / unknown model → the light one for the rest of the day;
