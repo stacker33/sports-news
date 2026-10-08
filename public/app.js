@@ -12,7 +12,7 @@ const T = {
     search: 'חיפוש…',
     empty: 'אין ידיעות להצגה',
     tabs: {
-      top: '🔥 הכי חם', foryou: '⭐ בשבילך', foreign: '🔎 גילוי מחו"ל', ilmon: '👁 מעקב ישראלי', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
+      top: '🔥 ראשי', mytopics: '⭐ הנושאים שלי', foryou: '⭐ בשבילך', foreign: '🔎 גילוי מחו"ל', ilmon: '👁 מעקב ישראלי', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
       abroad: '✈️ ליגיונרים', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
@@ -175,7 +175,7 @@ const T = {
     search: 'Search…',
     empty: 'No stories to show',
     tabs: {
-      top: '🔥 Top', foryou: '⭐ For you', foreign: '🔎 Foreign discovery', ilmon: '👁 Israeli monitoring', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
+      top: '🔥 Main', mytopics: '⭐ My topics', foryou: '⭐ For you', foreign: '🔎 Foreign discovery', ilmon: '👁 Israeli monitoring', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
       abroad: '✈️ Israelis abroad', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
     },
     langs: { all: '🌍 Whole world (translated)', he: 'Hebrew only', en: 'English only' },
@@ -334,7 +334,10 @@ const T = {
   },
 };
 
-const TABS = ['top', 'foryou', 'foreign', 'ilmon', 'abroad', 'football', 'basketball', 'other'];
+// Main (top stories and foreign discovery merged) · world football · world basketball · Israelis abroad · Israeli
+// monitoring · Olympic & other sports · my topics (For you was replaced by the editor's own topics)
+const TABS = ['top', 'football', 'basketball', 'abroad', 'ilmon', 'other', 'mytopics'];
+const OLD_TAB = { foreign: 'top', foryou: 'mytopics', ilFootball: 'ilmon', ilBasketball: 'ilmon', ilOther: 'other' };
 const LANG_FILTERS = ['all', 'he', 'en'];
 
 // ---------- state (UI prefs remembered per device) ----------
@@ -361,7 +364,9 @@ if (V2) {
 }
 const state = {
   ui: store.get('ui', 'he'),
-  tab: TABS.includes(store.get('tab')) ? store.get('tab') : /^il(Football|Basketball)$/.test(store.get('tab')) ? 'ilmon' : store.get('tab') === 'ilOther' ? 'other' : 'top',
+  tab: TABS.includes(store.get('tab')) ? store.get('tab') : OLD_TAB[store.get('tab')] || 'top',
+  // football / basketball switch inside Israelis abroad and Israeli monitoring (remembered per tab)
+  sw: { abroad: store.get('sw.abroad', 'all'), ilmon: store.get('sw.ilmon', 'all') },
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
@@ -522,6 +527,7 @@ const activeTopic = () => topics.find((x) => x.id === state.topic) || null;
 
 function renderTopics() {
   const L = t().topics;
+  $('topicsBar').hidden = !state.topic;
   $('topicsBar').innerHTML = topics
     .map((tp) => {
       const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
@@ -615,7 +621,7 @@ function storiesFor(tab = state.tab) {
 function inTab(s, tab) {
   switch (tab) {
     case 'top': return (s.sport !== 'other' || s.big) && !s.local; // local leagues stay in their own tab
-    case 'foryou': return true;
+    case 'mytopics': return topics.some((tp) => matchTopic(s, tp));
     // foreign discovery: a foreign-origin report (an Israeli outlet covering it too doesn't remove it)
     case 'foreign': return !!s.v?.includes('f') && (s.sport !== 'other' || s.big);
     // Israeli monitoring: an Israeli-origin report or an Israeli subject
@@ -822,20 +828,23 @@ function visibleStories() {
       (!state.tag || s.tags?.some((g) => g.id === state.tag))
   );
   const mix = rankMix(list);
-  if (state.tab === 'foryou' && Learn.count() >= 3) {
+  if (false) {
     state.affinity = Learn.affinity(storiesFor());
     list = list.filter((s) => state.affinity.has(s.id));
     const val = (s) => 0.6 * state.affinity.get(s.id).score + 0.4 * mix(s);
     return list.sort((a, b) => val(b) - val(a)).slice(0, 150);
   }
-  if (state.tab === 'top' || state.tab === 'foryou') list = list.filter((s) => s.sport !== 'other' || s.big);
+  if (state.tab === 'top') list = list.filter((s) => s.sport !== 'other' || s.big);
+  // the football / basketball switch
+  const sw = state.sw[state.tab];
+  if (sw && sw !== 'all') list = list.filter((s) => s.sport === sw);
   list.sort((a, b) => mix(b) - mix(a));
   // at the popular end, keep the list focused
   return list.slice(0, mixVal() >= 70 ? 120 : 300);
 }
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
-const EDITORIAL_TABS = new Set(['foreign', 'football', 'basketball', 'abroad']);
+const EDITORIAL_TABS = new Set(['top', 'football', 'basketball', 'abroad']);
 const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !state.topic;
 const mixVal = () => (editorialTab() ? state.mixF : state.mix);
 function rankMix(list) {
@@ -1067,7 +1076,7 @@ function cardHtmlV2(s, fresh) {
     ? `<a class="s5st s5st--${st.k}" href="${esc(st.link)}" target="_blank" rel="noopener" title="${esc(st.tip || '')}">${stInner}</a>`
     : `<span class="s5st s5st--${st.k}" title="${esc(st.tip || '')}">${stInner}</span>`;
   // labels, at most 3: scoop (reporter) · hot · sport on mixed tabs · topics
-  const mixed = state.tab === 'top' || state.tab === 'foryou';
+  const mixed = state.tab === 'top' || state.tab === 'mytopics';
   const reporter = (s.social || []).find((p) => !/[א-ת]/.test(p));
   const labels = [
     s.routine ? `<span class="lb lb--local" title="${esc(he ? 'חדשות שגרתיות של ליגה במעקב: מוצג נמוך יותר' : 'Routine news of a followed league: shown lower')}">${he ? 'שגרה' : 'Routine'}</span>` : '',
@@ -1392,7 +1401,8 @@ function playerCardsHtml() {
     const mini = `<button type="button" class="pmini${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}" title="${esc(statusText)}">${icon ? `<span>${icon}</span>` : ''}<b>${esc(name)}</b>${nextShort ? `<small>${esc(nextShort)}</small>` : ''}</button>`;
     return { a, full, mini };
   };
-  const all = [...players].sort((a, b) => rank(a) - rank(b)).map(build);
+  const swA = state.sw.abroad;
+  const all = [...players].filter((a) => swA === 'all' || (a.sport || 'football') === swA).sort((a, b) => rank(a) - rank(b)).map(build);
   const groups = ['football', 'basketball'].map((sp) => [sp, all.filter((x) => (x.a.sport || 'football') === sp)]).filter(([, list]) => list.length);
   const head = `<div class="seg abroad-view">${['news', 'players']
     .map((v) => `<button type="button" data-av="${v}" aria-pressed="${state.abroadView === v}">${esc(v === 'news' ? L.viewNews : L.viewPlayers)}</button>`)
@@ -1452,16 +1462,63 @@ $('list').addEventListener('click', (e) => {
   renderList();
 });
 
+// the search the radar runs for a topic ("search actively"): its words and tag names, as one Google query
+function topicQuery(tp) {
+  const q = (x) => (/\s/.test(x) ? `"${x}"` : x);
+  const terms = [...(tp.words || []), ...(tp.tags || []).map((id) => tp.tagLabels?.[id] || '')].map((x) => String(x).trim()).filter(Boolean);
+  let out = '';
+  for (const x of terms) {
+    const next = out ? `${out} OR ${q(x)}` : q(x);
+    if (next.length > 80) break;
+    out = next;
+  }
+  return out;
+}
 function topicsCardHtml() {
   const L = t().topics;
+  const he = state.ui === 'he';
   const chips = topics
     .map((tp) => {
+      const n = topicStories(tp).length;
       const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
-      return `<button type="button" class="topic-chip" data-topic="${esc(tp.id)}">⭐ ${esc(tp.name)}${fresh ? `<b>${fresh}</b>` : ''}</button>`;
+      const until = tp.searchUntil && tp.searchUntil > Date.now() ? tp.searchUntil : 0;
+      const q = topicQuery(tp);
+      const act = !q ? ''
+        : until
+          ? `<button type="button" class="tc-search on" data-tsearch="${esc(tp.id)}" title="${esc(he ? 'הרדאר מחפש את הנושא ברשת. לחיצה מחדשת ל-6 שעות' : 'The radar is searching the web for this topic. Click to renew for 6 hours')}">${icon('radar', 13, 2)}${esc(he ? `מחפש ברשת עד ${hhmm(until)}` : `Searching until ${hhmm(until)}`)}</button>`
+          : `<button type="button" class="tc-search" data-tsearch="${esc(tp.id)}" title="${esc(he ? 'בנוסף לסינון, הרדאר יחפש את הנושא ברשת במשך 6 שעות' : 'Besides filtering, the radar searches the web for this topic for 6 hours')}">${icon('search', 13, 2)}${esc(he ? 'חפש גם ברשת' : 'Also search the web')}</button>`;
+      return `<span class="tc-item"><button type="button" class="topic-chip" data-topic="${esc(tp.id)}">⭐ ${esc(tp.name)} <small>${n}</small>${fresh ? `<b>${fresh}</b>` : ''}</button>${act}</span>`;
     })
     .join('');
-  return `<section class="topics-card"><div class="tc-head"><b>${esc(L.cardTitle)}</b><button type="button" class="tc-add" data-topic-new="1">${esc(L.addBig)}</button></div>${chips ? `<div class="tc-chips">${chips}</div>` : `<p class="tc-hint">${esc(L.cardHint)}</p>`}</section>`;
+  const note = `<p class="tc-hint">${esc(he ? 'נושא מסנן את מה שהרדאר כבר אוסף. "חפש גם ברשת" גורם לרדאר לחפש אותו בפועל (6 שעות, אפשר לחדש). הנושאים שמורים בדפדפן הזה.' : 'A topic filters what the radar already collects. "Also search the web" makes the radar actively search for it (6 hours, renewable). Topics are saved in this browser.')}</p>`;
+  return `<section class="topics-card"><div class="tc-head"><b>${esc(L.cardTitle)}</b><button type="button" class="tc-add" data-topic-new="1">${esc(L.addBig)}</button></div>${chips ? `<div class="tc-chips">${chips}</div>${note}` : `<p class="tc-hint">${esc(L.cardHint)}</p>`}</section>`;
 }
+// football / basketball switch (Israelis abroad, Israeli monitoring)
+function sportSwitchHtml() {
+  const he = state.ui === 'he';
+  const lab = { all: he ? 'הכל' : 'All', football: he ? 'כדורגל' : 'Football', basketball: he ? 'כדורסל' : 'Basketball' };
+  return `<div class="seg sport-sw" role="group">${['all', 'football', 'basketball'].map((k) => `<button type="button" data-sw="${k}" aria-pressed="${state.sw[state.tab] === k}">${esc(lab[k])}</button>`).join('')}</div>`;
+}
+$('list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-sw]');
+  if (!b || !state.sw[state.tab]) return;
+  state.sw[state.tab] = b.dataset.sw;
+  store.set('sw.' + state.tab, b.dataset.sw);
+  renderChrome();
+  renderList();
+});
+$('list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tsearch]');
+  if (!b) return;
+  const tp = topics.find((x) => x.id === b.dataset.tsearch);
+  const q = tp && topicQuery(tp);
+  if (!q) return;
+  // the same request as "follow in the radar": the collector searches it for 6 hours from its next run
+  sendFeedback({ type: 'search', q });
+  tp.searchUntil = Date.now() + 6 * 3600e3;
+  saveTopics();
+  renderList();
+});
 $('list').addEventListener('click', (e) => {
   const card = e.target.closest('.topics-card');
   if (!card) return;
@@ -1542,9 +1599,8 @@ function renderList(freshIds = new Set()) {
   const searchBar = state.q.trim() && (state.searchExtra > 0 || state.searchAll)
     ? `<div class="search-bar">${state.searchAll ? '' : `<span>${esc(F.moreTabs(state.searchExtra))}</span>`}<button type="button" class="small-btn" id="searchAllBtn">${esc(state.searchAll ? F.backTab : F.showAll)}</button></div>`
     : '';
-  const banner = searchBar + briefHtml() + (state.tab === 'foryou' && !tp ? topicsCardHtml() : '') + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
-    ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
-    : '');
+  const swBar = state.sw[state.tab] && !tp ? sportSwitchHtml() : '';
+  const banner = searchBar + briefHtml() + (state.tab === 'mytopics' && !tp ? topicsCardHtml() : '') + swBar + sinceBar + topicBar + tagBar;
   const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
   const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
   // new design: the feed sits in one frame with a header (tab · sort · count) and its own empty state

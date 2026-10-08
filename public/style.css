@@ -978,3 +978,15 @@ body.v2 .lb--local { background: transparent; color: var(--muted); box-shadow: i
 
 /* discovery version: a visible "trial version" label next to the name */
 .trial-badge { display: inline-block; margin-inline-start: 8px; padding: 1px 8px; border-radius: 999px; background: #f2c14e; color: #3a2e0c; font-size: 11.5px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
+
+/* my topics: a chip + its "also search the web" action; football / basketball switch */
+.topics-card .tc-item { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 6px; margin-inline-end: 10px; }
+.topics-card .topic-chip small { opacity: .7; font-weight: 400; margin-inline-start: 3px; }
+.topics-card .tc-search { display: inline-flex; align-items: center; gap: 4px; border: 1px dashed var(--line); background: transparent; color: var(--muted); border-radius: 999px; padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+.topics-card .tc-search.on { border-style: solid; border-color: var(--accent); color: var(--accent); }
+.sport-sw { display: inline-flex; margin: 4px 0 10px; }
+.sport-sw button { font: inherit; font-size: 13px; padding: 5px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
+.sport-sw button:first-child { border-start-start-radius: 8px; border-end-start-radius: 8px; }
+.sport-sw button:last-child { border-start-end-radius: 8px; border-end-end-radius: 8px; }
+.sport-sw button + button { border-inline-start: 0; }
+.sport-sw button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
