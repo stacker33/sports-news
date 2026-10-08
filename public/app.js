@@ -13,7 +13,7 @@ const T = {
     empty: 'אין ידיעות להצגה',
     tabs: {
       top: '🔥 ראשי', mytopics: '⭐ הנושאים שלי', foryou: '⭐ בשבילך', foreign: '🔎 גילוי מחו"ל', ilmon: '👁 מעקב ישראלי', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
-      abroad: '✈️ ליגיונרים', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
+      abroad: '✈️ ליגיונרים כדורגל', abroadB: '✈️ ליגיונרים כדורסל', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
     langName: { en: 'אנגלית', es: 'ספרדית', it: 'איטלקית', de: 'גרמנית', fr: 'צרפתית', pt: 'פורטוגזית', nl: 'הולנדית', tr: 'טורקית', el: 'יוונית', sr: 'סרבית', ro: 'רומנית', hu: 'הונגרית', pl: 'פולנית', ja: 'יפנית', cs: "צ'כית", he: 'עברית' },
@@ -176,7 +176,7 @@ const T = {
     empty: 'No stories to show',
     tabs: {
       top: '🔥 Main', mytopics: '⭐ My topics', foryou: '⭐ For you', foreign: '🔎 Foreign discovery', ilmon: '👁 Israeli monitoring', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
-      abroad: '✈️ Israelis abroad', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
+      abroad: '✈️ Israelis abroad: football', abroadB: '✈️ Israelis abroad: basketball', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
     },
     langs: { all: '🌍 Whole world (translated)', he: 'Hebrew only', en: 'English only' },
     langName: { he: 'Hebrew', es: 'Spanish', it: 'Italian', de: 'German', fr: 'French', pt: 'Portuguese', nl: 'Dutch', tr: 'Turkish', el: 'Greek', sr: 'Serbian', ro: 'Romanian', hu: 'Hungarian', pl: 'Polish', ja: 'Japanese', cs: 'Czech', en: 'English' },
@@ -336,7 +336,11 @@ const T = {
 
 // Main (top stories and foreign discovery merged) · world football · world basketball · Israelis abroad · Israeli
 // monitoring · Olympic & other sports · my topics (For you was replaced by the editor's own topics)
-const TABS = ['top', 'football', 'basketball', 'abroad', 'ilmon', 'other', 'mytopics'];
+const TABS = ['top', 'football', 'basketball', 'abroad', 'abroadB', 'ilmon', 'other', 'mytopics'];
+// Israelis abroad: two tabs, football ('abroad') and basketball ('abroadB'), with the same player row and cards
+const ABROAD = { abroad: 'football', abroadB: 'basketball' };
+const isAbroad = (tab) => tab in ABROAD;
+const athleteSport = (name) => (state.athletes?.athletes || []).find((a) => a.name === name)?.sport || 'football';
 const OLD_TAB = { foreign: 'top', foryou: 'mytopics', ilFootball: 'ilmon', ilBasketball: 'ilmon', ilOther: 'other' };
 const LANG_FILTERS = ['all', 'he', 'en'];
 
@@ -366,7 +370,7 @@ const state = {
   ui: store.get('ui', 'he'),
   tab: TABS.includes(store.get('tab')) ? store.get('tab') : OLD_TAB[store.get('tab')] || 'top',
   // football / basketball switch inside Israelis abroad and Israeli monitoring (remembered per tab)
-  sw: { abroad: store.get('sw.abroad', 'all'), ilmon: store.get('sw.ilmon', 'all') },
+  sw: { ilmon: store.get('sw.ilmon', 'all') },
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
@@ -628,7 +632,12 @@ function inTab(s, tab) {
     case 'ilmon': return !!s.v?.includes('i');
     case 'ilFootball': return s.israel && s.sport === 'football';
     case 'ilBasketball': return s.israel && s.sport === 'basketball';
-    case 'abroad': return s.abroad || (state.teamNews && s.teams?.length > 0);
+    case 'abroad':
+    case 'abroadB': {
+      const sp = ABROAD[tab];
+      if (s.athletes?.some((n) => athleteSport(n) === sp)) return true;
+      return !!(state.teamNews && s.teams?.length > 0 && s.sport === sp);
+    }
     case 'football': return !s.israel && s.sport === 'football';
     case 'basketball': return !s.israel && s.sport === 'basketball';
     case 'other': return s.sport === 'other'; // Olympic & other sports: Israeli and world together
@@ -844,7 +853,7 @@ function visibleStories() {
 }
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
-const EDITORIAL_TABS = new Set(['top', 'football', 'basketball', 'abroad']);
+const EDITORIAL_TABS = new Set(['top', 'football', 'basketball', 'abroad', 'abroadB']);
 const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !state.topic;
 const mixVal = () => (editorialTab() ? state.mixF : state.mix);
 function rankMix(list) {
@@ -1249,9 +1258,9 @@ function renderChrome() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => (el.placeholder = t()[el.dataset.i18nPlaceholder]));
 
   const counts = {};
-  if (state.data) for (const tab of TABS) counts[tab] = storiesFor(tab).filter((s) => inTab(s, tab) && (tab === 'abroad' || langOkFor(s))).length;
+  if (state.data) for (const tab of TABS) counts[tab] = storiesFor(tab).filter((s) => inTab(s, tab) && (isAbroad(tab) || langOkFor(s))).length;
   $('tabs').innerHTML = TABS.map(
-    (tab) => `<button class="tab${tab === 'abroad' ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(V2 ? noEmoji(t().tabs[tab]) : t().tabs[tab])}${
+    (tab) => `<button class="tab${isAbroad(tab) ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(V2 ? noEmoji(t().tabs[tab]) : t().tabs[tab])}${
       state.data ? `<span class="count">${counts[tab]}</span>` : ''
     }</button>`
   ).join('');
@@ -1279,7 +1288,7 @@ function renderChrome() {
 
   // Israelis abroad: player chips + team-news toggle + edit button
   const bar = $('abroadBar');
-  if (state.tab === 'abroad') {
+  if (isAbroad(state.tab)) {
     const n = {};
     if (state.data) for (const s of storiesFor()) for (const a of s.athletes) n[a] = (n[a] || 0) + 1;
     const players = state.athletes?.athletes || [];
@@ -1401,7 +1410,7 @@ function playerCardsHtml() {
     const mini = `<button type="button" class="pmini${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}" title="${esc(statusText)}">${icon ? `<span>${icon}</span>` : ''}<b>${esc(name)}</b>${nextShort ? `<small>${esc(nextShort)}</small>` : ''}</button>`;
     return { a, full, mini };
   };
-  const swA = state.sw.abroad;
+  const swA = ABROAD[state.tab] || 'all';
   const all = [...players].filter((a) => swA === 'all' || (a.sport || 'football') === swA).sort((a, b) => rank(a) - rank(b)).map(build);
   const groups = ['football', 'basketball'].map((sp) => [sp, all.filter((x) => (x.a.sport || 'football') === sp)]).filter(([, list]) => list.length);
   const head = `<div class="seg abroad-view">${['news', 'players']
@@ -1601,8 +1610,8 @@ function renderList(freshIds = new Set()) {
     : '';
   const swBar = state.sw[state.tab] && !tp ? sportSwitchHtml() : '';
   const banner = searchBar + briefHtml() + (state.tab === 'mytopics' && !tp ? topicsCardHtml() : '') + swBar + sinceBar + topicBar + tagBar;
-  const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
-  const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
+  const cardsRow = isAbroad(state.tab) && !tp ? playerCardsHtml() : '';
+  const playersOnly = isAbroad(state.tab) && state.abroadView === 'players' && !tp;
   // new design: the feed sits in one frame with a header (tab · sort · count) and its own empty state
   const he = state.ui === 'he';
   const searching = !!state.q.trim();
@@ -1615,7 +1624,7 @@ function renderList(freshIds = new Set()) {
       : `<div class="empty-v2"><span class="ev-ic">${icon('search', 22)}</span><b>${esc(t().empty)}</b></div>`
     : '';
   $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + emptyV2 + webHtml());
-  $('empty').hidden = V2 || list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
+  $('empty').hidden = V2 || list.length > 0 || (isAbroad(state.tab) && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
   paintClaims();
   if (seenObserver) {
     seenObserver.disconnect();
@@ -1697,7 +1706,7 @@ $('trendsPane').addEventListener('click', (e) => {
 $('trendsPane').addEventListener('click', (e) => {
   const b = e.target.closest('[data-athlete-go]');
   if (!b) return;
-  state.tab = 'abroad';
+  state.tab = athleteSport(b.dataset.athleteGo) === 'basketball' ? 'abroadB' : 'abroad';
   state.athlete = b.dataset.athleteGo;
   state.view = 'news';
   renderChrome();

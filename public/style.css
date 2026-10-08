@@ -990,3 +990,24 @@ body.v2 .lb--local { background: transparent; color: var(--muted); box-shadow: i
 .sport-sw button:last-child { border-start-end-radius: 8px; border-end-end-radius: 8px; }
 .sport-sw button + button { border-inline-start: 0; }
 .sport-sw button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* the header must never be wider than the screen (the trial added "מעקב" and the trial label) */
+@media (max-width: 1199px) {
+  body.v2 .bar .hb-t { display: none; }
+  body.v2 .bar .tg-btn, body.v2 .bar .icon-btn { padding: 0 9px; }
+}
+body.v2 .bar { min-width: 0; }
+body.v2 .bar .status { min-width: 0; overflow: hidden; }
+@media (max-width: 700px) {
+  .trial-badge { margin-inline-start: 5px; padding: 0 6px; font-size: 10.5px; }
+  body.v2 .bar .watch-link { display: none; } /* the watchlist page is a desk tool: from a computer */
+}
+/* a guard: nothing may make the page scroll sideways (clip keeps sticky headers working) */
+body.v2 { overflow-x: clip; }
+body.v2 .news-controls, body.v2 .filters { min-width: 0; max-width: 100%; }
+body.v2 .filters { flex-wrap: wrap; }
+html { overflow-x: clip; }
+@media (max-width: 700px) {
+  .trial-badge .tb-long { display: none; }
+  body.v2 .bar { gap: 6px; }
+}
