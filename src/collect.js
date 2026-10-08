@@ -43,7 +43,7 @@ import { loadAthletes, resolveTeams, athleteSources, buildMatchers, COUNTRIES } 
 import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candidateQueries, planQueries, recordQueries, watchSources, norm as watchNorm, entryLocales, entryPriority, searchable, loadOverrides } from './watchlist.js';
 import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
-import { editorialRank, loadRankConfig } from './rank.js';
+import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'public', 'data');
@@ -440,6 +440,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   // Votes come from the previous run's feedback (loaded later in this run).
   const s5check = sport5Check(meta, now);
   const rankCfg = loadRankConfig(join(ROOT, 'config', 'editorial-rank.json'));
+  loadRankVocabulary(join(ROOT, 'config', 'vocabulary.json')); // the editors' keyword list for news value
   const heOf = new Map(athletes.filter((a) => a.name_he).map((a) => [a.name, a.name_he]));
   const heName = (n) => heOf.get(n) || n;
   for (const s of stories) {

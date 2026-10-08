@@ -37,6 +37,51 @@ const FAMILIES = [
   ['controversy', 0.75, 'Controversy / discipline', 'סערה / משמעת', /\b(suspended|suspension|banned?|fined?|red card|sent off|investigation|charged|appeal|controvers\w*|row|feud|clash|protest|boycott)\b|הורחק|הושעה|קנס|חקירה|סערה|עימות|מחאה|חרם/i],
   ['record', 0.65, 'Performance / record', 'הישג / שיא', /\b(record|historic|milestone|career-high|hat-?trick|brace|double-double|triple-double|buzzer-?beater|game-winner|man of the match|player of the match)\b|שיא|היסטורי|שלושער|צמד|דאבל דאבל|טריפל דאבל|מצטיין/i],
 ];
+// The editors' keyword list (config/vocabulary.json, appendices B and C): each family becomes one matcher over the
+// story's headlines, in English, Hebrew and the other languages. Matching a phrase says what kind of story it is,
+// not that it happened. Generic single words ("offer", "talks", "row") are left out: only phrases and longer words.
+const VOCAB_FAMILIES = {
+  transfers: [0.75, 'Transfer / contract news', 'העברה / חוזה', ['transfer'], ['transfers']],
+  interviews: [0.75, 'Interview / quotes / personal story', 'ראיון / ציטוטים / סיפור אישי', ['interview'], ['quotes', 'personal']],
+  performance: [0.65, 'Performance / record / injury / discipline', 'הישג / שיא / פציעה / משמעת', ['injury'], ['performance']],
+  'israel-institutions': [0.75, 'Israel and sport bodies / protests / security', 'ישראל ומוסדות הספורט / מחאה / ביטחון', [], ['israeli', 'events']],
+  unusual: [0.75, 'Unusual / viral / human interest', 'חריג / ויראלי / סיפור אנושי', [], ['events']],
+  business: [0.6, 'Ownership / business / investigation', 'בעלות / כסף / חקירה', [], []],
+};
+const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const ASCII = /^[\x00-\x7f]+$/;
+const keepTerm = (t) => !ASCII.test(t) || t.includes(' ') || t.length >= 8; // phrases, non-Latin words, long words
+export function vocabMatchers(vocab = {}) {
+  const fams = vocab.families || {};
+  const multi = vocab.multilingual || {};
+  const heb = fams.hebrew?.groups || {};
+  const out = [];
+  for (const [key, [value, en, he, multiKeys, hebKeys]] of Object.entries(VOCAB_FAMILIES)) {
+    const terms = [
+      ...(fams[key]?.terms || []),
+      ...Object.values(multi).flatMap((l) => (Array.isArray(l) || typeof l !== 'object' ? [] : multiKeys.flatMap((k) => l[k] || []))),
+      ...hebKeys.flatMap((k) => heb[k] || []),
+    ].filter((t) => t && keepTerm(t));
+    if (!terms.length) continue;
+    const latin = terms.filter((t) => ASCII.test(t)).map(escRe);
+    const other = terms.filter((t) => !ASCII.test(t)).map(escRe);
+    const parts = [];
+    if (latin.length) parts.push('(?<![\\p{L}\\p{N}])(?:' + latin.join('|') + ')(?![\\p{L}\\p{N}])');
+    if (other.length) parts.push('(?:' + other.join('|') + ')');
+    out.push([key, value, en, he, new RegExp(parts.join('|'), 'iu')]);
+  }
+  return out;
+}
+let VOCAB = [];
+export function loadVocabulary(path) {
+  try {
+    VOCAB = vocabMatchers(JSON.parse(readFileSync(path, 'utf8')));
+  } catch {
+    VOCAB = [];
+  }
+  return VOCAB;
+}
+
 const LOW = /\b(how to watch|where to watch|tv channel|live stream(ing)?|odds|betting|prediction|predicted line-?ups?|live:|live updates|as it happened|minute-by-minute|quiz)\b|^live\b|איפה לצפות|שידור חי|ניחושים|הימורים/i;
 const RATINGS = /\bplayer ratings\b|\bratings?:|\breport card\b|\bpagelle\b|\bnotes? des joueurs\b|\bcalificaciones\b|\bcijfers\b/i;
 const EXCLUSIVE = /\bexclusive\b|\bexclusiva\b|\besclusiva\b|בלעדי/i;
@@ -110,11 +155,11 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
   } else if (comps.some((c) => BIG.has(c))) {
     dims.importance = 0.75;
     why('importance', 'big', 'European cup / national teams', 'גביע אירופי / נבחרות');
-  } else dims.importance = s.local ? 0.15 : 0.35;
-  if (s.local) limit('local', 'Local league: lower interest unless there is an Israeli angle', 'ליגה מקומית: עניין נמוך אלא אם יש זווית ישראלית');
+  } else dims.importance = s.local ? 0.15 : s.routine ? 0.25 : 0.35;
 
   // News value (headline level)
-  const fam = FAMILIES.find(([, , , , re]) => re.test(text));
+  // the strongest matching family: the fixed list first, then the editors' keyword list
+  const fam = [...FAMILIES, ...VOCAB].filter(([, , , , re]) => re.test(text)).sort((a, b) => b[1] - a[1])[0];
   if (isPage(s)) {
     dims.news = 0.05;
     why('news', 'page', 'Looks like a reference page, not a news story', 'נראה כמו דף מידע, לא ידיעה');
@@ -191,6 +236,14 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
     sum += wk * (dims[k] ?? 0);
   }
   let score = (100 * sum) / total;
+  // leagues the desk does not follow are far down here too; routine news of a followed league a little lower
+  if (s.local) {
+    score *= 0.5;
+    limit('local', 'Outside the leagues the desk follows', 'מחוץ לליגות שהדסק עוקב אחריהן');
+  } else if (s.routine) {
+    score *= 0.75;
+    limit('routine', 'Routine news of a followed league', 'חדשות שגרתיות של ליגה במעקב');
+  }
   // a reference page is not a story, however relevant its subject
   if (dims.news === 0.05) {
     score *= 0.4;

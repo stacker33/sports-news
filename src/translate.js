@@ -49,8 +49,9 @@ async function translateBatch(texts, from, to) {
 export async function translateItems(items, cache, { maxTitles = 300 } = {}) {
   const jobs = new Map(); // "from>to" -> [item]
   for (const it of items) {
-    if (it.lang === 'en') continue;
-    for (const to of it.lang === 'he' ? ['en'] : ['en', 'he']) {
+    // English → Hebrew too: outside Israeli monitoring an English story can no longer borrow an Israeli site's
+    // Hebrew headline, so it gets its own translation
+    for (const to of it.lang === 'he' ? ['en'] : it.lang === 'en' ? ['he'] : ['en', 'he']) {
       if (cache[it.id]?.[to]) continue;
       const key = `${it.lang}>${to}`;
       if (!jobs.has(key)) jobs.set(key, []);

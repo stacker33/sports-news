@@ -59,6 +59,8 @@ export function normalizeAthlete(a) {
     sport: a.sport === 'basketball' ? 'basketball' : 'football',
     // US college (NCAA) players: found by name only — college team names ("Utah", "Tennessee") would match NBA/NFL news
     ...(a.college ? { college: true } : {}),
+    // the name in the club country's own script, from an official source (e.g. the J.League site for Japan)
+    ...(Array.isArray(a.local) && a.local.length ? { local: a.local.map(str).filter(Boolean) } : {}),
     // a 365Scores team id, when searching by name finds the wrong team ("Utah" → Utah Jazz)
     ...(Number(a.team365) > 0 ? { team365: Number(a.team365) } : {}),
   };
@@ -130,6 +132,22 @@ export function athleteSources(athletes, teamCache) {
     if (he) out.push({ id: `abroad-he-${n}`, name: 'Google News', url: gnews(`(${he}) when:2d`, 'he'), lang: 'he', weight: 1, google: true, every: 4 });
   }
 
+  // Each player by name in the language of his club's country (Lemkin in Dutch, Jaber in French, Lavi in Japanese):
+  // the local press, which English searches miss. Local-script names (`local`) where the country uses another script.
+  const byLocale = new Map();
+  for (const a of athletes) {
+    const locale = COUNTRIES[a.country]?.locale;
+    if (!locale || locale === 'en' || locale === 'en-GB' || a.college) continue;
+    byLocale.set(locale, [...(byLocale.get(locale) || []), a]);
+  }
+  for (const [locale, list] of byLocale) {
+    for (let i = 0; i < list.length; i += 5) {
+      // full Latin alternative names too ("Abu Fani", "Mahmud Jaber"), never a bare surname
+      const names = list.slice(i, i + 5).flatMap((a) => [a.name, ...a.alt.filter((x) => /[a-z]/i.test(x) && x.includes(' ')), ...(a.local || [])]);
+      out.push({ id: `abroad-${locale}-${i / 5 + 1}`, name: 'Google News', url: gnews(`(${names.map((x) => `"${x}"`).join(' OR ')}) when:2d`, locale), lang: LOCALE_LANG(locale), weight: 1, google: true, every: 6 });
+    }
+  }
+
   const teams = new Map();
   for (const a of athletes) if (a.team && !a.college) teams.set(`${a.sport}|${a.team}`, a);
   for (const [key, a] of teams) {
@@ -166,7 +184,7 @@ function matcher(term) {
 export function buildMatchers(athletes, teamCache) {
   const players = athletes.map((a) => ({
     name: a.name,
-    test: [a.name, a.name_he, ...a.alt].filter(Boolean).map(matcher),
+    test: [a.name, a.name_he, ...a.alt, ...(a.local || [])].filter(Boolean).map(matcher),
   }));
   const teams = new Map();
   for (const a of athletes) {

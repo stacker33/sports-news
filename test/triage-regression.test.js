@@ -58,23 +58,50 @@ test('ranking: big competitions and transfers up, how-to-watch down', () => {
   assert.equal(editorialBoost({ ...base, title: 'A quiet story' }).score, 10);
 });
 
-test('local leagues: low unless Israeli, big competition, European cup, viral or a star', async () => {
+test('leagues the desk follows: football outside the big 5 is far down unless Israeli, viral or a star', async () => {
   const { markLocal, memberLocal } = await import('../src/editorial.js');
   const greek = { country: 'Greece' };
   const isLocal = (m) => memberLocal(m, m.src);
-  const st = (title, extra = {}, members) => ({ score: 10, pop: 10, title, langs: ['el'], _members: members || [{ title, lang: 'el', src: greek, ents: [] }], ...extra });
-  // PAOK's domestic news, only Greek outlets → local
+  const club = [{ k: 'team', id: 't1' }];
+  const st = (title, extra = {}, members) => ({ score: 10, pop: 10, title, sport: 'football', langs: ['el'], tags: club, comps: [], _members: members || [{ title, lang: 'el', src: greek, ents: [] }], ...extra });
+  // PAOK's domestic news → local, far down
   const paok = markLocal(st('ΠΑΟΚ: ο Μιχαηλίδης στην αποστολή'), isLocal);
   assert.equal(paok.local, true);
-  assert.equal(paok.score, 3.5);
+  assert.equal(paok.score, 1.5);
+  // a European cup game between two smaller clubs is not enough
+  assert.ok(markLocal(st('Porto - Olympiacos', { comps: ['c-uel'] }), isLocal).local);
+  // ... but a big-5 opponent makes it a big-5 story
+  assert.ok(!markLocal(st('PAOK - Lyon', { comps: ['c-uel', 'c-ligue1'] }), isLocal).local);
+  // Porto news covered by an English outlet is still local (the club decides, not the outlet)
+  assert.ok(markLocal(st('Porto sign a defender', { langs: ['pt', 'en'] }, [{ title: 'x', lang: 'pt', src: { country: 'Portugal' }, ents: [] }, { title: 'x', lang: 'en', src: null, ents: [] }]), isLocal).local);
   // exceptions
-  assert.ok(!markLocal(st('Ολυμπιακός κέρδισε', { comps: ['c-euroleague'], sport: 'basketball' }), isLocal).local); // EuroLeague club
-  assert.ok(markLocal(st('Η οψιόν στο συμβόλαιο του Μιχαηλίδη', { comps: ['c-eurocup'], sport: 'football' }), isLocal).local); // PAOK football ≠ EuroCup basketball
-  assert.ok(!markLocal(st('PAOK - Lyon', {}, [{ title: 'PAOK - Lyon', lang: 'el', src: greek, ents: ['c-uel'] }]), isLocal).local); // a European cup game
   assert.ok(!markLocal(st('Ο Μουρίνιο θυμωμένος', { _members: [{ title: 'Mourinho furious', lang: 'el', src: greek, ents: [] }] }), isLocal).local); // a star
+  assert.ok(!markLocal(st('Ronaldo scores for Al Nassr', { langs: ['en'] }), isLocal).local); // a star outside the big 5
   assert.ok(!markLocal(st('Ο Λιόρ Ρεφαέλοφ', { abroad: true }), isLocal).local); // Israeli angle
-  assert.ok(!markLocal(st('PAOK coach sacked', { langs: ['el', 'en', 'tr'] }), isLocal).local); // spreading
-  assert.ok(!markLocal(st('PAOK news', {}, [{ title: 'PAOK news', lang: 'el', src: greek, ents: [] }, { title: 'PAOK news', lang: 'en', src: null, ents: [] }]), isLocal).local); // an English outlet covers it
-  // a Spanish story is never local
-  assert.ok(!markLocal(st('El Betis gana', { langs: ['es'] }, [{ title: 'El Betis gana', lang: 'es', src: { country: 'Spain' }, ents: [] }]), isLocal).local);
+  assert.ok(!markLocal(st('PAOK coach sacked', { langs: ['el', 'en', 'tr'] }), isLocal).local); // viral / worldwide
+  assert.ok(!markLocal(st('Portugal squad named', { tags: [], comps: ['c-unl'] }), isLocal).local); // national teams
+  // big-5 clubs are never local
+  assert.ok(!markLocal(st('El Betis gana', { langs: ['es'], comps: ['c-laliga'] }), isLocal).local);
+  // no known club: the outlet's market decides
+  assert.ok(markLocal(st('Τι είπε ο προπονητής', { tags: [] }), isLocal).local);
+  assert.ok(!markLocal(st('What the coach said', { tags: [], langs: ['en'] }, [{ title: 'x', lang: 'en', src: null, ents: [] }]), isLocal).local);
+});
+
+test('basketball: EuroLeague / EuroCup / NBA; routine news lower, other clubs far down', async () => {
+  const { markLocal } = await import('../src/editorial.js');
+  const club = [{ k: 'team', id: 't1' }];
+  const b = (title, extra = {}) => markLocal({ score: 10, pop: 10, title, sport: 'basketball', langs: ['el'], tags: club, comps: [], sourceCount: 1, _members: [{ title, lang: 'el', ents: [] }], ...extra }, () => true);
+  // EuroLeague clubs: a named EuroLeague game stays, a domestic league game is routine
+  assert.ok(!b('Olympiacos win EuroLeague thriller', { comps: ['c-euroleague'] }).routine);
+  assert.equal(b('Olympiacos beat Lavrio in the Greek league', { comps: ['c-euroleague'] }).score, 4.5);
+  assert.ok(!b('Panathinaikos signs a center', { comps: ['c-euroleague'] }).routine); // a transfer
+  assert.ok(!b('Real Madrid head coach sacked', { comps: ['c-euroleague'] }).routine); // a coach change
+  // NBA: big news and follow-ups stay, routine is lower
+  assert.ok(!b('Lakers trade for a guard', { comps: ['c-nba'] }).routine);
+  assert.ok(!b('Takeaways from the Celtics win over the Knicks', { comps: ['c-nba'] }).routine); // a follow-up
+  assert.ok(!b('Western Conference finals: game 3 preview', { comps: ['c-nba'] }).routine);
+  assert.ok(b('Hornets injury report for Tuesday', { comps: ['c-nba'] }).routine);
+  // a club outside EuroLeague / EuroCup / NBA: far down
+  assert.equal(b('Aris lose at home', { comps: [] }).score, 1.5);
+  assert.ok(!b('Aris sign Israeli guard', { comps: [], abroad: true }).local); // Israeli angle
 });

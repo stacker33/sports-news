@@ -835,12 +835,14 @@ function visibleStories() {
 }
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
-const mixVal = () => (state.tab === 'foreign' && !state.topic ? state.mixF : state.mix);
+const EDITORIAL_TABS = new Set(['foreign', 'football', 'basketball', 'abroad']);
+const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !state.topic;
+const mixVal = () => (editorialTab() ? state.mixF : state.mix);
 function rankMix(list) {
   const w = mixVal() / 100;
   const maxPop = Math.log1p(Math.max(1, ...list.map((s) => s.pop ?? s.score)));
   const now = Date.now();
-  const editorial = state.tab === 'foreign' && !state.topic;
+  const editorial = editorialTab();
   return (s) => {
     const popN = editorial ? (s.ed?.score ?? 0) / 100 : Math.log1p(s.pop ?? s.score) / maxPop;
     const freshN = Math.exp(-(now - s.first) / (6 * 3600e3)); // halves roughly every 4 hours
@@ -1005,8 +1007,8 @@ function s5Status(s) {
 
 // ---------- editorial explanation (discovery views) ----------
 const LIMITS = {
-  he: { single: 'מקור יחיד - דורש אימות', 'origin-unknown': 'המקור המקורי לא ידוע', cites: (a) => `מצטט את ${a}; הכתבה המקורית לא נאספה`, exclusive: 'כתוב "בלעדי" - לא אומת', time: 'זמן הפרסום לא ידוע', local: 'ליגה מקומית', 's5-unavailable': 'בדיקת ספורט 5 לא זמינה', page: 'דף מידע, לא ידיעה', headline: 'רק כותרת ותקציר - צריך לקרוא את המקור' },
-  en: { single: 'Single source - needs confirmation', 'origin-unknown': 'Original source unknown', cites: (a) => `Cites ${a}; original article not collected`, exclusive: 'Says "exclusive" - not verified', time: 'Publication time unknown', local: 'Local league', 's5-unavailable': 'Sport5 check unavailable', page: 'Reference page, not a news story', headline: 'Only headline/description available; source reading needed' },
+  he: { single: 'מקור יחיד - דורש אימות', 'origin-unknown': 'המקור המקורי לא ידוע', cites: (a) => `מצטט את ${a}; הכתבה המקורית לא נאספה`, exclusive: 'כתוב "בלעדי" - לא אומת', time: 'זמן הפרסום לא ידוע', 's5-unavailable': 'בדיקת ספורט 5 לא זמינה', routine: 'חדשות שגרתיות', local: 'מחוץ לליגות במעקב', page: 'דף מידע, לא ידיעה', headline: 'רק כותרת ותקציר - צריך לקרוא את המקור' },
+  en: { single: 'Single source - needs confirmation', 'origin-unknown': 'Original source unknown', cites: (a) => `Cites ${a}; original article not collected`, exclusive: 'Says "exclusive" - not verified', time: 'Publication time unknown', 's5-unavailable': 'Sport5 check unavailable', routine: 'routine news', local: 'outside the followed leagues', page: 'Reference page, not a news story', headline: 'Only headline/description available; source reading needed' },
 };
 function leadOf(s) {
   const l = s.ev?.lead;
@@ -1016,7 +1018,7 @@ function leadOf(s) {
 function explainHtml(s) {
   const he = state.ui === 'he';
   const lang = he ? 'he' : 'en';
-  const view = state.tab === 'foreign' || state.tab === 'ilmon';
+  const view = EDITORIAL_TABS.has(state.tab) || state.tab === 'ilmon';
   const out = [];
   if (view && s.ed?.reasons?.length) {
     const rs = s.ed.reasons.slice(0, 3).map((x) => esc(String(x[lang] || x.en).replace('{t}', x.at ? hhmm(x.at) : '?')));
@@ -1068,6 +1070,7 @@ function cardHtmlV2(s, fresh) {
   const mixed = state.tab === 'top' || state.tab === 'foryou';
   const reporter = (s.social || []).find((p) => !/[א-ת]/.test(p));
   const labels = [
+    s.routine ? `<span class="lb lb--local" title="${esc(he ? 'חדשות שגרתיות של ליגה במעקב: מוצג נמוך יותר' : 'Routine news of a followed league: shown lower')}">${he ? 'שגרה' : 'Routine'}</span>` : '',
     s.local ? `<span class="lb lb--local" title="${esc(he ? 'ליגה מקומית — מוצג נמוך ברשימה' : 'Local league — shown lower')}">${he ? 'מקומי' : 'Local'}</span>` : '',
     reporter ? `<span class="lb lb--scoop" title="${esc(L.socialTip)}">${esc(he ? `סקופ · ${reporter}` : `Scoop · ${reporter}`)}</span>` : '',
     isHot ? `<span class="lb lb--hot">${icon('flame', 12, 2)}${esc(noEmoji(L.hot))}</span>` : '',
@@ -1248,7 +1251,7 @@ function renderChrome() {
     (f) => `<button data-lf="${f}" aria-pressed="${f === state.langFilter}">${esc(t().langs[f])}</button>`
   ).join('');
   $('mixLabelNew').textContent = t().mix.newest;
-  $('mixLabelPop').textContent = state.tab === 'foreign' ? t().mix.editorial : t().mix.popular;
+  $('mixLabelPop').textContent = editorialTab() ? t().mix.editorial : t().mix.popular;
   $('mix').value = mixVal();
 
   // Israeli tabs: filter by the opponent's press (Israel–Ireland → Irish press…)
@@ -1548,7 +1551,7 @@ function renderList(freshIds = new Set()) {
   const he = state.ui === 'he';
   const searching = !!state.q.trim();
   const feedHead = V2 && !playersOnly
-    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : mixVal() >= 50 ? (state.tab === 'foreign' ? (he ? 'מיון: חשיבות לעורך, אחר כך זמן' : 'Sorted: editorial rank, then time') : he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
+    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : mixVal() >= 50 ? (editorialTab() ? (he ? 'מיון: חשיבות לעורך, אחר כך זמן' : 'Sorted: editorial rank, then time') : he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
     : '';
   const emptyV2 = V2 && !playersOnly && !list.length
     ? state.notS5
@@ -2061,7 +2064,7 @@ $('langFilter').addEventListener('click', (e) => {
   renderChrome(); renderList(); renderJustIn(); renderTrends();
 });
 $('mix').addEventListener('input', (e) => {
-  if (state.tab === 'foreign' && !state.topic) {
+  if (editorialTab()) {
     state.mixF = Number(e.target.value);
     store.set('mixF', state.mixF);
   } else {
