@@ -445,6 +445,16 @@ export async function collect({ log = console.log, force = false } = {}) {
   for (const s of stories) {
     const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
     for (const x of s.sources) if (roles[x.link]) [x.o, x.r] = roles[x.link];
+    // Israeli sites are shown only in Israeli monitoring: for a story with both, the foreign report the other tabs
+    // show instead (its own headline, translated; never an Israeli outlet's headline, link, picture or video)
+    const foreignM = s._members.filter((m) => roles[m.link]?.[0] !== 'il');
+    if (ev.il > 0 && foreignM.length) {
+      const f = foreignM.find((m) => m.link === ev.lead?.link) || [...foreignM].sort((a, b) => (b.google ? 0 : 1) - (a.google ? 0 : 1) || b.weight - a.weight || a.published - b.published)[0];
+      const trF = tr[f.id] || {};
+      const pick = (lang) => (f.lang === lang ? { title: f.title, link: f.link } : trF[lang] ? { title: trF[lang], link: f.link, from: f.lang } : null);
+      const pubs = new Set(foreignM.map((m) => String(m.publisher || '').toLowerCase()));
+      s.fv = { title: f.title, link: f.link, lang: f.lang, t: { he: pick('he'), en: pick('en') }, image: f.image || foreignM.find((m) => m.image)?.image || null, video: foreignM.find((m) => m.video)?.link || null, sourceCount: pubs.size, langs: [...new Set(foreignM.map((m) => m.lang))] };
+    }
     s.ev = ev;
     s.cov = storyCoverage(s, s5check, ev);
     s.v = storyViews(s, ev);

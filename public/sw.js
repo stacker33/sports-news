@@ -1,6 +1,6 @@
 // Service worker: app shell works offline; news data always network-first.
-const CACHE = 'sports-radar-v40'; // keep in step with the ?v= on the files in index.html
-const SHELL = ['./', 'index.html', 'style.css?v=40', 'app.js?v=40', 'scores.js?v=40', 'learn.js?v=40', 'manifest.webmanifest', 'icon.svg'];
+const CACHE = 'sports-radar-v41'; // keep in step with the ?v= on the files in index.html
+const SHELL = ['./', 'index.html', 'style.css?v=41', 'app.js?v=41', 'scores.js?v=41', 'learn.js?v=41', 'manifest.webmanifest', 'icon.svg'];
 
 // Clicking a notification opens the story (or focuses the app)
 self.addEventListener('notificationclick', (e) => {

@@ -31,6 +31,8 @@ export function itemOrigin(m, src = {}) {
   if (src.origin) return { origin: src.origin, basis: 'source-metadata' };
   if (HEBREW.test(pub)) return { origin: 'il', basis: 'hebrew-publisher' };
   if (ISRAELI_PUBLISHERS.test(pub)) return { origin: 'il', basis: 'known-israeli-outlet' };
+  // a Hebrew-language article is, in practice, from an Israeli site (Google sometimes shows a Latin site name)
+  if (m.lang === 'he' || HEBREW.test(m.title)) return { origin: 'il', basis: 'hebrew-language' };
   const h = m.google ? '' : host(m.link);
   if (h && ISRAELI_DOMAIN.test(h)) return { origin: 'il', basis: 'israeli-domain' };
   if (ISRAELI_DOMAIN.test(pub)) return { origin: 'il', basis: 'israeli-domain' };

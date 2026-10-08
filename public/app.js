@@ -334,7 +334,7 @@ const T = {
   },
 };
 
-const TABS = ['top', 'foryou', 'foreign', 'ilmon', 'ilFootball', 'ilBasketball', 'abroad', 'football', 'basketball', 'other'];
+const TABS = ['top', 'foryou', 'foreign', 'ilmon', 'abroad', 'football', 'basketball', 'other'];
 const LANG_FILTERS = ['all', 'he', 'en'];
 
 // ---------- state (UI prefs remembered per device) ----------
@@ -361,7 +361,7 @@ if (V2) {
 }
 const state = {
   ui: store.get('ui', 'he'),
-  tab: TABS.includes(store.get('tab')) ? store.get('tab') : store.get('tab') === 'ilOther' ? 'other' : 'top',
+  tab: TABS.includes(store.get('tab')) ? store.get('tab') : /^il(Football|Basketball)$/.test(store.get('tab')) ? 'ilmon' : store.get('tab') === 'ilOther' ? 'other' : 'top',
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
@@ -446,7 +446,7 @@ const seenObserver = 'IntersectionObserver' in window
       for (const en of entries) {
         const el = en.target;
         clearTimeout(el._seenT);
-        if (en.isIntersecting) el._seenT = setTimeout(() => markSeen(state.data?.stories.find((x) => x.id === el.dataset.id)), 1500);
+        if (en.isIntersecting) el._seenT = setTimeout(() => markSeen(storiesFor().find((x) => x.id === el.dataset.id)), 1500);
       }
     }, { threshold: 0.6 })
   : null;
@@ -517,7 +517,7 @@ function matchTopic(s, tp) {
   if (!tp.words.length && !tp.tags.length) return true;
   return tp.words.some((w) => text.includes(w)) || tp.tags.some((id) => s.tags?.some((g) => g.id === id));
 }
-const topicStories = (tp) => (state.data?.stories || []).filter((s) => matchTopic(s, tp));
+const topicStories = (tp) => (storiesFor()).filter((s) => matchTopic(s, tp));
 const activeTopic = () => topics.find((x) => x.id === state.topic) || null;
 
 function renderTopics() {
@@ -534,7 +534,7 @@ function renderTopics() {
 let topicDraft = null;
 function allTags() {
   const m = new Map();
-  for (const s of state.data?.stories || []) for (const g of s.tags || []) if (!m.has(g.id)) m.set(g.id, g);
+  for (const s of storiesFor()) for (const g of s.tags || []) if (!m.has(g.id)) m.set(g.id, g);
   return [...m.values()];
 }
 function openTopicEditor(tp) {
@@ -546,7 +546,7 @@ function renderTopicEditor(msg = '') {
   const L = t().topics;
   const d = topicDraft;
   const opt = (v, cur, label) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${esc(label)}</option>`;
-  const sources = [...new Set((state.data?.stories || []).flatMap((s) => s.sources.map((x) => x.name)))].sort();
+  const sources = [...new Set((storiesFor()).flatMap((s) => s.sources.map((x) => x.name)))].sort();
   const n = topicStories({ ...d, words: d.words, tags: d.tags }).length;
   $('topicForm').innerHTML = `
     <h3>${esc(d.isNew ? L.newTitle : L.editTitle)}</h3>
@@ -590,6 +590,27 @@ function readTopicForm() {
 }
 
 // ---------- filtering ----------
+
+// ---------- Israeli sites only in Israeli monitoring ----------
+// Every other tab sees a foreign-only version of each story: Israeli outlets' articles are taken out (headline,
+// link, sources), a story only Israeli sites covered is left out, and the competitors line is not shown.
+// fv (from the collector) = the foreign report to show: title, link, lang, translated headlines, image, outlets.
+function foreignOnly(s) {
+  const src = s.sources || [];
+  if (!src.some((x) => x.o === 'il')) return s;
+  const keep = src.filter((x) => x.o !== 'il');
+  if (!s.fv || !keep.length) return null;
+  const v = { ...s, ...s.fv, sources: keep, cov: s.cov ? { ...s.cov, comp: [] } : s.cov, realLink: undefined, sum: s.ai?.he?.sum ? s.sum : undefined };
+  delete v.fv;
+  return v;
+}
+let noIl = { src: null, list: [] };
+function storiesFor(tab = state.tab) {
+  const all = state.data?.stories || [];
+  if (tab === 'ilmon') return all;
+  if (noIl.src !== all) noIl = { src: all, list: all.map(foreignOnly).filter(Boolean) };
+  return noIl.list;
+}
 
 function inTab(s, tab) {
   switch (tab) {
@@ -782,27 +803,27 @@ function visibleStories() {
   };
   if (tp) {
     // an open topic: everything that matches, in any tab
-    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
+    const list = storiesFor().filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
     if (qWords.length) return bySearch(list);
     const mix = rankMix(list);
     return list.sort((a, b) => mix(b) - mix(a)).slice(0, 300);
   }
   const base = (s) => langOk(s) && s5ok(s) && filtersOk(s);
   if (qWords.length) {
-    const everywhere = bySearch(state.data.stories.filter(base));
+    const everywhere = bySearch(storiesFor().filter(base));
     const inThisTab = everywhere.filter((s) => inTab(s, state.tab) && athleteOk(s));
     state.searchExtra = everywhere.length - inThisTab.length; // the "N more results in other tabs" bar
     return state.searchAll ? everywhere : inThisTab;
   }
   state.searchExtra = 0;
-  let list = state.data.stories.filter(
+  let list = storiesFor().filter(
     (s) =>
       inTab(s, state.tab) && base(s) && athleteOk(s) && (!state.rival || s.rival?.opponent === state.rival) &&
       (!state.tag || s.tags?.some((g) => g.id === state.tag))
   );
   const mix = rankMix(list);
   if (state.tab === 'foryou' && Learn.count() >= 3) {
-    state.affinity = Learn.affinity(state.data.stories);
+    state.affinity = Learn.affinity(storiesFor());
     list = list.filter((s) => state.affinity.has(s.id));
     const val = (s) => 0.6 * state.affinity.get(s.id).score + 0.4 * mix(s);
     return list.sort((a, b) => val(b) - val(a)).slice(0, 150);
@@ -833,7 +854,7 @@ function featLabel(f) {
   if (k === 'sport' || k === 'cat') return t().feat[v] || v;
   if (k === 'rival') return '🆚 ' + v;
   if (k === 'tag') {
-    const g = state.data?.stories.flatMap((s) => s.tags || []).find((x) => x.id === v);
+    const g = storiesFor().flatMap((s) => s.tags || []).find((x) => x.id === v);
     return g ? tagName(g) : v;
   }
   if (k === 'ath') {
@@ -1216,7 +1237,7 @@ function renderChrome() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => (el.placeholder = t()[el.dataset.i18nPlaceholder]));
 
   const counts = {};
-  if (state.data) for (const tab of TABS) counts[tab] = state.data.stories.filter((s) => inTab(s, tab) && (tab === 'abroad' || langOkFor(s))).length;
+  if (state.data) for (const tab of TABS) counts[tab] = storiesFor(tab).filter((s) => inTab(s, tab) && (tab === 'abroad' || langOkFor(s))).length;
   $('tabs').innerHTML = TABS.map(
     (tab) => `<button class="tab${tab === 'abroad' ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(V2 ? noEmoji(t().tabs[tab]) : t().tabs[tab])}${
       state.data ? `<span class="count">${counts[tab]}</span>` : ''
@@ -1233,7 +1254,7 @@ function renderChrome() {
   // Israeli tabs: filter by the opponent's press (Israel–Ireland → Irish press…)
   const rivalBar = $('rivalBar');
   const rivals = state.tab.startsWith('il') ? (state.data?.rivals || []).filter((g) => (state.tab === 'ilBasketball' ? g.sport === 'basketball' : state.tab === 'ilFootball' ? g.sport === 'football' : true)) : [];
-  const withNews = rivals.filter((g) => state.data.stories.some((s) => s.rival?.opponent === g.opponent));
+  const withNews = rivals.filter((g) => storiesFor().some((s) => s.rival?.opponent === g.opponent));
   if (withNews.length) {
     const when = (ts) => new Date(ts).toLocaleString(state.ui === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
     rivalBar.innerHTML =
@@ -1248,7 +1269,7 @@ function renderChrome() {
   const bar = $('abroadBar');
   if (state.tab === 'abroad') {
     const n = {};
-    if (state.data) for (const s of state.data.stories) for (const a of s.athletes) n[a] = (n[a] || 0) + 1;
+    if (state.data) for (const s of storiesFor()) for (const a of s.athletes) n[a] = (n[a] || 0) + 1;
     const players = state.athletes?.athletes || [];
     const label = (a) => (state.ui === 'he' && a.name_he ? a.name_he : a.name);
     const teamLabel = (a) => (state.ui === 'he' && a.team_he ? a.team_he : a.team);
@@ -1308,9 +1329,9 @@ function playerCardsHtml() {
   const when = (ts) => new Date(ts).toLocaleString(he ? 'he-IL' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
   const day = (ts) => new Date(ts).toLocaleDateString(he ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' });
   const gi = state.data?.gameInfo || {};
-  const ctx = { nationalSquad: state.athletes?.nationalSquad || [], natGames: (state.data?.rivals || []).filter((g) => g.national), stories: state.data?.stories || [] };
+  const ctx = { nationalSquad: state.athletes?.nationalSquad || [], natGames: (state.data?.rivals || []).filter((g) => g.national), stories: storiesFor() };
   const cards = state.athletes?.cards || {};
-  const newsOf = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name)).sort((a, b) => b.first - a.first)[0];
+  const newsOf = (name) => (storiesFor()).filter((s) => s.athletes?.includes(name)).sort((a, b) => b.first - a.first)[0];
   const rank = (a) => (cards[a.name]?.next?.start ?? Infinity); // next to play first
   const build = (a) => {
     const k = cards[a.name];
@@ -1376,7 +1397,7 @@ function playerCardsHtml() {
   if (state.abroadView === 'news') {
     // the 5 with the most news in the last 24h (the selected one stays visible) + a button for everyone
     const since = Date.now() - 24 * 3600e3;
-    const newsN = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name) && (s.latest || s.first) > since).length;
+    const newsN = (name) => (storiesFor()).filter((s) => s.athletes?.includes(name) && (s.latest || s.first) > since).length;
     const top = all.map((x) => ({ ...x, n: newsN(x.a.name) })).sort((p, q) => q.n - p.n).slice(0, 5);
     const sel = state.athlete && !top.some((x) => x.a.name === state.athlete) && all.find((x) => x.a.name === state.athlete);
     if (sel) top[top.length - 1] = sel;
@@ -1397,7 +1418,7 @@ function briefHtml() {
   if (!b || state.tab !== 'top' || state.q.trim() || state.tag || activeTopic()) return '';
   const il = ilNow();
   if (b.day !== il.day || il.hour >= 12 || store.get('briefHidden') === b.day) return '';
-  const byId = new Map(state.data.stories.map((s) => [s.id, s]));
+  const byId = new Map(storiesFor().map((s) => [s.id, s]));
   const items = b.ids.map((id) => byId.get(id)).filter(Boolean);
   if (items.length < 3) return '';
   const he = state.ui === 'he';
@@ -1462,8 +1483,8 @@ function webSearch(q) {
       const j = await res.json();
       if (web.q !== q) return; // a newer search started
       // drop what the radar already has (same link, or the same headline)
-      const links = new Set(state.data.stories.flatMap((s) => s.sources.map((x) => x.link)));
-      const heads = new Set(state.data.stories.flatMap((s) => s.sources.map((x) => normText(x.title))));
+      const links = new Set(storiesFor().flatMap((s) => s.sources.map((x) => x.link)));
+      const heads = new Set(storiesFor().flatMap((s) => s.sources.map((x) => normText(x.title))));
       Object.assign(web, { loading: false, items: (j.items || []).filter((x) => !links.has(x.link) && !heads.has(normText(x.title))).slice(0, 30) });
     } catch {
       Object.assign(web, { loading: false, error: true, items: [] });
@@ -1508,7 +1529,7 @@ $('list').addEventListener('click', (e) => {
 
 function renderList(freshIds = new Set()) {
   const list = visibleStories();
-  const tagInfo = state.tag && state.data?.stories.flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
+  const tagInfo = state.tag && storiesFor().flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
   const tagBar = tagInfo ? `<div class="tag-filter"><button type="button" class="tag on" data-tag="${esc(tagInfo.id)}">${TAG_ICON[tagInfo.k] || ''} ${esc(tagName(tagInfo))} ✕</button></div>` : '';
   const tp = activeTopic();
   const topicBar = tp ? `<div class="topic-banner"><b>⭐ ${esc(tp.name)}</b><span class="muted">${esc(t().topics.banner(list.length))}</span><button type="button" class="small-btn" data-topic-edit="${esc(tp.id)}">${esc(t().topics.edit)}</button><button type="button" class="small-btn" data-topic="${esc(tp.id)}">${esc(t().topics.clear)}</button></div>` : '';
@@ -1546,7 +1567,7 @@ function renderList(freshIds = new Set()) {
 // ---------- rendering: just in ----------
 function renderJustIn(freshIds = new Set()) {
   if (!state.data) return;
-  const list = state.data.stories
+  const list = storiesFor()
     .filter(langOkFor)
     .filter((s) => !s.dateUnknown && Date.now() - s.first < 6 * 3600e3)
     .sort((a, b) => b.first - a.first)
@@ -1571,7 +1592,7 @@ function renderTrends() {
   const T = state.data?.trends;
   const L = t().trends;
   if (!T) return void ($('trendsPane').innerHTML = `<p class="muted pad">${esc(L.empty)}</p>`);
-  const byId = new Map((state.data.stories || []).map((s) => [s.id, s]));
+  const byId = new Map(storiesFor().map((s) => [s.id, s]));
   const he = state.ui === 'he';
   const storyTitle = (s) => (he ? (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title) : s.lang === 'en' ? s.title : s.t?.en?.title) || disp(s).title;
   const row = (g) => {
@@ -1643,7 +1664,7 @@ function renderScores() {
       nationalSquad: state.athletes?.nationalSquad || [],
       natGames: (state.data?.rivals || []).filter((g) => g.national),
       gameInfo: state.data?.gameInfo || {},
-      stories: state.data?.stories || [],
+      stories: storiesFor(),
     },
   });
 }
@@ -2073,7 +2094,7 @@ function recordOpen(e) {
   const a = e.target.closest('a[href]');
   const holder = a && e.target.closest('[data-id]');
   if (!holder || a.closest('.meta')) return; // the translate link etc. is not a read
-  const s = state.data?.stories.find((x) => x.id === holder.dataset.id);
+  const s = storiesFor().find((x) => x.id === holder.dataset.id);
   if (s) Learn.record(s);
   markSeen(s);
 }
@@ -2127,7 +2148,7 @@ $('list').addEventListener('click', (e) => {
   }
   const opt = e.target.closest('[data-fix]');
   if (!opt) return;
-  const s = state.data?.stories.find((x) => x.id === opt.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === opt.closest('.card').dataset.id);
   if (!s) return;
   const v = opt.dataset.fix;
   sendFix(s, v === 'hide' ? { hide: true } : v === 'il' ? { israel: true } : v === 'notIl' ? { israel: false } : { sport: v });
@@ -2157,7 +2178,7 @@ $('list').addEventListener('click', (e) => {
   const btn = e.target.closest('.vote-btn');
   if (!btn) return;
   const card = btn.closest('.card');
-  const s = state.data?.stories.find((x) => x.id === card.dataset.id);
+  const s = storiesFor().find((x) => x.id === card.dataset.id);
   if (!s) return;
   const v = Number(btn.dataset.vote);
   const next = myVotes[s.id] === v ? 0 : v; // click again to withdraw
@@ -2181,7 +2202,7 @@ $('list').addEventListener('click', (e) => {
   const b = e.target.closest('[data-why]');
   if (!b) return;
   const card = b.closest('.card');
-  const s = state.data?.stories.find((x) => x.id === card?.dataset.id);
+  const s = storiesFor().find((x) => x.id === card?.dataset.id);
   if (!s || myVotes[s.id] !== -1) return;
   const s5 = !s.s5 ? 'none' : s.s5.where === 'channel' ? 'channel' : s.s5.probable ? 'probable' : 'site';
   sendFeedback({ type: 'vote', id: s.id, vote: -1, reason: b.dataset.why, title: (s.ai?.he?.title || s.title).slice(0, 200), sport: s.sport, israel: !!s.israel, s5, link: s.link });
@@ -2294,7 +2315,7 @@ async function loadClaims() {
 // update the badges / buttons in place (no full re-render while someone is reading)
 function paintClaims() {
   document.querySelectorAll('#list .card[data-id]').forEach((card) => {
-    const s = state.data?.stories.find((x) => x.id === card.dataset.id);
+    const s = storiesFor().find((x) => x.id === card.dataset.id);
     if (!s) return;
     const slot = card.querySelector('.claim-slot');
     if (slot) slot.innerHTML = claimBadge(s);
@@ -2325,7 +2346,7 @@ async function toggleClaim(s) {
 $('list').addEventListener('click', (e) => {
   const btn = e.target.closest('.claim-btn');
   if (!btn) return;
-  const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === btn.closest('.card').dataset.id);
   if (s) toggleClaim(s);
 });
 
@@ -2361,7 +2382,7 @@ $('list').addEventListener('click', async (e) => {
   const copy = e.target.closest('.copy-btn');
   const mail = e.target.closest('.mail-btn');
   if (!copy && !mail) return;
-  const s = state.data?.stories.find((x) => x.id === e.target.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === e.target.closest('.card').dataset.id);
   if (!s) return;
   const { title, text } = editorText(s);
   if (copy) {
@@ -2389,7 +2410,7 @@ $('list').addEventListener('click', (e) => {
   const eb = e.target.closest('.embed-btn');
   if (!qb && !eb) return;
   e.stopPropagation();
-  const s = state.data?.stories.find((x) => x.id === e.target.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === e.target.closest('.card').dataset.id);
   if (!s) return;
   if (qb) {
     const q = s.ai?.he?.quotes?.[Number(qb.dataset.q)];
@@ -2468,7 +2489,7 @@ function shareText(s) {
 $('list').addEventListener('click', async (e) => {
   const btn = e.target.closest('.share-btn');
   if (!btn) return;
-  const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === btn.closest('.card').dataset.id);
   if (!s) return;
   const { text } = shareText(s);
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');

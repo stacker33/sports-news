@@ -156,3 +156,9 @@ test('feedback: sparse votes do nothing, many votes move the rank by a bounded a
   const voted = editorialRank(base, { now, votes: { up: Array.from({ length: 50 }, (_, i) => `d${i}`) } }).score;
   assert.ok(voted - plain <= 6 + 1e-9 && voted > plain);
 });
+
+test('a Hebrew-language article counts as an Israeli site even under a Latin site name', () => {
+  assert.equal(itemOrigin(item('Sport1 IL', 'הניע בעוצמה: אבדיה הוביל את פורטלנד')).origin, 'il');
+  assert.equal(itemOrigin({ ...item('Some Portal', 'x'), lang: 'he' }).origin, 'il');
+  assert.equal(itemOrigin(item('Marca', 'Avdija lidera a Portland')).origin, 'foreign');
+});
