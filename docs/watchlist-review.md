@@ -1,6 +1,6 @@
 # Watchlist review
 
-Generated 2026-10-07 from the candidate corpus. Knowledge base: 2026-10-04.
+Generated 2026-10-09 from the candidate corpus. Knowledge base: 2026-10-04.
 
 Only **verified** entries are searched by name and may show an Israel link. **Pending** entries are recognised in stories but never claim an Israel link and are not searched. **Source-only** entries (world stars, clubs) are for recognition and ranking.
 
@@ -12,7 +12,7 @@ To confirm or reject an entry, add it to `config/watchlist-overrides.json` by it
 
 then run `node scripts/build-watchlist.mjs`.
 
-## Verified (80)
+## Verified (81)
 
 | Name | Hebrew | Sport | Club | Basis / reason |
 |---|---|---|---|---|
@@ -37,6 +37,7 @@ then run `node scripts/build-watchlist.mjs`.
 | Idan Toklomati | עידן טוקלומטי | football | Charlotte FC | on the editors' ליגיונרים list |
 | Omer Atzili | עומר אצילי | football | Beitar Jerusalem | 365Scores nationality: Israel; squad data 2026-10-07 |
 | Yarden Shua | ירדן שועה | football | Beitar Jerusalem | 365Scores nationality: Israel; squad data 2026-10-07 |
+| Dia Saba | דיא סבע | football | Amed SK | on the editors' ליגיונרים list |
 | Yarden Cohen | ירדן כהן | football | Beitar Jerusalem | 365Scores nationality: Israel; squad data 2026-10-07 - needs context |
 | Eylon Almog | אילון אלמוג | football | Maccabi Netanya | 365Scores nationality: Israel; squad data 2026-10-07 |
 | Osher Davida | אושר דוידה | football | Maccabi Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-07 |
@@ -50,25 +51,25 @@ then run `node scripts/build-watchlist.mjs`.
 | Adi Yona | עדי יונה | football | Beitar Jerusalem | 365Scores nationality: Israel; squad data 2026-10-07 |
 | El Yam Kancepolsky | אל ים קנצפולסקי | football | Hapoel Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-07 |
 | Daniel Tenenbaum | דניאל טננבאום | football | Kiryat Shmona | 365Scores nationality: Israel; squad data 2026-10-07 |
-| Deni Avdija | דני אבדיה | basketball | Portland Trail Blazers | on the editors' ליגיונרים list |
+| Deni Avdija (דני אבדיה, אבדיה) | דני אבדיה | basketball | Portland Trail Blazers | on the editors' ליגיונרים list |
 | Ben Saraf | בן שרף | basketball | Brooklyn Nets | on the editors' ליגיונרים list |
 | Danny Wolf | דני וולף | basketball | Brooklyn Nets | on the editors' ליגיונרים list - needs context |
 | Yam Madar | ים מדר | basketball | Maccabi Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
 | Tamir Blatt | תמיר בלאט | basketball | Hapoel Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
 | Roman Sorkin | רומן סורקין | basketball | Maccabi Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
 | Noam Yaacov (Noam Yaakov) | נועם יעקב | basketball | Utah Utes | on the editors' ליגיונרים list |
-| Yovel Zoosman (Yuval Zoosman) | יובל זוסמן | basketball | Hapoel Jerusalem | 365Scores nationality: Israel; squad data 2026-10-01 |
+| Yovel Zoosman (Yuval Zoosman) | יובל זוסמן | basketball | Hapoel Jerusalem | 365Scores nationality: Israel; squad data 2026-10-08 |
 | Bar Timor | בר טימור | basketball | Hapoel Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
 | Tomer Ginat | תומר גינת | basketball | Hapoel Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
-| Gabriel Chachashvili (Gaby Chachashvili) | גבריאל צ'אצ'אשווילי | basketball | Hapoel Jerusalem | 365Scores nationality: Israel; squad data 2026-10-01 |
-| Roi Huber | רועי הובר | basketball | Hapoel Jerusalem | 365Scores nationality: Israel; squad data 2026-10-01 |
-| Gil Beni | גיל בני | basketball | Maccabi Ironi Ramat Gan | 365Scores nationality: Israel; squad data 2026-10-01 |
-| Noam Dovrat | נועם דוברת | basketball | Ironi Ness Ziona | 365Scores nationality: Israel; squad data 2026-10-01 |
-| Noam Avivi | נועם אביבי | basketball | Hapoel Beer Sheva/Dimona | 365Scores nationality: Israel; squad data 2026-10-01 |
-| Netanel Artzi | נתנאל ארצי | basketball | Hapoel Holon | 365Scores nationality: Israel; squad data 2026-10-01 |
+| Gabriel Chachashvili (Gaby Chachashvili) | גבריאל צ'אצ'אשווילי | basketball | Hapoel Jerusalem | 365Scores nationality: Israel; squad data 2026-10-08 |
+| Roi Huber | רועי הובר | basketball | Hapoel Jerusalem | 365Scores nationality: Israel; squad data 2026-10-08 |
+| Gil Beni | גיל בני | basketball | Maccabi Ironi Ramat Gan | 365Scores nationality: Israel; squad data 2026-10-08 |
+| Noam Dovrat | נועם דוברת | basketball | Ironi Ness Ziona | 365Scores nationality: Israel; squad data 2026-10-08 |
+| Noam Avivi | נועם אביבי | basketball | Hapoel Beer Sheva/Dimona | 365Scores nationality: Israel; squad data 2026-10-08 |
+| Netanel Artzi | נתנאל ארצי | basketball | Hapoel Holon | 365Scores nationality: Israel; squad data 2026-10-08 |
 | Oz Blayzer | עוז  בלייזר | basketball | Hapoel Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
 | John DiBartolomeo | ג'ון דיברתולומיאו | basketball | Maccabi Tel Aviv | 365Scores nationality: Israel; squad data 2026-10-05 |
-| Daniel Rosenbaum | דניאל רוזנבאום | basketball | Hapoel Ironi Eilat | 365Scores nationality: Israel; squad data 2026-10-01 |
+| Daniel Rosenbaum | דניאל רוזנבאום | basketball | Hapoel Ironi Eilat | 365Scores nationality: Israel; squad data 2026-10-08 |
 | Maccabi Tel Aviv (Maccabi Tel-Aviv, Maccabi TA) | מכבי תל אביב | football | Maccabi Tel Aviv | 365Scores: club in Israel |
 | Hapoel Tel Aviv (Hapoel Tel-Aviv, Hapoel TA) | הפועל תל אביב | football | Hapoel Tel Aviv | 365Scores: club in Israel |
 | Maccabi Haifa | מכבי חיפה | football | Maccabi Haifa | 365Scores: club in Israel |
@@ -97,13 +98,12 @@ then run `node scripts/build-watchlist.mjs`.
 | Hapoel HaEmek (Hapoel Haemek) | הפועל העמק | basketball | Hapoel HaEmek | 365Scores: club in Israel |
 | Hapoel Beer Sheva Dimona (Hapoel Be'er Sheva Dimona) | הפועל באר שבע/דימונה | basketball | Hapoel Beer Sheva/Dimona | 365Scores: club in Israel |
 
-## Pending (99)
+## Pending (98)
 
 | Name | Hebrew | Sport | Club | Basis / reason |
 |---|---|---|---|---|
 | Gabi Kanichowsky (Gavriel Kanichowsky) |  | football |  | not found in the knowledge base |
 | Dean David |  | football |  | not found in the knowledge base - needs context |
-| Dia Saba |  | football |  | not found in the knowledge base |
 | Eden Karzev (Eden Kartsev) |  | football |  | not found in the knowledge base |
 | Ramzi Safuri |  | football |  | not found in the knowledge base |
 | Yonatan Cohen (Jonathan Cohen) |  | football |  | not found in the knowledge base - needs context |
@@ -246,16 +246,16 @@ then run `node scripts/build-watchlist.mjs`.
 | Kenneth Lofton Jr. | קנת' לופטון ג'וניור | basketball | Hapoel Jerusalem |  |
 | David Roddy | דייויד רודי | basketball | Hapoel Jerusalem |  |
 | Dusan Miletic (Dušan Miletić) | דושאן מילטיץ' | basketball | Hapoel Jerusalem |  |
-| Lionel Messi | ליונל מסי | football | Inter Miami |  |
-| Cristiano Ronaldo |  | football |  |  |
-| Kylian Mbappe (Kylian Mbappé) | קיליאן אמבפה | football | Real Madrid |  |
-| Erling Haaland | ארלינג האלנד | football | Manchester City |  |
-| Lamine Yamal | למין יאמאל | football | FC Barcelona |  |
+| Lionel Messi (מסי, ליונל מסי, ליאו מסי, Leo Messi) | ליונל מסי | football | Inter Miami |  |
+| Cristiano Ronaldo (כריסטיאנו רונאלדו, רונאלדו, CR7) |  | football |  |  |
+| Kylian Mbappe (קיליאן אמבפה, אמבפה, Mbappe, Mbappé) | קיליאן אמבפה | football | Real Madrid |  |
+| Erling Haaland (ארלינג הולאנד, הולאנד, האלנד) | ארלינג האלנד | football | Manchester City |  |
+| Lamine Yamal (לאמין ימאל, ימאל, יאמאל) | למין יאמאל | football | FC Barcelona |  |
 | Jude Bellingham | ג'וד בלינגהאם | football | Real Madrid |  |
-| Vinicius Junior (Vinicius Jr, Vinícius Júnior) | ויניסיוס ג׳וניור | football | Real Madrid |  |
+| Vinicius Junior (Vinicius Jr, ויניסיוס ג'וניור, ויניסיוס, Vini Jr) | ויניסיוס ג׳וניור | football | Real Madrid |  |
 | Mohamed Salah | מוחמד סלאח | football | Trabzonspor |  |
 | Harry Kane | הארי קיין | football | Bayern Munich |  |
-| Neymar |  | football |  |  - needs context |
+| Neymar (ניימאר, נימאר) |  | football |  |  - needs context |
 | Ousmane Dembele (Ousmane Dembélé) | עוסמאן דמבלה | football | PSG |  |
 | Raphinha | ראפיניה | football | FC Barcelona |  - needs context |
 | Pedri | פדרי | football | FC Barcelona |  - needs context |
@@ -335,15 +335,15 @@ then run `node scripts/build-watchlist.mjs`.
 | Lauren James |  | football |  |  - needs context |
 | Trinity Rodman |  | football |  |  |
 | Sophia Wilson |  | football |  |  |
-| LeBron James | לברון ג'יימס | basketball | Philadelphia 76ers |  - needs context |
-| Stephen Curry (Steph Curry) | סטפן קרי | basketball | Golden State Warriors |  |
+| LeBron James (לברון ג'יימס, לברון) | לברון ג'יימס | basketball | Philadelphia 76ers |  - needs context |
+| Stephen Curry (Steph Curry, סטף קרי, סטפן קרי) | סטפן קרי | basketball | Golden State Warriors |  |
 | Kevin Durant | קווין דוראנט | basketball | Houston Rockets |  |
 | Nikola Jokic (Nikola Jokić) | ניקולה יוקיץ' | basketball | Denver Nuggets |  |
-| Luka Doncic (Luka Dončić) | לוקה דונצ'יץ' | basketball | Los Angeles Lakers |  |
+| Luka Doncic (לוקה דונצ'יץ', דונצ'יץ', Doncic, Dončić) | לוקה דונצ'יץ' | basketball | Los Angeles Lakers |  |
 | Giannis Antetokounmpo | יאניס אנטטוקונמפו | basketball | Miami Heat |  |
 | Shai Gilgeous-Alexander | שיי גילג'וס-אלכסנדר | basketball | Oklahoma City Thunder |  |
-| Victor Wembanyama | ויקטור וומבאניאמה | basketball | San Antonio Spurs |  |
-| Anthony Edwards | אנתוני אדווארדס | basketball | Minnesota Timberwolves |  |
+| Victor Wembanyama (ויקטור וומבניאמה, וומבניאמה, וומבאניאמה, Wembanyama, Wemby) | ויקטור וומבאניאמה | basketball | San Antonio Spurs |  |
+| Anthony Edwards (אנתוני אדוורדס, Ant Edwards) | אנתוני אדווארדס | basketball | Minnesota Timberwolves |  |
 | Jayson Tatum | ג'ייסון טייטום | basketball | Boston Celtics |  |
 | Jaylen Brown | ג'יילן בראון | basketball | Philadelphia 76ers |  - needs context |
 | Devin Booker |  | basketball |  | 2 people with this name in the knowledge base - needs context |
@@ -367,7 +367,7 @@ then run `node scripts/build-watchlist.mjs`.
 | Cooper Flagg | קופר פלאג | basketball | Dallas Mavericks |  |
 | Dylan Harper | דילן הארפר | basketball | San Antonio Spurs |  - needs context |
 | Bronny James | ברוני ג'יימס | basketball | Los Angeles Lakers |  - needs context |
-| Michael Jordan |  | basketball |  |  |
+| Michael Jordan (מייקל ג'ורדן) |  | basketball |  |  |
 | Shaquille O'Neal |  | basketball |  |  |
 | Charles Barkley |  | basketball |  |  |
 | Draymond Green | דריימונד גרין | basketball | Golden State Warriors |  - needs context |
@@ -430,11 +430,11 @@ then run `node scripts/build-watchlist.mjs`.
 | Scottie Scheffler |  | other |  |  |
 | Tadej Pogacar (Tadej Pogačar) |  | other |  |  |
 | Jonas Vingegaard |  | other |  |  |
-| Real Madrid | ריאל מדריד | football | Real Madrid |  |
-| Barcelona |  | football |  |  - needs context |
+| Real Madrid (ריאל מדריד) | ריאל מדריד | football | Real Madrid |  |
+| Barcelona (ברצלונה, ברסה) |  | football |  |  - needs context |
 | Atletico Madrid | אתלטיקו מדריד | football | Atletico Madrid |  |
-| Liverpool | ליברפול | football | Liverpool |  - needs context |
-| Manchester United | מנצ'סטר יונייטד | football | Manchester United |  |
+| Liverpool (ליברפול) | ליברפול | football | Liverpool |  - needs context |
+| Manchester United (מנצ'סטר יונייטד, Man United, Man Utd) | מנצ'סטר יונייטד | football | Manchester United |  |
 | Manchester City | מנצ'סטר סיטי | football | Manchester City |  |
 | Arsenal | ארסנל | football | Arsenal |  - needs context |
 | Chelsea | צ'לסי | football | Chelsea |  - needs context |
@@ -472,8 +472,8 @@ then run `node scripts/build-watchlist.mjs`.
 | Olympiacos | אולימפיאקוס | basketball | Olympiacos |  - needs context |
 | Fenerbahce (Fenerbahçe) | פנרבחצ'ה | basketball | Fenerbahçe |  - needs context |
 | Anadolu Efes | אנדולו אפס | basketball | Anadolu Efes |  |
-| Real Madrid | ריאל מדריד | basketball | Real Madrid |  |
-| Barcelona | ברצלונה | basketball | Barcelona |  - needs context |
+| Real Madrid (ריאל מדריד) | ריאל מדריד | basketball | Real Madrid |  |
+| Barcelona (ברצלונה, ברסה) | ברצלונה | basketball | Barcelona |  - needs context |
 | AS Monaco (Monaco) | מונאקו | basketball | AS Monaco |  |
 | Olimpia Milano (Olimpia Milan) | מילאנו | basketball | Olimpia Milano |  |
 | Baskonia |  | basketball |  |  - needs context |

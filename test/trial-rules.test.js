@@ -72,3 +72,22 @@ test('English headlines get a Hebrew translation too', async () => {
     globalThis.fetch = real;
   }
 });
+
+test("the desk's focus list: editors' Hebrew spellings, prefixes and translations all match; the reason says so", async () => {
+  const { buildWatchMatchers, annotateWatch, entryId } = await import('../src/watchlist.js');
+  const w = JSON.parse(readFileSync(new URL('../config/watchlist.json', import.meta.url), 'utf8')).entries;
+  const focus = w.filter((e) => e.focus).map((e) => e.name);
+  for (const n of ['Lionel Messi', 'Neymar', 'Erling Haaland', 'Cristiano Ronaldo', 'Lamine Yamal', 'Liverpool', 'Real Madrid', 'Barcelona', 'Deni Avdija', 'Kylian Mbappe', 'LeBron James', 'Vinicius Junior', 'Luka Doncic', 'Victor Wembanyama', 'Manchester United', 'Anthony Edwards', 'Michael Jordan', 'Stephen Curry']) assert.ok(focus.includes(n), n);
+  const match = buildWatchMatchers(w);
+  const story = (title, extra = {}) => annotateWatch({ title, sport: 'football', _members: [{ title, summary: '' }], ...extra }, match);
+  assert.ok(story('הולאנד כבש צמד').watchFocus); // the editors' spelling
+  assert.ok(story('שער ענק למסי').watchFocus); // with a Hebrew prefix
+  assert.ok(story('Η Μπαρτσελόνα κέρδισε', { _members: [{ title: 'Η Μπαρτσελόνα κέρδισε', tr: { en: 'Barcelona won' } }] }).watchFocus); // through the translation
+  assert.ok(!story('מסים חדשים על מועדונים').watchFocus); // "מסים" (taxes) is not Messi
+  const s = story('Wembanyama 50 points', { sport: 'basketball' });
+  const ed = editorialRank({ ...s, first: Date.now(), pop: 1, ev: { outlets: 1 }, cov: { s5: 'none', checkedAt: Date.now(), comp: [] } }, {});
+  assert.equal(ed.dims.importance, 0.95);
+  assert.ok(ed.reasons.some((r) => r.k === 'focus' && /וומב/.test(r.he)));
+  assert.equal(entryId('player', 'football', 'Dia Saba'), 'p-football-dia-saba');
+  assert.equal(w.find((e) => e.name === 'Dia Saba').status, 'verified'); // now on the editors' list (Amedspor, Turkey)
+});

@@ -156,6 +156,15 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
     dims.importance = 0.75;
     why('importance', 'big', 'European cup / national teams', 'גביע אירופי / נבחרות');
   } else dims.importance = s.local ? 0.15 : s.routine ? 0.25 : 0.35;
+  // the desk's focus list (names the editors asked for): high importance, and the reason says so
+  const focus = (s.watch || []).filter((h) => h.focus);
+  if (focus.length) {
+    dims.importance = Math.max(dims.importance, 0.95);
+    const i = reasons.findIndex((r) => r.k === 'star');
+    if (i >= 0) reasons.splice(i, 1);
+    const uniq = (l) => [...new Set(l)];
+    why('importance', 'focus', `On the desk's list: ${names(uniq(focus.map((h) => h.name)))}`, `ברשימת הדסק: ${names(uniq(focus.map((h) => h.he || h.name)))}`);
+  }
 
   // News value (headline level)
   // the strongest matching family: the fixed list first, then the editors' keyword list

@@ -100,7 +100,9 @@ const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function termTest(term) {
   const t = norm(term);
   if (!t) return null;
-  const re = new RegExp(`(^| )${escapeRe(t)}($| )`, 'u');
+  // Hebrew words take a one-letter prefix (למסי, של אבדיה → אבדיה, ובברצלונה is not covered: one letter only)
+  const he = /[\u0590-\u05ff]/.test(t) ? '[והבכלמש]?' : '';
+  const re = new RegExp(`(^| )${he}${escapeRe(t)}($| )`, 'u');
   return (text) => re.test(text);
 }
 
@@ -132,7 +134,7 @@ export function buildWatchMatchers(entries) {
       } else if (e.sport !== 'other' && storySport && storySport !== e.sport && !ctx.some((f) => f(text))) {
         continue; // a football name inside a basketball story: a namesake
       }
-      hits.push({ id: e.id, name: e.name, he: e.he || '', type: e.type, status: e.status, category: e.category, israelLink: e.status === 'verified' && !!e.israelLink, via });
+      hits.push({ id: e.id, name: e.name, he: e.he || '', type: e.type, status: e.status, category: e.category, israelLink: e.status === 'verified' && !!e.israelLink, via, ...(e.focus ? { focus: true } : {}) });
     }
     return hits;
   };
@@ -140,12 +142,14 @@ export function buildWatchMatchers(entries) {
 
 // Annotate a story with watchlist hits. Only verified Israel-linked entries may set Israel-link reasons.
 export function annotateWatch(s, match) {
-  const text = [s.title, ...(s._members || []).map((m) => `${m.title} ${m.summary || ''}`)].join(' \n ');
+  // the headlines plus their translations, so an article in Greek or Arabic is recognised through its English / Hebrew translation
+  const text = [s.title, s.t?.he?.title, s.t?.en?.title, ...(s._members || []).map((m) => `${m.title} ${m.summary || ''} ${m.tr?.en || ''} ${m.tr?.he || ''}`)].join(' \n ');
   const hits = match(text, s.sport);
   if (!hits.length) return s;
-  s.watch = hits.map(({ id, name, he, type, status, israelLink, via, category }) => ({ id, name, he, type, status, israelLink, via, category }));
+  s.watch = hits.map(({ id, name, he, type, status, israelLink, via, category, focus }) => ({ id, name, he, type, status, israelLink, via, category, ...(focus ? { focus } : {}) }));
   if (hits.some((h) => h.israelLink)) s.watchIsrael = true;
-  if (hits.some((h) => h.category === 'world-star')) s.watchStar = true;
+  if (hits.some((h) => h.category === 'world-star' || h.focus)) s.watchStar = true; // a world star, or a name on the desk's focus list
+  if (hits.some((h) => h.focus)) s.watchFocus = true;
   return s;
 }
 
