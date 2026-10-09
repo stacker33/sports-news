@@ -13,7 +13,7 @@ const T = {
     empty: 'אין ידיעות להצגה',
     tabs: {
       top: '🔥 ראשי', mytopics: '⭐ הנושאים שלי', foryou: '⭐ בשבילך', foreign: '🔎 גילוי מחו"ל', ilmon: '👁 מעקב ישראלי', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
-      abroad: '✈️ ליגיונרים כדורגל', abroadB: '✈️ ליגיונרים כדורסל', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
+      abroad: '🇮🇱 כדורגל ישראלי', abroadB: '🇮🇱 כדורסל ישראלי', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
     langName: { en: 'אנגלית', es: 'ספרדית', it: 'איטלקית', de: 'גרמנית', fr: 'צרפתית', pt: 'פורטוגזית', nl: 'הולנדית', tr: 'טורקית', el: 'יוונית', sr: 'סרבית', ro: 'רומנית', hu: 'הונגרית', pl: 'פולנית', ja: 'יפנית', cs: "צ'כית", he: 'עברית' },
@@ -176,7 +176,7 @@ const T = {
     empty: 'No stories to show',
     tabs: {
       top: '🔥 Main', mytopics: '⭐ My topics', foryou: '⭐ For you', foreign: '🔎 Foreign discovery', ilmon: '👁 Israeli monitoring', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
-      abroad: '✈️ Israelis abroad: football', abroadB: '✈️ Israelis abroad: basketball', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
+      abroad: '🇮🇱 Israeli football', abroadB: '🇮🇱 Israeli basketball', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
     },
     langs: { all: '🌍 Whole world (translated)', he: 'Hebrew only', en: 'English only' },
     langName: { he: 'Hebrew', es: 'Spanish', it: 'Italian', de: 'German', fr: 'French', pt: 'Portuguese', nl: 'Dutch', tr: 'Turkish', el: 'Greek', sr: 'Serbian', ro: 'Romanian', hu: 'Hungarian', pl: 'Polish', ja: 'Japanese', cs: 'Czech', en: 'English' },
@@ -336,12 +336,13 @@ const T = {
 
 // Main (top stories and foreign discovery merged) · world football · world basketball · Israelis abroad · Israeli
 // monitoring · Olympic & other sports · my topics (For you was replaced by the editor's own topics)
-const TABS = ['top', 'football', 'basketball', 'abroad', 'abroadB', 'ilmon', 'other', 'mytopics'];
+const TABS = ['top', 'mytopics', 'abroad', 'abroadB', 'football', 'basketball', 'other', 'ilmon'];
 // Israelis abroad: two tabs, football ('abroad') and basketball ('abroadB'), with the same player row and cards
 const ABROAD = { abroad: 'football', abroadB: 'basketball' };
 const isAbroad = (tab) => tab in ABROAD;
+const israeliAngle = (s) => !!(s.israel || s.abroad || s.watchIsrael);
 const athleteSport = (name) => (state.athletes?.athletes || []).find((a) => a.name === name)?.sport || 'football';
-const OLD_TAB = { foreign: 'top', foryou: 'mytopics', ilFootball: 'ilmon', ilBasketball: 'ilmon', ilOther: 'other' };
+const OLD_TAB = { foreign: 'top', foryou: 'mytopics', ilFootball: 'abroad', ilBasketball: 'abroadB', ilOther: 'other' };
 const LANG_FILTERS = ['all', 'he', 'en'];
 
 // ---------- state (UI prefs remembered per device) ----------
@@ -635,11 +636,12 @@ function inTab(s, tab) {
     case 'abroad':
     case 'abroadB': {
       const sp = ABROAD[tab];
-      if (s.athletes?.some((n) => athleteSport(n) === sp)) return true;
-      return !!(state.teamNews && s.teams?.length > 0 && s.sport === sp);
+      if (s.athletes?.some((n) => athleteSport(n) === sp)) return true; // an Israeli player abroad
+      if ((s.israel || s.watchIsrael) && s.sport === sp) return true; // an Israeli club / the national team / a verified Israeli
+      return !!(state.teamNews && s.teams?.length > 0 && s.sport === sp); // "+ team news": the clubs of the players
     }
-    case 'football': return !s.israel && s.sport === 'football';
-    case 'basketball': return !s.israel && s.sport === 'basketball';
+    case 'football': return !israeliAngle(s) && s.sport === 'football';
+    case 'basketball': return !israeliAngle(s) && s.sport === 'basketball';
     case 'other': return s.sport === 'other'; // Olympic & other sports: Israeli and world together
   }
   return true;
