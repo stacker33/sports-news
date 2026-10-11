@@ -19,7 +19,7 @@ function mock(statuses) {
 }
 
 test('every run gets its own build version (never just the commit SHA)', () => {
-  assert.equal(buildVersion(env), 'abc123-777-2');
+  assert.match(buildVersion(env), /^[0-9a-f]{40}$/);
   assert.notEqual(buildVersion({ ...env, GITHUB_RUN_ID: '778' }), buildVersion(env));
 });
 
@@ -27,7 +27,7 @@ test('creates the deployment with the artifact, the unique version and the OIDC 
   const { calls, fetchFn } = mock(['deployment_queued', 'syncing_files', 'succeed']);
   const out = await deploy({ env, fetchFn, sleep: async () => {}, log: () => {} });
   const create = calls.find((c) => c.method === 'POST');
-  assert.deepEqual(create.body, { artifact_id: 42, pages_build_version: 'abc123-777-2', oidc_token: 'oidc' });
+  assert.deepEqual(create.body, { artifact_id: 42, pages_build_version: buildVersion(env), oidc_token: 'oidc' });
   assert.equal(out.id, 'dep9');
   assert.ok(calls.some((c) => c.url.endsWith('/pages/deployments/dep9')));
 });

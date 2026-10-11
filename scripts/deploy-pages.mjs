@@ -7,14 +7,17 @@
 // Run in a workflow step with: permissions pages: write + id-token: write, the job in the github-pages
 // environment, and env GITHUB_TOKEN + ARTIFACT_ID (from actions/upload-pages-artifact's `artifact_id` output).
 import { appendFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const API = process.env.GITHUB_API_URL || 'https://api.github.com';
 const POLL_MS = Number(process.env.DEPLOY_POLL_MS || 5000);
 const TIMEOUT_MS = Number(process.env.DEPLOY_TIMEOUT_MS || 5 * 60 * 1000);
 const FINAL_ERRORS = new Set(['deployment_failed', 'deployment_perms_error', 'deployment_content_failed', 'deployment_cancelled', 'deployment_lost']);
 
+// The API rejects versions that don't look like a commit SHA (HTTP 404 for "sha-runId"), so the unique version
+// is a SHA-shaped fingerprint of the commit plus this run: 40 hex characters, different on every run.
 export function buildVersion(env = process.env) {
-  return `${env.GITHUB_SHA}-${env.GITHUB_RUN_ID}-${env.GITHUB_RUN_ATTEMPT || 1}`;
+  return createHash('sha1').update(`${env.GITHUB_SHA}|${env.GITHUB_RUN_ID}|${env.GITHUB_RUN_ATTEMPT || 1}`).digest('hex');
 }
 
 export async function deploy({ env = process.env, fetchFn = fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), log = console.log } = {}) {
