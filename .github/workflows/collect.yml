@@ -72,12 +72,20 @@ jobs:
           AI_DAILY_CAP: ${{ vars.AI_DAILY_CAP }}
           # no TELEGRAM_* on purpose (see the top of this file)
 
-      - uses: actions/upload-pages-artifact@v3
+      - id: upload
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public
 
+      # Our own deploy (scripts/deploy-pages.mjs): a unique build version per run. actions/deploy-pages uses the
+      # commit SHA, and after one failed deployment every later run of the same code "succeeded" without
+      # publishing (the main site froze on 2026-10-11).
       - id: deploy
-        uses: actions/deploy-pages@v4
+        run: node scripts/deploy-pages.mjs
+        timeout-minutes: 6
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
 
       - name: Keep schedule alive
         if: github.event_name == 'schedule'

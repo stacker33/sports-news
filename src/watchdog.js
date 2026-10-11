@@ -12,6 +12,7 @@ const REPO = process.env.REPO || 'stacker33/sports-news';
 const GH = process.env.GH_TOKEN;
 const STALE_MIN = 30;
 const STUCK_MIN = 12;
+const RECENT_MIN = 8; // a collect run started this recently: don't start another next to it
 const REMIND_H = [2, 6]; // reminders: 2h and 6h after the first alert, then every 24h
 const STATE = '.watchdog/state.json';
 const DRY = !!process.env.DRY_RUN;
@@ -79,8 +80,16 @@ async function main() {
       }
       const stuck = runs.filter((r) => now - Date.parse(r.run_started_at || r.created_at) > STUCK_MIN * 60000);
       for (const r of stuck) if (!DRY) await gh(`/actions/runs/${r.id}/cancel`, { method: 'POST' });
-      if (!DRY) await gh('/actions/workflows/collect.yml/dispatches', { method: 'POST', body: JSON.stringify({ ref: 'main' }) });
-      repair = `${stuck.length ? `ביטלתי ${stuck.length} ריצות תקועות ו` : ''}הפעלתי ריצת איסוף חדשה.`;
+      // Don't start a run next to one that just started: the newer would cancel the older, possibly in the middle
+      // of publishing (that left the site on a failed deployment on 2026-10-11)
+      const recent = (await gh('/actions/workflows/collect.yml/runs?per_page=5')).workflow_runs || [];
+      const fresh = recent.find((r) => !stuck.some((s) => s.id === r.id) && now - Date.parse(r.created_at) < RECENT_MIN * 60000 && r.conclusion !== 'cancelled');
+      if (fresh) {
+        repair = `${stuck.length ? `ביטלתי ${stuck.length} ריצות תקועות; ` : ''}ריצת איסוף כבר התחילה לפני ${mins(now - Date.parse(fresh.created_at))} דק׳, לא הפעלתי עוד אחת.`;
+      } else {
+        if (!DRY) await gh('/actions/workflows/collect.yml/dispatches', { method: 'POST', body: JSON.stringify({ ref: 'main' }) });
+        repair = `${stuck.length ? `ביטלתי ${stuck.length} ריצות תקועות ו` : ''}הפעלתי ריצת איסוף חדשה.`;
+      }
       console.log('repair:', repair, stuck.map((r) => `${r.id}:${r.status}`).join(' '));
     } catch (e) {
       repair = `לא הצלחתי לתקן אוטומטית (${e.message}).`;

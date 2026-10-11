@@ -42,3 +42,20 @@ test('repair-only watchdog (discovery trial): repairs a stale site but sends no 
   // without REPAIR_ONLY the same situation does message (proves the switch is what silences it)
   assert.ok(run({}).some((c) => c.includes('api.telegram.org')));
 });
+
+test('watchdog does not start a collect run next to one that just started', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { mkdtempSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { fileURLToPath, pathToFileURL } = await import('node:url');
+  const script = fileURLToPath(new URL('../src/watchdog.js', import.meta.url));
+  const mock = pathToFileURL(fileURLToPath(new URL('./fixtures/mock-fetch.mjs', import.meta.url))).href;
+  const out = execFileSync(process.execPath, ['--import', mock, script], {
+    cwd: mkdtempSync(join(tmpdir(), 'wd-')),
+    env: { PATH: process.env.PATH, GH_TOKEN: 'test', REPO: 'stacker33/sports-news', SITE_URL: 'https://example.test/site', REPAIR_ONLY: '1', MOCK_RECENT_RUN: '1' },
+    encoding: 'utf8',
+  });
+  const calls = JSON.parse(out.match(/CALLS (.*)/)[1]);
+  assert.ok(!calls.some((c) => c.includes('/dispatches')), calls.join('\n'));
+});
