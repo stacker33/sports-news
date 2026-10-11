@@ -12,7 +12,7 @@ on:
 
 permissions:
   actions: write
-  contents: read
+  contents: write # only for the empty commit that unjams a stuck Pages publish
 
 concurrency:
   group: watchdog

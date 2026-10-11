@@ -59,3 +59,28 @@ test('watchdog does not start a collect run next to one that just started', asyn
   const calls = JSON.parse(out.match(/CALLS (.*)/)[1]);
   assert.ok(!calls.some((c) => c.includes('/dispatches')), calls.join('\n'));
 });
+
+test('watchdog unjams publishing with an empty commit when runs succeed but the site stays old', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { mkdtempSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { fileURLToPath, pathToFileURL } = await import('node:url');
+  const script = fileURLToPath(new URL('../src/watchdog.js', import.meta.url));
+  const mock = pathToFileURL(fileURLToPath(new URL('./fixtures/mock-fetch.mjs', import.meta.url))).href;
+  const run = (extra) => {
+    const out = execFileSync(process.execPath, ['--import', mock, script], {
+      cwd: mkdtempSync(join(tmpdir(), 'wd-')),
+      env: { PATH: process.env.PATH, GH_TOKEN: 'test', REPO: 'stacker33/sports-news', SITE_URL: 'https://example.test/site', REPAIR_ONLY: '1', ...extra },
+      encoding: 'utf8',
+    });
+    return JSON.parse(out.match(/CALLS (.*)/)[1]);
+  };
+  const jammed = run({ MOCK_JAMMED: '1' });
+  const i = jammed.indexOf('POST https://api.github.com/repos/stacker33/sports-news/git/commits');
+  assert.ok(i > 0, jammed.join('\n'));
+  assert.ok(jammed.indexOf('PATCH https://api.github.com/repos/stacker33/sports-news/git/refs/heads/main') > i);
+  assert.ok(jammed.some((c) => c.endsWith('/dispatches'))); // and a fresh run on the new commit
+  // a plain stale site (no successful run since the data) is not touched
+  assert.ok(!run({}).some((c) => c.includes('/git/')));
+});
