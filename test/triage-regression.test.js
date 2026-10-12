@@ -82,9 +82,15 @@ test('leagues the desk follows: football outside the big 5 is far down unless Is
   assert.ok(!markLocal(st('Portugal squad named', { tags: [], comps: ['c-unl'] }), isLocal).local); // national teams
   // big-5 clubs are never local
   assert.ok(!markLocal(st('El Betis gana', { langs: ['es'], comps: ['c-laliga'] }), isLocal).local);
-  // no known club: the outlet's market decides
+  // no known club: the headline must name something the desk follows (Serie B, the Championship, misfiled sports: no)
+  const en = [{ title: 'x', lang: 'en', src: null, ents: [] }];
   assert.ok(markLocal(st('Τι είπε ο προπονητής', { tags: [] }), isLocal).local);
-  assert.ok(!markLocal(st('What the coach said', { tags: [], langs: ['en'] }, [{ title: 'x', lang: 'en', src: null, ents: [] }]), isLocal).local);
+  assert.ok(markLocal(st('Gateshead expect players to be paid on Tuesday', { tags: [], langs: ['en'] }, en), isLocal).local);
+  assert.ok(markLocal(st('Catanzaro crisis, from promotion to the relegation zone', { tags: [], langs: ['it'] }, en), isLocal).local);
+  assert.ok(!markLocal(st('Betis, new problems for Antony', { tags: [], langs: ['en'] }, en), isLocal).local);
+  assert.ok(!markLocal(st('Lionesses keen for Wiegman to extend contract', { tags: [], langs: ['en'] }, en), isLocal).local);
+  // Israeli outlets are left to the Israeli tabs
+  assert.ok(!markLocal(st('האם טדי יורחב ל-50 אלף מקומות?', { tags: [], langs: ['he'] }, [{ title: 'x', lang: 'he', src: null, ents: [] }]), isLocal).local);
 });
 
 test('basketball: EuroLeague / EuroCup / NBA; routine news lower, other clubs far down', async () => {

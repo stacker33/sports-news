@@ -18,7 +18,7 @@ const LOW_VALUE = /\b(how to watch|where to watch|tv channel|live stream(ing)?|o
 
 // Not stories at all, in any language: ticket sales, polls, live streams of training, live tickers. Flagged "low":
 // the world tabs collapse them with the off-beat leagues (they are kept, never deleted).
-const NOT_NEWS = /(tickets?|buy tickets|on sale|polls?:|poll|vote now|cast your vote|watch (the )?(training|live)|live training|open training|live ?ticker|live blog)|biglietti|entradas|bilhetes|billetterie|εισιτήρι|bilet(ler)?|sondaggio|encuesta|sondage|umfrage|enquete|ψηφοφορ|em direto|ao vivo|en direct|en directo|en vivo|in diretta|liveticker|כרטיסים|הצבעה:|סקר:/i;
+const NOT_NEWS = /(tickets?|buy tickets|on sale|polls?:|poll|vote now|cast your vote|watch (the )?(training|live)|live training|open training|live ?ticker|live blog|get your latest|newsletter|wiretap|youtube gold)|biglietti|entradas|bilhetes|billetterie|εισιτήρι|bilet(ler)?|sondaggio|encuesta|sondage|umfrage|enquete|ψηφοφορ|em direto|ao vivo|en direct|en directo|en vivo|in diretta|liveticker|כרטיסים|הצבעה:|סקר:/i;
 export function markLow(s) {
   if (trackedIsraeli(s)) return s;
   const titles = [s.title, s.t?.en?.title || ''];
@@ -76,6 +76,22 @@ const EURO_NAMED = /euroleague|euroliga|eurolega|eurocup|יורוליג|יורו
 const BIG_NEWS = /\b(transfer|signs?|signed|signing|joins|contract|extension|deal|traded?|trade request|waived|released|buyout|sacked|fired|dismissed|resigns?|steps down|appointed|new coach|head coach|suspended|suspension|banned?|fined?|investigation|scandal|arrested|fight|brawl|ejected)\b|העברה|חתם|חוזה|טרייד|פוטר|התפטר|מונה|מאמן חדש|הושעה|הורחק|קנס|חקירה|סערה|קטטה/i;
 const PLAYOFFS = /playoffs?|play-in|finals|conference final|game [1-7]\b|פלייאוף|גמר/i;
 const FOLLOWUP = /\b(after|postgame|post-game|reacts?|reaction|says|said|explains|praises|slams|blasts|takeaways|observations|what we learned|grades|report card|breakdown|analysis)\b|אחרי|הגיב|אמר|ניתוח/i;
+// A story with no known club or league (the knowledge base missed it): the headline (with its English translation)
+// must name something the desk follows, else it is off-beat (Serie B, the English Championship and below, college
+// sports, the WNBA, misfiled cycling / tennis / padel, lifestyle pieces). Case-sensitive: club names are capitalised.
+const BIG5_NAMES = new RegExp(String.raw`\b(Premier League|La ?Liga|Serie A|Bundesliga|Ligue 1|Champions League|Europa League|Conference League|World Cup|Euro 20\d\d|FIFA|UEFA|FIFPRO|Ballon d'Or|national team|Lionesses|Three Lions|FIFPRO|Fifpro|England|Spain|France|Germany|Italy|Portugal|Argentina|Brazil|Netherlands|Selecci[oó]n|Nazionale|Mannschaft|Les Bleus|` +
+  // England
+  String.raw`Arsenal|Aston Villa|Bournemouth|Brentford|Brighton|Burnley|Chelsea|Crystal Palace|Everton|Fulham|Leeds|Liverpool|Man(chester)? City|Man(chester)? United|Man Utd|Newcastle|Nottingham Forest|Sunderland|Tottenham|Spurs|West Ham|Wolves|Wolverhampton|` +
+  // Spain
+  String.raw`Real Madrid|Barcelona|Bar[cç]a|Atl[eé]tico|Atleti|Athletic|Rayo|Real Sociedad|Villarreal|Betis|Sevilla|Valencia|Celta|Osasuna|Girona|Getafe|Rayo Vallecano|Mallorca|Alav[eé]s|Espanyol|Levante|Elche|Real Oviedo|` +
+  // Italy
+  String.raw`Inter|Milan|Juventus|Juve|Napoli|Roma|Lazio|Atalanta|Fiorentina|Bologna|Torino|Genoa|Udinese|Lecce|Cagliari|Verona|Parma|Como|Sassuolo|Pisa|Cremonese|` +
+  // Germany
+  String.raw`Bayern|Dortmund|BVB|Leverkusen|Leipzig|Stuttgart|Eintracht|Frankfurt|Wolfsburg|Freiburg|Hoffenheim|Mainz|Gladbach|M[öo]nchengladbach|Augsburg|Werder|Union Berlin|Heidenheim|St\.? Pauli|Hamburg|HSV|K[öo]ln|Cologne|` +
+  // France
+  String.raw`PSG|Paris Saint-Germain|Marseille|OM|Lyon|OL|Monaco|Lille|OGC Nice|Lens|Rennes|Nantes|Strasbourg|Toulouse|Brest|Auxerre|Angers|Le Havre|Lorient|Metz|Paris FC)\b`);
+const BASKET_NAMES = new RegExp(String.raw`\b(NBA|EuroLeague|Euroleague|EuroCup|Eurocup|Hawks|Celtics|Nets|Hornets|Bulls|Cavaliers|Cavs|Mavericks|Mavs|Nuggets|Pistons|Warriors|Rockets|Pacers|Clippers|Lakers|Grizzlies|Heat|Bucks|Timberwolves|Pelicans|Knicks|Thunder|Magic|76ers|Sixers|Suns|Blazers|Kings|Spurs|Raptors|Jazz|Wizards|` +
+  String.raw`Real Madrid|Barcelona|Bar[cç]a|Olympiacos|Olympiakos|Panathinaikos|Fenerbah[cç]e|Efes|Monaco|Partizan|Crvena [Zz]vezda|Red Star|[ŽZ]algiris|Baskonia|Bayern|Virtus|Olimpia Milano|Armani|ASVEL|Paris Basketball|Valencia|Dubai Basketball|Hapoel|Maccabi)\b`);
 const LOCAL_FACTOR = 0.15; // "local": far down
 const ROUTINE_FACTOR = 0.45; // routine news of a followed league: lower
 
@@ -83,6 +99,7 @@ export const memberLocal = (m, src) => (src?.country ? LOCAL_COUNTRIES.has(src.c
 
 const viral = (s) => (s.langs?.length || 0) >= 3 || !!s.trending || (!!s.reddit && (s.langs?.length || 0) >= 2);
 const star = (s) => !!s.watchStar || STARS.test(text(s));
+const hebrew = (s) => (s.langs || []).includes('he'); // Israeli outlets: the Israeli tabs decide
 const hasClub = (s) => (s.tags || []).some((g) => g.k === 'team');
 const r2 = (x) => Math.round(x * 100) / 100;
 const scale = (s, k, flag) => ({ ...s, [flag]: true, score: r2(s.score * k), pop: r2(s.pop * k) });
@@ -101,9 +118,11 @@ export function markLocal(s, isLocal) {
     }
     if (comps.has('c-nba')) return BIG_NEWS.test(t) || PLAYOFFS.test(t) || FOLLOWUP.test(t) || s.sourceCount >= 3 || (s.langs?.length || 0) >= 2 ? s : scale(s, ROUTINE_FACTOR, 'routine');
     if (hasClub(s) && !has(BASKET_BIG)) return scale(s, LOCAL_FACTOR, 'local'); // a club outside EuroLeague / EuroCup / NBA
+    if (!comps.size && !hasClub(s) && !hebrew(s) && !BASKET_NAMES.test(t)) return scale(s, LOCAL_FACTOR, 'local'); // college, WNBA, misfiled
   } else if (s.sport !== 'other') {
     if (has(BIG5)) return s; // a big-5 club (also when it plays a smaller one)
     if (hasClub(s) || comps.size) return scale(s, LOCAL_FACTOR, 'local'); // clubs outside the big 5
+    if (!hebrew(s) && !BIG5_NAMES.test(t)) return scale(s, LOCAL_FACTOR, 'local'); // no known club, none named: Serie B, Championship...
   }
   // no known club: the outlet's market decides
   if ((s._members || []).length && s._members.every(isLocal)) return scale(s, LOCAL_FACTOR, 'local');
