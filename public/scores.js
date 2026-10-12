@@ -151,19 +151,20 @@
     return `<span class="st">${esc(hhmm + note)}</span>`;
   }
 
-  function team(c, winner) {
-    return `<span class="tm${winner ? ' win' : ''}"><img src="${img('Competitors', c.id, c.imageVersion)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(c.name)}</span></span>`;
+  // each team's own score on its own line (one "1 : 2" between two rows didn't say who had the 2)
+  function team(c, lead, score, behind) {
+    return `<span class="tm${lead ? ' win' : behind ? ' behind' : ''}"><img src="${img('Competitors', c.id, c.imageVersion)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(c.name)}</span>${score == null ? '' : `<b class="ts">${esc(score)}</b>`}</span>`;
   }
 
   // stars: [{ name, status }] — one line per Israeli in this game; tv: channel names
   function row(g, comp, lang, stars = [], tv = []) {
     const h = g.homeCompetitor, a = g.awayCompetitor;
     const started = g.statusGroup === 3 || g.statusGroup === 4;
-    const score = started ? `${h.score < 0 ? '-' : h.score} : ${a.score < 0 ? '-' : a.score}` : '–';
+    const sc = (c) => (started ? (c.score < 0 ? '-' : c.score) : null);
+    const lead = (c, o) => started && c.score > o.score; // the leader in bold, during the game too
     return `<a class="game${g.statusGroup === 3 ? ' is-live' : ''}" href="${esc(gameUrl(g, comp, lang))}" target="_blank" rel="noopener">
       ${status(g, lang)}
-      <span class="teams">${team(h, g.statusGroup === 4 && h.score > a.score)}${team(a, g.statusGroup === 4 && a.score > h.score)}</span>
-      <span class="sc">${esc(score)}</span>
+      <span class="teams">${team(h, lead(h, a), sc(h), lead(a, h))}${team(a, lead(a, h), sc(a), lead(h, a))}</span>
       ${stars.map((s) => `<span class="star">⭐ ${esc(s.name)}${s.status ? `<span class="pst"> · ${esc(s.status)}</span>` : ''}</span>`).join('')}
       ${tv.length ? `<span class="tv">📺 ${esc(tv.join(', '))}</span>` : ''}
     </a>`;
