@@ -1456,8 +1456,10 @@ function briefHtml() {
   if (!b || state.tab !== 'top' || state.q.trim() || state.tag || activeTopic()) return '';
   const il = ilNow();
   if (b.day !== il.day || il.hour >= 12 || store.get('briefHidden') === b.day) return '';
-  const byId = new Map(storiesFor().map((s) => [s.id, s]));
-  const items = b.ids.map((id) => byId.get(id)).filter(Boolean);
+  // the night's summary covers every story: the foreign report when there is one, else the Israeli one (taking
+  // only foreign-covered stories left fewer than 3 on some mornings, and the whole summary disappeared)
+  const byId = new Map((state.data.stories || []).map((s) => [s.id, s]));
+  const items = b.ids.map((id) => byId.get(id)).filter(Boolean).map((s) => foreignOnly(s) || s);
   if (items.length < 3) return '';
   const he = state.ui === 'he';
   const title = (s) => {

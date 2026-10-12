@@ -159,6 +159,8 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
     dims.importance = 0.75;
     why('importance', 'big', 'European cup / national teams', 'גביע אירופי / נבחרות');
   } else dims.importance = s.local ? 0.15 : s.routine ? 0.25 : 0.35;
+  // the language model judged the story to be about something the desk covers (a star, a top club, big news)
+  if (s.aiDesk?.desk) dims.importance = Math.max(dims.importance, 0.75);
   // the desk's focus list (names the editors asked for): high importance, and the reason says so
   const focus = (s.watch || []).filter((h) => h.focus);
   if (focus.length) {
@@ -249,9 +251,14 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
   }
   let score = (100 * sum) / total;
   // leagues the desk does not follow are far down here too; routine news of a followed league a little lower
+  if (s.aiDesk?.about) {
+    const he = s.aiDesk.about_he || s.aiDesk.about;
+    if (s.aiDesk.desk) why('importance', 'about', `About: ${s.aiDesk.about}`, `עוסק ב: ${he}`);
+    else limit('about', `About ${s.aiDesk.about}: not for the desk`, `עוסק ב${he}: לא לדסק`);
+  }
   if (s.local) {
     score *= 0.5;
-    limit('local', 'Outside the leagues the desk follows', 'מחוץ לליגות שהדסק עוקב אחריהן');
+    if (!s.aiDesk) limit('local', 'Outside the leagues the desk follows', 'מחוץ לליגות שהדסק עוקב אחריהן');
   } else if (s.minor) {
     score *= 0.5;
     limit('minor', 'Routine news of a smaller club in a big-5 league', 'חדשות שגרתיות של קבוצה קטנה בליגה גדולה');

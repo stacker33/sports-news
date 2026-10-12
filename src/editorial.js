@@ -118,6 +118,8 @@ export function markLocal(s, isLocal) {
   const comps = new Set(s.comps || []);
   const has = (set) => [...comps].some((c) => set.has(c));
   if (trackedIsraeli(s) || has(IL_COMPS)) return s; // Israeli angle (incl. a verified watchlist person)
+  // the language model's verdict on what the story is about (src/ai.js), when there is one, decides
+  if (s.aiDesk) return s.aiDesk.desk ? s : scale(s, LOCAL_FACTOR, 'local');
   if (viral(s) || star(s)) return s; // a viral / worldwide story, a world star
   if (has(NATIONAL)) return s; // national teams
   const t = text(s);

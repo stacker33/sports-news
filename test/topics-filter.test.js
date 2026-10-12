@@ -60,3 +60,15 @@ test('big-5 small clubs: routine news collapsed ("minor"), big news / top clubs 
   assert.ok(!markLocal(st('Osasuna fires its coach'), () => false).minor);
   assert.ok(!markLocal(st('Elche host Real Madrid on Sunday'), () => false).minor);
 });
+
+test('the AI subject verdict decides off-beat: Ronaldo story kept, routine Ajax collapsed, Israelis always kept', async () => {
+  const { markLocal } = await import('../src/editorial.js');
+  const st = (title, extra = {}) => ({ score: 10, pop: 10, sport: 'football', title, tags: [], comps: [], langs: ['es'], _members: [], ...extra });
+  // no club named, rules alone would collapse it; the model says it is about Ronaldo
+  assert.ok(!markLocal(st('Edu Aguirre and Piers Morgan, the bootlickers', { aiDesk: { desk: true, about: 'Cristiano Ronaldo' } }), () => false).local);
+  assert.ok(markLocal(st('Edu Aguirre and Piers Morgan, the bootlickers'), () => false).local);
+  // a club the rules would keep, but the model says routine
+  assert.ok(markLocal(st('Ajax training update', { tags: [{ k: 'team', id: 't1' }], comps: ['c-ucl'], aiDesk: { desk: false, about: 'Ajax training' } }), () => false).local);
+  // an Israeli is never overruled
+  assert.ok(!markLocal(st('Gloukh starts for Ajax', { abroad: true, aiDesk: { desk: false, about: 'Ajax' } }), () => false).local);
+});

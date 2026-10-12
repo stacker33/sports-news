@@ -69,6 +69,34 @@ Examples:
 - "Ajax (v) deelt tik uit aan Feyenoord (v), Sparta (v) viert doelpuntenfestijn" → "נשות אייאקס הכו את פיינורד, חגיגת שערים לספרטה"
 Return JSON: {"titles":[{"id":"…","title_he":"…"}]} with every id you were given.`;
 
+// What is the story ABOUT, and is it for the desk? Decided by the subject, not by which club is named: not every
+// Ajax story matters, an Ajax story about Oscar Gloukh does; a quarrel between two journalists doesn't, unless it
+// is about Cristiano Ronaldo.
+const CLASSIFY_PER_REQUEST = 40;
+const CLASSIFY_CAP = Number(process.env.AI_CLASSIFY_CAP) || 250; // requests a day (light model), apart from DAILY_CAP
+const DESK_SYSTEM = `You help the world-sports desk of an Israeli sports website (Sport5) decide which foreign football and basketball stories are worth their attention.
+For each story, first decide what it is mainly ABOUT (the person, club or event at its center), then whether it is for the desk.
+For the desk (desk: true) when the story is mainly about:
+- a world star or famous name: e.g. Messi, Cristiano Ronaldo, Neymar, Haaland, Lamine Yamal, Mbappé, Vinicius, Salah, Kane, Bellingham, LeBron James, Stephen Curry, Luka Dončić, Victor Wembanyama, Nikola Jokić, Giannis Antetokounmpo, Anthony Edwards, Michael Jordan, Mourinho, Guardiola, Ancelotti, Klopp;
+- a top club: Real Madrid, Barcelona, Atlético Madrid, Manchester City, Manchester United, Liverpool, Arsenal, Chelsea, Tottenham, Newcastle, Bayern Munich, Borussia Dortmund, Bayer Leverkusen, PSG, Juventus, Inter, AC Milan, Napoli, Roma;
+- big news in the Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, the Champions League / Europa League, the World Cup / Euro / Nations League, the EuroLeague / EuroCup or the NBA: a coach sacked or hired, a major transfer, a scandal, a serious injury to a key player, a big game and its aftermath;
+- an Israeli player, coach or club, or anything about Israel;
+- an extraordinary or viral story the whole sports world is talking about.
+Not for the desk (desk: false): routine news of other clubs (Serie B, the English Championship and lower, the Eredivisie, Portugal, Greece, Belgium, Turkey, Scotland, MLS, Saudi Arabia, South America...) unless it is about one of the above; smaller big-5 clubs' everyday news (training, squad lists, minor injuries); the WNBA and college sports; tickets, polls, live streams, betting, quizzes, lifestyle, recipes, cars; quarrels between journalists or pundits unless they are about a star.
+"about" = the subject in a few English words (e.g. "Cristiano Ronaldo", "Elche coach change"); "about_he" = the same in Hebrew.
+Return JSON: {"items":[{"id":"…","about":"…","about_he":"…","desk":true}]} with every id you were given.`;
+
+// Before ranking: each story gets the subject verdict saved for it on an earlier run (aiSummaries step 3)
+export function attachDesk(stories, aiState = {}) {
+  const desk = aiState.desk || {};
+  for (const s of stories) {
+    if (!s._members?.length) continue;
+    const r = desk[storyKey(s)];
+    if (r) s.aiDesk = { desk: r.desk, about: r.about, ...(r.about_he ? { about_he: r.about_he } : {}) };
+  }
+  return stories;
+}
+
 const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
 // a usable Hebrew text: has Hebrew, no Arabic-script letters (the model sometimes slips one in)
 export const goodHe = (t) =>
@@ -261,6 +289,34 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         for (const r of out.titles || []) {
           const s = heads[Number(String(r.id).replace(/\D/g, ''))];
           if (s && goodHe(r.title_he)) st.heads[keyOf.get(s)] = { title_he: clip(r.title_he, 220), at: now };
+        }
+      }
+    }
+    // 3) subject: what each new foreign football / basketball story is ABOUT, and is it for the desk (its own small
+    // budget, the light model; applied on the next run by attachDesk → markLocal)
+    const cday = st.cls?.day === day ? st.cls : { day, used: 0 };
+    st.cls = cday;
+    st.desk = { ...(prev.desk || {}) };
+    for (const [key, r] of Object.entries(st.desk)) if (now - r.at > KEEP_DAYS * 864e5) delete st.desk[key];
+    if (token && cday.used < CLASSIFY_CAP && !(st.clsCooldown > now)) {
+      const need = stories
+        .filter((s) => (s.sport === 'football' || s.sport === 'basketball') && !(s.langs || []).every((l) => l === 'he'))
+        .filter((s) => !(s.israel || s.abroad || s.watchIsrael) && now - s.first < 18 * 3600e3)
+        .filter((s) => !st.desk[keyOf.get(s)])
+        .sort((a, b) => b.first - a.first)
+        .slice(0, CLASSIFY_PER_REQUEST);
+      if (need.length >= 5) {
+        cday.used++;
+        try {
+          const out = await callModel(token, FALLBACK, DESK_SYSTEM, need.map((s, i) => `### id: ${i}\n${storyInput(s, sums, heName)}`).join('\n\n'));
+          for (const r of out.items || out.stories || []) {
+            const s = need[Number(String(r.id).replace(/\D/g, ''))];
+            if (!s || typeof r.desk !== 'boolean') continue;
+            st.desk[keyOf.get(s)] = { desk: r.desk, about: clip(String(r.about || ''), 60), ...(goodHe(r.about_he || '') ? { about_he: clip(r.about_he, 60) } : {}), at: now };
+          }
+        } catch (e) {
+          st.clsError = String(e.message).slice(0, 160);
+          if (/HTTP 429/.test(e.message)) st.clsCooldown = now + 30 * 60000;
         }
       }
     }

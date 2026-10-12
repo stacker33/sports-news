@@ -12,7 +12,7 @@ import { classify, JUNK_TITLE, SITE_TITLE } from './classify.js';
 import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
-import { aiSummaries, aiCap } from './ai.js';
+import { aiSummaries, aiCap, attachDesk } from './ai.js';
 import { telegramPost, adminHealthAlerts, adminHello, adminReports, morningBrief } from './telegram.js';
 import { loadFeedback, votesFile } from './feedback.js';
 import { assignStoryIds } from './storyids.js';
@@ -426,6 +426,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     .filter((s) => s.sport !== 'other' || s.israel || s.abroad || s.watchIsrael || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s) || s._members.some((m) => srcById.get(m.sourceId)?.topic))
     // editors' priorities: big competitions, transfers and scoops up; betting / how-to-watch / live blogs down
     .map(editorialBoost)
+    // what the story is about, judged by the language model on an earlier run (src/ai.js): decides off-beat first
+    .map((s) => attachDesk([s], state.ai)[0])
     // local leagues (Greece, Portugal, Turkey…): low and out of Hot / brief / Telegram unless there's a reason
     .map((s) => markLocal(s, (m) => memberLocal(m, srcById.get(m.sourceId))))
     .map(markLow) // tickets, polls, live streams: collapsed in the world tabs
