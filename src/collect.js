@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify, JUNK_TITLE, SITE_TITLE } from './classify.js';
-import { editorialBoost, bigEvent, markLocal, memberLocal } from './editorial.js';
+import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap } from './ai.js';
@@ -22,7 +22,7 @@ import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
 import { loadSignals } from './signals.js';
-import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources, FOLLOW_HOURS } from './trends.js';
+import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources, FOLLOW_HOURS, TOPIC_DAYS } from './trends.js';
 import { queryMetrics, discoveryDelay, usefulness, lowRankReasons } from './metrics.js';
 import { loadWikipedia } from './wikipedia.js';
 import { loadEntityDb, refreshEntityDb, buildEntityIndex, findEntities } from './entities.js';
@@ -422,11 +422,13 @@ export async function collect({ log = console.log, force = false } = {}) {
     .map((s) => annotateWatch(s, watchMatch))
     // Other sports (NFL, MLB, NHL, tennis, cycling…): only big events — finals, Grand Slams, Grand Prix, Olympics… —
     // or a story carried internationally (8+ sources in 3+ languages); anything Israeli is always kept
-    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || s.watchIsrael || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))
+    // other sports: only with a reason (an editor's topic search found it is one)
+    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || s.watchIsrael || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s) || s._members.some((m) => srcById.get(m.sourceId)?.topic))
     // editors' priorities: big competitions, transfers and scoops up; betting / how-to-watch / live blogs down
     .map(editorialBoost)
     // local leagues (Greece, Portugal, Turkey…): low and out of Hot / brief / Telegram unless there's a reason
     .map((s) => markLocal(s, (m) => memberLocal(m, srcById.get(m.sourceId))))
+    .map(markLow) // tickets, polls, live streams: collapsed in the world tabs
     // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
     .sort((a, b) => b.latest - a.latest);
@@ -456,6 +458,9 @@ export async function collect({ log = console.log, force = false } = {}) {
       const pubs = new Set(foreignM.map((m) => String(m.publisher || '').toLowerCase()));
       s.fv = { title: f.title, link: f.link, lang: f.lang, t: { he: pick('he'), en: pick('en') }, image: f.image || foreignM.find((m) => m.image)?.image || null, video: foreignM.find((m) => m.video)?.link || null, sourceCount: pubs.size, langs: [...new Set(foreignM.map((m) => m.lang))] };
     }
+    // found by an editor's topic search ("my topics"): the page marks these as new from the search
+    const found = [...new Set(s._members.map((m) => srcById.get(m.sourceId)).filter((x) => x?.topic).map((x) => x.trend))];
+    if (found.length) s.found = found;
     s.ev = ev;
     s.cov = storyCoverage(s, s5check, ev);
     s.v = storyViews(s, ev);
@@ -567,7 +572,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     })),
     families: ['israeliAngle', 'exceptional'].map((key) => ({ key, enabled: vocab.familyOverrides?.[key]?.enabled !== false, priority: vocab.familyOverrides?.[key]?.priority || null, queries: (vocab.querySets?.[key] || []).length })),
     // temporary "follow in the radar" searches (an active collection subscription, unlike a saved display topic)
-    follows: Object.entries(state.userSearch || {}).map(([q, t]) => ({ q, since: t.since, expires: t.since + FOLLOW_HOURS * 3600e3 })),
+    follows: Object.entries(state.userSearch || {}).map(([q, t]) => ({ q, since: t.since, topic: !!t.topic, expires: t.since + (t.topic ? TOPIC_DAYS * 864e5 : FOLLOW_HOURS * 3600e3) })),
     overrides: await loadOverrides(ROOT), // the current editor decisions (the page starts its draft from these)
     hits: stories.filter((s) => s.watch).length,
     quality: { ...quality, queries: undefined },

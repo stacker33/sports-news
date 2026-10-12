@@ -146,7 +146,10 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
   // Importance of the person / team / event
   const comps = s.comps || (s.tags || []).filter((g) => g.k === 'comp').map((g) => g.id);
   const stars = (s.watch || []).filter((h) => h.category === 'world-star');
-  if (comps.some((c) => MAJOR.has(c))) {
+  // a local-league story (Benfica, PAOK, Ajax...) gets no credit for its club's European cup: the cup is the
+  // club's season, not this story (the "European cup / national teams" label was raising them)
+  if (s.local) dims.importance = 0.15;
+  else if (comps.some((c) => MAJOR.has(c))) {
     dims.importance = 1;
     why('importance', 'major', 'Major competition', 'מסגרת מרכזית');
   } else if (stars.length) {

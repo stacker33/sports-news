@@ -9,7 +9,7 @@ const TOPIC = 'https://ntfy.sh/sports-radar-disc-feedback-c8a04d373ec8351d';
 const KEEP_DAYS = 30;
 const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;
-const SEARCHES_PER_DEVICE_DAY = 20;
+const SEARCHES_PER_DEVICE_DAY = 40; // "my topics" renew their searches daily
 
 // structured reasons (a fixed list: no free text goes through the public channel)
 export const VOTE_REASONS = ['useful', 'irrelevant', 'covered', 'duplicate', 'identity'];
@@ -57,7 +57,8 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
       } else if (j.type === 'search' && str(j.q, 80).length >= 2) {
         if ((st.perDevice[key] || 0) >= SEARCHES_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
-        searches.push({ q: str(j.q, 80), at: m.time * 1000 });
+        // topic: a saved "my topics" search, kept while the page renews it (daily, until the topic is deleted)
+        searches.push({ q: str(j.q, 80), at: m.time * 1000, ...(j.topic ? { topic: true } : {}) });
       } else if (j.type === 'report' && str(j.text, 1000)) {
         if ((st.perDevice[key] || 0) >= REPORTS_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;

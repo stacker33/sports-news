@@ -131,7 +131,6 @@ export const SOURCES = [
   { id: 'bs-ornstein', name: 'David Ornstein', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=david-ornstein.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', every: 2 },
   { id: 'bs-jacobs', name: 'Ben Jacobs', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=jacobsben.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 2, parser: 'bluesky', sport: 'football', every: 2 },
   { id: 'bs-athletic', name: 'The Athletic', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=theathleticfc.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', reporter: false },
-  { id: 'stein', name: 'Marc Stein', url: 'https://marcstein.substack.com/feed', lang: 'en', weight: 3, sport: 'basketball', reporter: true, every: 3 },
   { id: 'dimarzio', name: 'Gianluca Di Marzio', url: 'https://gianlucadimarzio.com/rss', lang: 'it', weight: 3, sport: 'football', reporter: true, every: 2 },
   { id: 'relevo', name: 'Relevo', url: 'https://www.relevo.com/rss/', lang: 'es', weight: 2, reporter: true, every: 3 },
   { id: 'bs-bbcsport', name: 'BBC Sport', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=bbcsport.xmirror.bot&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', reporter: false },

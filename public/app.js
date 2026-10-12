@@ -369,6 +369,8 @@ if (V2) {
 }
 const state = {
   ui: store.get('ui', 'he'),
+  showOff: {}, // per tab: the collapsed "outside the desk's beat" stories are open
+  offList: [],
   tab: TABS.includes(store.get('tab')) ? store.get('tab') : OLD_TAB[store.get('tab')] || 'top',
   // football / basketball switch inside Israelis abroad and Israeli monitoring (remembered per tab)
   sw: { ilmon: store.get('sw.ilmon', 'all') },
@@ -528,11 +530,12 @@ function matchTopic(s, tp) {
   return tp.words.some((w) => text.includes(w)) || tp.tags.some((id) => s.tags?.some((g) => g.id === id));
 }
 const topicStories = (tp) => (storiesFor()).filter((s) => matchTopic(s, tp));
-const activeTopic = () => topics.find((x) => x.id === state.topic) || null;
+// an open topic filters only the "my topics" tab; the other tabs are never filtered by it
+const activeTopic = () => (state.tab === 'mytopics' && topics.find((x) => x.id === state.topic)) || null;
 
 function renderTopics() {
   const L = t().topics;
-  $('topicsBar').hidden = !state.topic;
+  $('topicsBar').hidden = !activeTopic();
   $('topicsBar').innerHTML = topics
     .map((tp) => {
       const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
@@ -625,7 +628,7 @@ function storiesFor(tab = state.tab) {
 
 function inTab(s, tab) {
   switch (tab) {
-    case 'top': return (s.sport !== 'other' || s.big) && !s.local; // local leagues stay in their own tab
+    case 'top': return s.sport !== 'other' || s.big; // local leagues: collapsed at the bottom (OFFBEAT_TABS)
     case 'mytopics': return topics.some((tp) => matchTopic(s, tp));
     // foreign discovery: a foreign-origin report (an Israeli outlet covering it too doesn't remove it)
     case 'foreign': return !!s.v?.includes('f') && (s.sport !== 'other' || s.big);
@@ -818,8 +821,9 @@ function visibleStories() {
     const sc = new Map(list.map((s) => [s, searchScore(s, qWords)]));
     return list.filter((s) => sc.get(s) > 0).sort((a, b) => sc.get(b) - sc.get(a) || (b.latest || b.first) - (a.latest || a.first)).slice(0, 300);
   };
+  state.offList = [];
   if (tp) {
-    // an open topic: everything that matches, in any tab
+    // an open topic: everything that matches
     const list = storiesFor().filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
     if (qWords.length) return bySearch(list);
     const mix = rankMix(list);
@@ -850,13 +854,22 @@ function visibleStories() {
   const sw = state.sw[state.tab];
   if (sw && sw !== 'all') list = list.filter((s) => s.sport === sw);
   list.sort((a, b) => mix(b) - mix(a));
+  // Main and the world tabs: stories outside the desk's beat (leagues it doesn't follow, with no Israeli, star or
+  // viral angle; tickets / polls / live streams) are taken out of the list and collapsed at the bottom. Scoring
+  // them lower was not enough: sorted by time, a fresh PAOK story still landed on top.
+  state.offList = [];
+  if (OFFBEAT_TABS.has(state.tab)) {
+    state.offList = list.filter((s) => s.local || s.low).slice(0, 150);
+    list = list.filter((s) => !s.local && !s.low);
+  }
   // at the popular end, keep the list focused
   return list.slice(0, mixVal() >= 70 ? 120 : 300);
 }
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
+const OFFBEAT_TABS = new Set(['top', 'football', 'basketball']);
 const EDITORIAL_TABS = new Set(['top', 'football', 'basketball', 'abroad', 'abroadB']);
-const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !state.topic;
+const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !activeTopic();
 const mixVal = () => (editorialTab() ? state.mixF : state.mix);
 function rankMix(list) {
   const w = mixVal() / 100;
@@ -1091,6 +1104,7 @@ function cardHtmlV2(s, fresh) {
   const reporter = (s.social || []).find((p) => !/[א-ת]/.test(p));
   const labels = [
     s.routine ? `<span class="lb lb--local" title="${esc(he ? 'חדשות שגרתיות של ליגה במעקב: מוצג נמוך יותר' : 'Routine news of a followed league: shown lower')}">${he ? 'שגרה' : 'Routine'}</span>` : '',
+    s.found && state.tab === 'mytopics' ? `<span class="lb lb--found" title="${esc(he ? 'הרדאר מצא את זה בחיפוש של הנושא' : "Found by the topic's web search")}">${he ? 'נמצא בחיפוש' : 'From search'}</span>` : '',
     s.local ? `<span class="lb lb--local" title="${esc(he ? 'ליגה מקומית — מוצג נמוך ברשימה' : 'Local league — shown lower')}">${he ? 'מקומי' : 'Local'}</span>` : '',
     reporter ? `<span class="lb lb--scoop" title="${esc(L.socialTip)}">${esc(he ? `סקופ · ${reporter}` : `Scoop · ${reporter}`)}</span>` : '',
     isHot ? `<span class="lb lb--hot">${icon('flame', 12, 2)}${esc(noEmoji(L.hot))}</span>` : '',
@@ -1193,7 +1207,7 @@ $('list').addEventListener('click', (e) => {
 });
 // language, newest↔popular and topics sit behind one button; search + Sport5 filter stay visible
 function filtersActive() {
-  return !!(state.langFilter !== 'all' || state.topic || state.league !== 'all' || state.when !== 'all' || state.srcType !== 'all');
+  return !!(state.langFilter !== 'all' || activeTopic() || state.league !== 'all' || state.when !== 'all' || state.srcType !== 'all');
 }
 $('filtersBtn').addEventListener('click', () => {
   const open = !document.body.classList.contains('show-filters');
@@ -1223,7 +1237,7 @@ function renderChromeV2() {
   $('searchBtn').innerHTML = icon('search', 20);
   $('s5Filter').innerHTML = `<span class="sw" aria-hidden="true"><i></i></span>${esc(noEmoji(t().s5Filter))}`;
   $('search').placeholder = he ? 'חיפוש קבוצה, שחקן או מילה — בכל שפה' : 'Search a team, player or word — any language';
-  const n = [state.league !== 'all', state.when !== 'all', state.srcType !== 'all', state.langFilter !== 'all', !!state.topic, state.notS5].filter(Boolean).length;
+  const n = [state.league !== 'all', state.when !== 'all', state.srcType !== 'all', state.langFilter !== 'all', !!activeTopic(), state.notS5].filter(Boolean).length;
   $('filtersBtn').innerHTML = `${icon('filter', 14, 2)}<span class="lbl">${esc(t().v2.filters)}</span>${n ? `<b class="fcount">${n}</b>` : ''}`;
 }
 $('searchBtn').addEventListener('click', () => {
@@ -1492,16 +1506,13 @@ function topicsCardHtml() {
     .map((tp) => {
       const n = topicStories(tp).length;
       const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
-      const until = tp.searchUntil && tp.searchUntil > Date.now() ? tp.searchUntil : 0;
-      const q = topicQuery(tp);
-      const act = !q ? ''
-        : until
-          ? `<button type="button" class="tc-search on" data-tsearch="${esc(tp.id)}" title="${esc(he ? 'הרדאר מחפש את הנושא ברשת. לחיצה מחדשת ל-6 שעות' : 'The radar is searching the web for this topic. Click to renew for 6 hours')}">${icon('radar', 13, 2)}${esc(he ? `מחפש ברשת עד ${hhmm(until)}` : `Searching until ${hhmm(until)}`)}</button>`
-          : `<button type="button" class="tc-search" data-tsearch="${esc(tp.id)}" title="${esc(he ? 'בנוסף לסינון, הרדאר יחפש את הנושא ברשת במשך 6 שעות' : 'Besides filtering, the radar searches the web for this topic for 6 hours')}">${icon('search', 13, 2)}${esc(he ? 'חפש גם ברשת' : 'Also search the web')}</button>`;
+      const found = topicStories(tp).filter((s) => s.found).length;
+      const act = !topicQuery(tp) ? ''
+        : `<span class="tc-search on" title="${esc(he ? 'הרדאר מחפש את הנושא ברשת בכל כמה דקות, עד שתמחק את הנושא' : 'The radar searches the web for this topic every few minutes, until you delete it')}">${icon('radar', 13, 2)}${esc(he ? `מחפש ברשת${found ? ` · ${found} נמצאו בחיפוש` : ''}` : `Searching the web${found ? ` · ${found} found by the search` : ''}`)}</span>`;
       return `<span class="tc-item"><button type="button" class="topic-chip" data-topic="${esc(tp.id)}">⭐ ${esc(tp.name)} <small>${n}</small>${fresh ? `<b>${fresh}</b>` : ''}</button>${act}</span>`;
     })
     .join('');
-  const note = `<p class="tc-hint">${esc(he ? 'נושא מסנן את מה שהרדאר כבר אוסף. "חפש גם ברשת" גורם לרדאר לחפש אותו בפועל (6 שעות, אפשר לחדש). הנושאים שמורים בדפדפן הזה.' : 'A topic filters what the radar already collects. "Also search the web" makes the radar actively search for it (6 hours, renewable). Topics are saved in this browser.')}</p>`;
+  const note = `<p class="tc-hint">${esc(he ? 'כל נושא הוא חיפוש פעיל: הרדאר מחפש אותו ב-Google News בעברית, אנגלית, ספרדית, איטלקית, גרמנית וצרפתית, עד שתמחק אותו. תוצאות חדשות מגיעות תוך 5-10 דקות. הנושאים שמורים בדפדפן הזה.' : 'Every topic is an active search: the radar searches Google News for it in Hebrew, English, Spanish, Italian, German and French until you delete it. New results arrive within 5-10 minutes. Topics are saved in this browser.')}</p>`;
   return `<section class="topics-card"><div class="tc-head"><b>${esc(L.cardTitle)}</b><button type="button" class="tc-add" data-topic-new="1">${esc(L.addBig)}</button></div>${chips ? `<div class="tc-chips">${chips}</div>${note}` : `<p class="tc-hint">${esc(L.cardHint)}</p>`}</section>`;
 }
 // football / basketball switch (Israelis abroad, Israeli monitoring)
@@ -1518,18 +1529,20 @@ $('list').addEventListener('click', (e) => {
   renderChrome();
   renderList();
 });
-$('list').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-tsearch]');
-  if (!b) return;
-  const tp = topics.find((x) => x.id === b.dataset.tsearch);
-  const q = tp && topicQuery(tp);
-  if (!q) return;
-  // the same request as "follow in the radar": the collector searches it for 6 hours from its next run
-  sendFeedback({ type: 'search', q });
-  tp.searchUntil = Date.now() + 6 * 3600e3;
-  saveTopics();
-  renderList();
-});
+// Every topic is an active search: the collector searches it until the topic is deleted. The request is renewed
+// daily from here (and when the topic's words change); a topic nobody renews for 3 days stops being searched.
+function syncTopicSearches() {
+  let changed = false;
+  for (const tp of topics) {
+    const q = topicQuery(tp);
+    if (!q || (tp.searchQ === q && Date.now() - (tp.searchSent || 0) < 864e5)) continue;
+    sendFeedback({ type: 'search', q, topic: true });
+    Object.assign(tp, { searchQ: q, searchSent: Date.now() });
+    delete tp.searchUntil;
+    changed = true;
+  }
+  if (changed) saveTopics();
+}
 $('list').addEventListener('click', (e) => {
   const card = e.target.closest('.topics-card');
   if (!card) return;
@@ -1625,7 +1638,12 @@ function renderList(freshIds = new Set()) {
       ? `<div class="empty-v2"><span class="ev-ic ev-ok">${icon('check', 22)}</span><b>${esc(he ? 'הכל מכוסה — אין ידיעות שלא בספורט 5' : 'All covered — nothing missing from Sport5')}</b><span>${esc(he ? `הרדאר ממשיך לסרוק ${state.data?.sources?.total || ''} מקורות. ידיעה חדשה תופיע כאן אוטומטית.` : 'The radar keeps scanning. A new story will appear here automatically.')}</span><button type="button" class="small-btn" id="showAllBtn">${esc(he ? 'הצג גם מה שבספורט 5' : 'Show covered stories too')}</button></div>`
       : `<div class="empty-v2"><span class="ev-ic">${icon('search', 22)}</span><b>${esc(t().empty)}</b></div>`
     : '';
-  $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + emptyV2 + webHtml());
+  const off = state.offList;
+  const offOpen = !!state.showOff[state.tab];
+  const offHtml = off.length && !playersOnly
+    ? `<div class="offbeat-bar"><span>${esc(he ? `${off.length} ידיעות מחוץ לתחום הדסק: ליגות שלא במעקב (בלי ישראלי, כוכב או סיפור ויראלי), כרטיסים, סקרים ושידורים` : `${off.length} stories outside the desk's beat: leagues it doesn't follow (no Israeli, star or viral story), tickets, polls, streams`)}</span><button type="button" class="small-btn" id="offToggle">${esc(offOpen ? (he ? 'הסתר' : 'Hide') : (he ? 'הצג' : 'Show'))}</button></div>${offOpen ? off.map((s) => cardHtml(s, freshIds.has(s.id))).join('') : ''}`
+    : '';
+  $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + offHtml + emptyV2 + webHtml());
   $('empty').hidden = V2 || list.length > 0 || (isAbroad(state.tab) && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
   paintClaims();
   if (seenObserver) {
@@ -1633,6 +1651,12 @@ function renderList(freshIds = new Set()) {
     document.querySelectorAll('#list .card[data-id]').forEach((el) => seenObserver.observe(el));
   }
 }
+
+$('list').addEventListener('click', (e) => {
+  if (!e.target.closest('#offToggle')) return;
+  state.showOff[state.tab] = !state.showOff[state.tab];
+  renderList();
+});
 
 // ---------- rendering: just in ----------
 function renderJustIn(freshIds = new Set()) {
@@ -2304,7 +2328,7 @@ $('reportForm').addEventListener('click', async (e) => {
   }
   const name = $('rpName').value.trim().slice(0, 30);
   if (name) store.set('editorName', name);
-  await sendFeedback({ type: 'report', text: text.slice(0, 1000), link: $('rpLink').value.trim().slice(0, 600), name, page: state.topic ? 'topic' : state.tab });
+  await sendFeedback({ type: 'report', text: text.slice(0, 1000), link: $('rpLink').value.trim().slice(0, 600), name, page: activeTopic() ? 'topic' : state.tab });
   $('reportDialog').close();
   toast(t().report.sent);
 });
@@ -2666,7 +2690,11 @@ $('topicsBar').addEventListener('click', (e) => {
   openTopic(chip.dataset.topic);
 });
 function openTopic(id) {
-  state.topic = state.topic === id ? null : id; // click again to close
+  state.topic = state.topic === id && state.tab === 'mytopics' ? null : id; // click again to close
+  if (state.topic) {
+    state.tab = 'mytopics'; // a topic opens in "my topics"
+    store.set('tab', state.tab);
+  }
   const tp = activeTopic();
   if (tp) {
     tp.seen = Date.now();
@@ -2731,7 +2759,10 @@ $('topicForm').addEventListener('click', (e) => {
   saveTopics();
   $('topicDialog').close();
   state.topic = d.id;
+  state.tab = 'mytopics';
+  store.set('tab', state.tab);
   d.seen = Date.now();
+  syncTopicSearches();
   renderChrome();
   renderList();
   window.scrollTo({ top: 0 });
@@ -2746,6 +2777,8 @@ $('topicForm').addEventListener('click', (e) => {
   await loadAthletes();
   await load({ initial: true });
   loadScores();
+  syncTopicSearches();
+  setInterval(syncTopicSearches, 3600e3);
   setInterval(load, REFRESH_MS);
   loadClaims();
   setInterval(loadClaims, 60 * 1000);

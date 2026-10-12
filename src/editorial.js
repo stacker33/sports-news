@@ -16,6 +16,15 @@ export const major = (s) => !!s.tags?.some((g) => MAJOR.has(g.id));
 const TRANSFER = /\b(transfer|signs?|signed|signing|here we go|loan|bid|fee|release clause|buyout|contract extension|extension|free agent|traded?|waived|joins|move to|agreement)\b|העברה|מעבר ל|חתם|חותם|השאלה|הצעה|סעיף שחרור|טרייד|הארכת חוזה|מצטרף/i;
 const LOW_VALUE = /\b(how to watch|where to watch|tv channel|live stream(ing)?|odds|betting|prediction|predicted line-?ups?|preview and prediction|live:|live updates|as it happened|minute-by-minute|recap and highlights|quiz)\b|^live\b|איפה לצפות|שידור חי|ניחושים|הימורים|תחזית למשחק/i;
 
+// Not stories at all, in any language: ticket sales, polls, live streams of training, live tickers. Flagged "low":
+// the world tabs collapse them with the off-beat leagues (they are kept, never deleted).
+const NOT_NEWS = /(tickets?|buy tickets|on sale|polls?:|poll|vote now|cast your vote|watch (the )?(training|live)|live training|open training|live ?ticker|live blog)|biglietti|entradas|bilhetes|billetterie|εισιτήρι|bilet(ler)?|sondaggio|encuesta|sondage|umfrage|enquete|ψηφοφορ|em direto|ao vivo|en direct|en directo|en vivo|in diretta|liveticker|כרטיסים|הצבעה:|סקר:/i;
+export function markLow(s) {
+  if (trackedIsraeli(s)) return s;
+  const titles = [s.title, s.t?.en?.title || ''];
+  return titles.some((x) => NOT_NEWS.test(x) || LOW_VALUE.test(x)) ? { ...s, low: true } : s;
+}
+
 // player ratings: low for a generic match, but a rating of a tracked Israeli is what the desk writes about
 const RATINGS = /\bplayer ratings\b|\bratings?:|\breport card\b|\bmarks out of 10\b|\bpagelle\b|\bnotes? des joueurs\b|\bcalificaciones\b|\bnoten\b|\bcijfers\b/i;
 const trackedIsraeli = (s) => !!(s.israel || s.abroad || s.athletes?.length || s.watchIsrael);

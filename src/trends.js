@@ -129,21 +129,31 @@ export function nextTrendSearches(board, prev = {}, now = Date.now()) {
 
 // Editors' "follow this search" (from the site's web search): a Google News search in Hebrew + English for 6 hours.
 // Not "assist": the results are what the editor asked for (non-sport items are still dropped by the triage).
+// "My topics" searches (topic: true) are kept until the topic is deleted: the page renews each one daily while
+// the topic exists, and one nobody renewed for TOPIC_DAYS is dropped (deleted, or its browser is gone).
 export const FOLLOW_HOURS = 6;
+export const TOPIC_DAYS = 3;
 const MAX_FOLLOWS = 10;
+const MAX_TOPICS = 30;
 export function nextUserSearches(prev = {}, added = [], now = Date.now()) {
   const out = {};
-  for (const [q, t] of Object.entries(prev)) if (now - t.since < FOLLOW_HOURS * 3600e3) out[q] = t;
-  for (const { q } of added) {
+  for (const [q, t] of Object.entries(prev)) if (now - t.since < (t.topic ? TOPIC_DAYS * 864e5 : FOLLOW_HOURS * 3600e3)) out[q] = t;
+  for (const { q, topic } of added) {
     const key = q.toLowerCase().replace(/\s+/g, ' ').trim();
-    if (key.length >= 2) out[key] = { since: now };
+    if (key.length >= 2) out[key] = { since: now, ...(topic || out[key]?.topic ? { topic: true } : {}) };
   }
-  return Object.fromEntries(Object.entries(out).sort((a, b) => b[1].since - a[1].since).slice(0, MAX_FOLLOWS));
+  const newest = (list) => list.sort((a, b) => b[1].since - a[1].since);
+  const all = Object.entries(out);
+  return Object.fromEntries([...newest(all.filter(([, t]) => t.topic)).slice(0, MAX_TOPICS), ...newest(all.filter(([, t]) => !t.topic)).slice(0, MAX_FOLLOWS)]);
 }
+// Hebrew + English every 10 minutes; a topic also in Spanish, Italian, German and French every 30 (names are
+// written the same way there, so the same query finds the foreign press)
+const TOPIC_LANGS = ['es', 'it', 'de', 'fr'];
 export function userSearchSources(searches = {}) {
-  return Object.keys(searches).flatMap((q) => [
-    { id: `follow-${slug(q)}-he`, name: 'Google News', url: gnews(`${q} when:1d`, 'he'), lang: 'he', weight: 1, google: true, mixed: true, every: 10, trend: q },
-    { id: `follow-${slug(q)}-en`, name: 'Google News', url: gnews(`${q} when:1d`, 'en'), lang: 'en', weight: 1, google: true, mixed: true, every: 10, trend: q },
+  return Object.entries(searches).flatMap(([q, t]) => [
+    { id: `follow-${slug(q)}-he`, name: 'Google News', url: gnews(`${q} when:1d`, 'he'), lang: 'he', weight: 1, google: true, mixed: true, every: 10, trend: q, topic: !!t.topic },
+    { id: `follow-${slug(q)}-en`, name: 'Google News', url: gnews(`${q} when:1d`, 'en'), lang: 'en', weight: 1, google: true, mixed: true, every: 10, trend: q, topic: !!t.topic },
+    ...(t.topic ? TOPIC_LANGS.map((l) => ({ id: `follow-${slug(q)}-${l}`, name: 'Google News', url: gnews(`${q} when:1d`, l), lang: l, weight: 1, google: true, mixed: true, every: 30, trend: q, topic: true })) : []),
   ]);
 }
 
