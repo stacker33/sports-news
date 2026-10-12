@@ -12,8 +12,8 @@ const T = {
     search: 'חיפוש…',
     empty: 'אין ידיעות להצגה',
     tabs: {
-      top: '🔥 הכי חם', foryou: '⭐ בשבילך', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
-      abroad: '✈️ ליגיונרים', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
+      top: '🔥 ראשי', mytopics: '⭐ הנושאים שלי', foryou: '⭐ בשבילך', foreign: '🔎 גילוי מחו"ל', ilmon: '👁 מעקב ישראלי', ilFootball: '🇮🇱 כדורגל ישראלי', ilBasketball: '🇮🇱 כדורסל ישראלי',
+      abroad: '🇮🇱 כדורגל ישראלי', abroadB: '🇮🇱 כדורסל ישראלי', football: '⚽ כדורגל עולמי', basketball: '🏀 כדורסל עולמי', other: '🏅 אולימפי וענפים אחרים',
     },
     langs: { all: '🌍 כל העולם (מתורגם)', he: 'עברית בלבד', en: 'English only' },
     langName: { en: 'אנגלית', es: 'ספרדית', it: 'איטלקית', de: 'גרמנית', fr: 'צרפתית', pt: 'פורטוגזית', nl: 'הולנדית', tr: 'טורקית', el: 'יוונית', sr: 'סרבית', ro: 'רומנית', hu: 'הונגרית', pl: 'פולנית', ja: 'יפנית', cs: "צ'כית", he: 'עברית' },
@@ -42,7 +42,7 @@ const T = {
     },
     ilNames: { Israel: 'נבחרת ישראל', 'Maccabi Tel Aviv': 'מכבי תל אביב', 'Hapoel Tel Aviv': 'הפועל תל אביב', 'Hapoel Jerusalem': 'הפועל ירושלים', 'Maccabi Haifa': 'מכבי חיפה', 'Hapoel Beer Sheva': 'הפועל באר שבע', "Hapoel Be'er Sheva": 'הפועל באר שבע', 'Beitar Jerusalem': 'בית"ר ירושלים', 'Hapoel Holon': 'הפועל חולון', 'Bnei Herzliya': 'בני הרצליה', 'Maccabi Rishon LeZion': 'מכבי ראשון לציון', 'Hapoel Haifa': 'הפועל חיפה' },
     country: { Ireland: 'אירלנד', 'Republic of Ireland': 'אירלנד', Austria: 'אוסטריה', Kosovo: 'קוסובו', Serbia: 'סרביה', Turkiye: 'טורקיה', Turkey: 'טורקיה', Greece: 'יוון', Spain: 'ספרד', France: 'צרפת', Germany: 'גרמניה', Italy: 'איטליה', England: 'אנגליה', Scotland: 'סקוטלנד', Portugal: 'פורטוגל', Netherlands: 'הולנד', Belgium: 'בלגיה', Lithuania: 'ליטא', Latvia: 'לטביה', Poland: 'פולין', Hungary: 'הונגריה', Romania: 'רומניה', Cyprus: 'קפריסין', Montenegro: 'מונטנגרו', Slovenia: 'סלובניה', Croatia: 'קרואטיה', Bulgaria: 'בולגריה', Czechia: "צ'כיה", Switzerland: 'שווייץ', Monaco: 'מונקו', Norway: 'נורבגיה', Sweden: 'שוודיה', Denmark: 'דנמרק', Ukraine: 'אוקראינה' },
-    mix: { newest: '🕒 הכי חדש', popular: 'הכי פופולרי 🔥' },
+    mix: { newest: '🕒 הכי חדש', popular: 'הכי פופולרי 🔥', editorial: 'חשיבות לעורך 🧭' },
     forYou: {
       intro: (n) => `⭐ הטאב לומד ממה שאתם פותחים (${n} כתבות עד עכשיו), ומסתנכרן בין המחשב לטלפון.`,
       cold: 'עוד לא למדתי מה מעניין אתכם — פתחו כמה כתבות בטאבים האחרים, וכאן יופיעו ידיעות לפי הטעם שלכם. בינתיים: הכי חם.',
@@ -97,9 +97,9 @@ const T = {
     why: (sport, reason) => `סווג: ${sport} · לפי ${reason}`, sportName: { football: 'כדורגל', basketball: 'כדורסל', other: 'ספורט אחר' },
     reasons: { url: 'מדור האתר', section: 'מדור האתר', feed: 'מקור ייעודי לענף', names: 'שמות שחקנים/קבוצות', kw: 'מילות מפתח', 'kw-other': 'מילות מפתח של ענף אחר', 'kw-weak': 'מילות מפתח (חלש)', model: 'מודל למידה', 'model-weak': 'מודל למידה (ביטחון נמוך)', 'in-the-news': 'ההקשר החדשותי של הקבוצה', score: 'תוצאת המשחק', user: 'תיקון עורך', uncertain: 'אין ראיה ברורה', athlete: 'ישראלי בחו"ל', 'il-clubs': 'שמות מועדונים', tie: 'שוויון ראיות' },
     sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
-    s5Filter: '🔴 רק מה שלא בספורט 5', s5FilterTip: 'מציג רק ידיעות שעדיין לא סוקרו בספורט 5',
+    s5Filter: '🔴 רק בלי התאמה בספורט 5', s5FilterTip: 'ידיעות שלא נמצאה להן התאמה בספורט 5. התאמות אפשריות נשארות ומסומנות',
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
-    vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)` },
+    vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)`, whyQ: 'למה?', thanks: 'תודה, נרשם', reasons: { irrelevant: 'לא רלוונטי', covered: 'כבר סוקר', duplicate: 'כפילות', identity: 'זיהוי שגוי (אדם/קבוצה אחרים)' } },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     web: {
       head: (n) => `🌐 מהרשת — Google News (${n})`, loading: '🌐 מחפש ברשת…', none: '🌐 לא נמצאו ברשת ידיעות נוספות', error: '🌐 החיפוש ברשת לא זמין כרגע',
@@ -175,8 +175,8 @@ const T = {
     search: 'Search…',
     empty: 'No stories to show',
     tabs: {
-      top: '🔥 Top', foryou: '⭐ For you', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
-      abroad: '✈️ Israelis abroad', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
+      top: '🔥 Main', mytopics: '⭐ My topics', foryou: '⭐ For you', foreign: '🔎 Foreign discovery', ilmon: '👁 Israeli monitoring', ilFootball: '🇮🇱 Israeli football', ilBasketball: '🇮🇱 Israeli basketball',
+      abroad: '🇮🇱 Israeli football', abroadB: '🇮🇱 Israeli basketball', football: '⚽ World football', basketball: '🏀 World basketball', other: '🏅 Olympic & other sports',
     },
     langs: { all: '🌍 Whole world (translated)', he: 'Hebrew only', en: 'English only' },
     langName: { he: 'Hebrew', es: 'Spanish', it: 'Italian', de: 'German', fr: 'French', pt: 'Portuguese', nl: 'Dutch', tr: 'Turkish', el: 'Greek', sr: 'Serbian', ro: 'Romanian', hu: 'Hungarian', pl: 'Polish', ja: 'Japanese', cs: 'Czech', en: 'English' },
@@ -204,7 +204,7 @@ const T = {
       you: (x) => `Similar to what you read: ${x}`,
     },
     ilNames: {},
-    mix: { newest: '🕒 Newest', popular: 'Most popular 🔥' },
+    mix: { newest: '🕒 Newest', popular: 'Most popular 🔥', editorial: 'Editorial rank 🧭' },
     forYou: {
       intro: (n) => `⭐ This tab learns from what you open (${n} stories so far) and syncs between PC and phone.`,
       cold: "I haven't learned your taste yet — open a few stories in the other tabs and they'll shape this one. Meanwhile: Top stories.",
@@ -259,9 +259,9 @@ const T = {
     why: (sport, reason) => `Classified: ${sport} · by ${reason}`, sportName: { football: 'football', basketball: 'basketball', other: 'other sport' },
     reasons: { url: 'site section', section: 'site section', feed: 'sport-specific source', names: 'player/team names', kw: 'keywords', 'kw-other': "another sport's keywords", 'kw-weak': 'keywords (weak)', model: 'learned model', 'model-weak': 'learned model (low confidence)', 'in-the-news': "the club's news context", score: 'the score', user: 'editor correction', uncertain: 'no clear evidence', athlete: 'Israeli abroad', 'il-clubs': 'club names', tie: 'tied evidence' },
     sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
-    s5Filter: '🔴 Not on Sport5 only', s5FilterTip: 'Show only stories Sport5 has not covered yet',
+    s5Filter: '🔴 No Sport5 match only', s5FilterTip: 'Stories with no Sport5 match found. Possible matches stay, marked',
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
-    vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)` },
+    vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)`, whyQ: 'Why?', thanks: 'Thanks, noted', reasons: { irrelevant: 'Not relevant', covered: 'Already covered', duplicate: 'Duplicate', identity: 'Wrong person / team' } },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     web: {
       head: (n) => `🌐 From the web — Google News (${n})`, loading: '🌐 Searching the web…', none: '🌐 Nothing more on the web', error: '🌐 Web search is unavailable right now',
@@ -334,7 +334,15 @@ const T = {
   },
 };
 
-const TABS = ['top', 'foryou', 'ilFootball', 'ilBasketball', 'abroad', 'football', 'basketball', 'other'];
+// Main (top stories and foreign discovery merged) · world football · world basketball · Israelis abroad · Israeli
+// monitoring · Olympic & other sports · my topics (For you was replaced by the editor's own topics)
+const TABS = ['top', 'mytopics', 'abroad', 'abroadB', 'football', 'basketball', 'other', 'ilmon'];
+// Israelis abroad: two tabs, football ('abroad') and basketball ('abroadB'), with the same player row and cards
+const ABROAD = { abroad: 'football', abroadB: 'basketball' };
+const isAbroad = (tab) => tab in ABROAD;
+const israeliAngle = (s) => !!(s.israel || s.abroad || s.watchIsrael);
+const athleteSport = (name) => (state.athletes?.athletes || []).find((a) => a.name === name)?.sport || 'football';
+const OLD_TAB = { foreign: 'top', foryou: 'mytopics', ilFootball: 'abroad', ilBasketball: 'abroadB', ilOther: 'other' };
 const LANG_FILTERS = ['all', 'he', 'en'];
 
 // ---------- state (UI prefs remembered per device) ----------
@@ -361,11 +369,16 @@ if (V2) {
 }
 const state = {
   ui: store.get('ui', 'he'),
-  tab: TABS.includes(store.get('tab')) ? store.get('tab') : store.get('tab') === 'ilOther' ? 'other' : 'top',
+  showOff: {}, // per tab: the collapsed "outside the desk's beat" stories are open
+  offList: [],
+  tab: TABS.includes(store.get('tab')) ? store.get('tab') : OLD_TAB[store.get('tab')] || 'top',
+  // football / basketball switch inside Israelis abroad and Israeli monitoring (remembered per tab)
+  sw: { ilmon: store.get('sw.ilmon', 'all') },
   langFilter: ['all', 'he', 'en'].includes(store.get('langFilter')) ? store.get('langFilter') : 'all',
   notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
   mix: Number(store.get('mix', 40)),
+  mixF: Number(store.get('mixF', 80)), // foreign discovery keeps its own slider: editorial rank by default
   abroadView: store.get('abroadView', 'news') === 'players' ? 'players' : 'news', // Israelis abroad: 📰 news | 👤 players // 0 = newest … 100 = most popular
   affinity: null,
   tag: null, // topic filter (clicked tag)
@@ -445,7 +458,7 @@ const seenObserver = 'IntersectionObserver' in window
       for (const en of entries) {
         const el = en.target;
         clearTimeout(el._seenT);
-        if (en.isIntersecting) el._seenT = setTimeout(() => markSeen(state.data?.stories.find((x) => x.id === el.dataset.id)), 1500);
+        if (en.isIntersecting) el._seenT = setTimeout(() => markSeen(storiesFor().find((x) => x.id === el.dataset.id)), 1500);
       }
     }, { threshold: 0.6 })
   : null;
@@ -516,11 +529,13 @@ function matchTopic(s, tp) {
   if (!tp.words.length && !tp.tags.length) return true;
   return tp.words.some((w) => text.includes(w)) || tp.tags.some((id) => s.tags?.some((g) => g.id === id));
 }
-const topicStories = (tp) => (state.data?.stories || []).filter((s) => matchTopic(s, tp));
-const activeTopic = () => topics.find((x) => x.id === state.topic) || null;
+const topicStories = (tp) => (storiesFor()).filter((s) => matchTopic(s, tp));
+// an open topic filters only the "my topics" tab; the other tabs are never filtered by it
+const activeTopic = () => (state.tab === 'mytopics' && topics.find((x) => x.id === state.topic)) || null;
 
 function renderTopics() {
   const L = t().topics;
+  $('topicsBar').hidden = !activeTopic();
   $('topicsBar').innerHTML = topics
     .map((tp) => {
       const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
@@ -533,7 +548,7 @@ function renderTopics() {
 let topicDraft = null;
 function allTags() {
   const m = new Map();
-  for (const s of state.data?.stories || []) for (const g of s.tags || []) if (!m.has(g.id)) m.set(g.id, g);
+  for (const s of storiesFor()) for (const g of s.tags || []) if (!m.has(g.id)) m.set(g.id, g);
   return [...m.values()];
 }
 function openTopicEditor(tp) {
@@ -545,7 +560,7 @@ function renderTopicEditor(msg = '') {
   const L = t().topics;
   const d = topicDraft;
   const opt = (v, cur, label) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${esc(label)}</option>`;
-  const sources = [...new Set((state.data?.stories || []).flatMap((s) => s.sources.map((x) => x.name)))].sort();
+  const sources = [...new Set((storiesFor()).flatMap((s) => s.sources.map((x) => x.name)))].sort();
   const n = topicStories({ ...d, words: d.words, tags: d.tags }).length;
   $('topicForm').innerHTML = `
     <h3>${esc(d.isNew ? L.newTitle : L.editTitle)}</h3>
@@ -590,15 +605,46 @@ function readTopicForm() {
 
 // ---------- filtering ----------
 
+// ---------- Israeli sites only in Israeli monitoring ----------
+// Every other tab sees a foreign-only version of each story: Israeli outlets' articles are taken out (headline,
+// link, sources), a story only Israeli sites covered is left out, and the competitors line is not shown.
+// fv (from the collector) = the foreign report to show: title, link, lang, translated headlines, image, outlets.
+function foreignOnly(s) {
+  const src = s.sources || [];
+  if (!src.some((x) => x.o === 'il')) return s;
+  const keep = src.filter((x) => x.o !== 'il');
+  if (!s.fv || !keep.length) return null;
+  const v = { ...s, ...s.fv, sources: keep, cov: s.cov ? { ...s.cov, comp: [] } : s.cov, realLink: undefined, sum: s.ai?.he?.sum ? s.sum : undefined };
+  delete v.fv;
+  return v;
+}
+let noIl = { src: null, list: [] };
+function storiesFor(tab = state.tab) {
+  const all = state.data?.stories || [];
+  if (tab === 'ilmon') return all;
+  if (noIl.src !== all) noIl = { src: all, list: all.map(foreignOnly).filter(Boolean) };
+  return noIl.list;
+}
+
 function inTab(s, tab) {
   switch (tab) {
-    case 'top': return (s.sport !== 'other' || s.big) && !s.local; // local leagues stay in their own tab
-    case 'foryou': return true;
+    case 'top': return s.sport !== 'other' || s.big; // local leagues: collapsed at the bottom (OFFBEAT_TABS)
+    case 'mytopics': return topics.some((tp) => matchTopic(s, tp));
+    // foreign discovery: a foreign-origin report (an Israeli outlet covering it too doesn't remove it)
+    case 'foreign': return !!s.v?.includes('f') && (s.sport !== 'other' || s.big);
+    // Israeli monitoring: an Israeli-origin report or an Israeli subject
+    case 'ilmon': return !!s.v?.includes('i');
     case 'ilFootball': return s.israel && s.sport === 'football';
     case 'ilBasketball': return s.israel && s.sport === 'basketball';
-    case 'abroad': return s.abroad || (state.teamNews && s.teams?.length > 0);
-    case 'football': return !s.israel && s.sport === 'football';
-    case 'basketball': return !s.israel && s.sport === 'basketball';
+    case 'abroad':
+    case 'abroadB': {
+      const sp = ABROAD[tab];
+      if (s.athletes?.some((n) => athleteSport(n) === sp)) return true; // an Israeli player abroad
+      if ((s.israel || s.watchIsrael) && s.sport === sp) return true; // an Israeli club / the national team / a verified Israeli
+      return !!(state.teamNews && s.teams?.length > 0 && s.sport === sp); // "+ team news": the clubs of the players
+    }
+    case 'football': return !israeliAngle(s) && s.sport === 'football';
+    case 'basketball': return !israeliAngle(s) && s.sport === 'basketball';
     case 'other': return s.sport === 'other'; // Olympic & other sports: Israeli and world together
   }
   return true;
@@ -775,46 +821,63 @@ function visibleStories() {
     const sc = new Map(list.map((s) => [s, searchScore(s, qWords)]));
     return list.filter((s) => sc.get(s) > 0).sort((a, b) => sc.get(b) - sc.get(a) || (b.latest || b.first) - (a.latest || a.first)).slice(0, 300);
   };
+  state.offList = [];
   if (tp) {
-    // an open topic: everything that matches, in any tab
-    const list = state.data.stories.filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
+    // an open topic: everything that matches
+    const list = storiesFor().filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
     if (qWords.length) return bySearch(list);
     const mix = rankMix(list);
     return list.sort((a, b) => mix(b) - mix(a)).slice(0, 300);
   }
   const base = (s) => langOk(s) && s5ok(s) && filtersOk(s);
   if (qWords.length) {
-    const everywhere = bySearch(state.data.stories.filter(base));
+    const everywhere = bySearch(storiesFor().filter(base));
     const inThisTab = everywhere.filter((s) => inTab(s, state.tab) && athleteOk(s));
     state.searchExtra = everywhere.length - inThisTab.length; // the "N more results in other tabs" bar
     return state.searchAll ? everywhere : inThisTab;
   }
   state.searchExtra = 0;
-  let list = state.data.stories.filter(
+  let list = storiesFor().filter(
     (s) =>
       inTab(s, state.tab) && base(s) && athleteOk(s) && (!state.rival || s.rival?.opponent === state.rival) &&
       (!state.tag || s.tags?.some((g) => g.id === state.tag))
   );
   const mix = rankMix(list);
-  if (state.tab === 'foryou' && Learn.count() >= 3) {
-    state.affinity = Learn.affinity(state.data.stories);
+  if (false) {
+    state.affinity = Learn.affinity(storiesFor());
     list = list.filter((s) => state.affinity.has(s.id));
     const val = (s) => 0.6 * state.affinity.get(s.id).score + 0.4 * mix(s);
     return list.sort((a, b) => val(b) - val(a)).slice(0, 150);
   }
-  if (state.tab === 'top' || state.tab === 'foryou') list = list.filter((s) => s.sport !== 'other' || s.big);
+  if (state.tab === 'top') list = list.filter((s) => s.sport !== 'other' || s.big);
+  // the football / basketball switch
+  const sw = state.sw[state.tab];
+  if (sw && sw !== 'all') list = list.filter((s) => s.sport === sw);
   list.sort((a, b) => mix(b) - mix(a));
+  // Main and the world tabs: stories outside the desk's beat (leagues it doesn't follow, with no Israeli, star or
+  // viral angle; tickets / polls / live streams) are taken out of the list and collapsed at the bottom. Scoring
+  // them lower was not enough: sorted by time, a fresh PAOK story still landed on top.
+  state.offList = [];
+  if (OFFBEAT_TABS.has(state.tab)) {
+    state.offList = list.filter((s) => s.local || s.low || s.minor).slice(0, 150);
+    list = list.filter((s) => !s.local && !s.low && !s.minor);
+  }
   // at the popular end, keep the list focused
-  return list.slice(0, state.mix >= 70 ? 120 : 300);
+  return list.slice(0, mixVal() >= 70 ? 120 : 300);
 }
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
+const OFFBEAT_TABS = new Set(['top', 'football', 'basketball']);
+const EDITORIAL_TABS = new Set(['top', 'football', 'basketball', 'abroad', 'abroadB']);
+const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !activeTopic();
+const mixVal = () => (editorialTab() ? state.mixF : state.mix);
 function rankMix(list) {
-  const w = state.mix / 100;
+  const w = mixVal() / 100;
   const maxPop = Math.log1p(Math.max(1, ...list.map((s) => s.pop ?? s.score)));
   const now = Date.now();
+  const editorial = editorialTab();
   return (s) => {
-    const popN = Math.log1p(s.pop ?? s.score) / maxPop;
+    const popN = editorial ? (s.ed?.score ?? 0) / 100 : Math.log1p(s.pop ?? s.score) / maxPop;
     const freshN = Math.exp(-(now - s.first) / (6 * 3600e3)); // halves roughly every 4 hours
     return w * popN + (1 - w) * freshN;
   };
@@ -826,7 +889,7 @@ function featLabel(f) {
   if (k === 'sport' || k === 'cat') return t().feat[v] || v;
   if (k === 'rival') return '🆚 ' + v;
   if (k === 'tag') {
-    const g = state.data?.stories.flatMap((s) => s.tags || []).find((x) => x.id === v);
+    const g = storiesFor().flatMap((s) => s.tags || []).find((x) => x.id === v);
     return g ? tagName(g) : v;
   }
   if (k === 'ath') {
@@ -966,16 +1029,60 @@ function s5Status(s) {
   const notable = s.big || s.sourceCount >= 3;
   if (s.s5?.where === 'channel') return { k: 'social', long: he ? 'רק בטלגרם/יוטיוב של ספורט 5' : 'Only on Sport5 Telegram/YouTube', short: he ? 'רק בערוצי ספורט 5' : 'Sport5 channels only', ic: 'send', link: s.s5.link, tip: L.s5ChannelTip };
   if (s.s5 && s.s5.newer >= 2) return { k: 'since', long: he ? `בספורט 5 מ-${hhmm(s.s5.at)} · +${s.s5.newer} פרסומים חדשים מאז` : `On Sport5 since ${hhmm(s.s5.at)} · +${s.s5.newer} newer`, short: he ? `בספורט 5 · +${s.s5.newer} חדשים` : `On Sport5 · +${s.s5.newer}`, ic: 'refresh', link: s.s5.link, tip: L.s5Tip };
-  if (s.s5?.probable) return { k: 'prob', long: he ? 'כנראה באתר ספורט 5' : 'Probably on the Sport5 site', short: he ? 'כנראה בספורט 5' : 'Probably on Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5ProbTip };
-  if (s.s5) return { k: 'on', long: he ? 'באתר ספורט 5' : 'On the Sport5 site', short: he ? 'באתר ספורט 5' : 'On Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5Tip };
-  // not covered: loud only where it matters (a story several outlets carry), quiet otherwise
-  return { k: notable ? 'not' : 'none', long: he ? 'לא נמצא בספורט 5' : 'Not found on Sport5', short: he ? 'לא בספורט 5' : 'Not on Sport5', ic: 'notfound', tip: L.s5NotTip(state.data ? ago(state.data.generatedAt) : '') };
+  if (s.s5?.probable) return { k: 'prob', long: he ? 'התאמה אפשרית בספורט 5' : 'Possible match on Sport5', short: he ? 'אולי בספורט 5' : 'Possible match', ic: 'oncheck', link: s.s5.link, tip: L.s5ProbTip };
+  if (s.s5) return { k: 'on', long: he ? 'נמצאה התאמה בספורט 5' : 'Match found on Sport5', short: he ? 'בספורט 5' : 'On Sport5', ic: 'oncheck', link: s.s5.link, tip: L.s5Tip };
+  // the check itself failed or is stale: say so, never "not on Sport5"
+  if (s.cov?.s5 === 'unavailable') return { k: 'none', long: he ? 'בדיקת הכיסוי לא זמינה' : 'Coverage check unavailable', short: he ? 'לא נבדק' : 'Not checked', ic: 'notfound', tip: he ? 'לא הצלחנו לקרוא את ספורט 5 לאחרונה, אז אי אפשר לדעת' : "Sport5 couldn't be read recently, so we can't tell" };
+  // no match: loud only where it matters (a story several outlets carry), quiet otherwise
+  const checked = s.cov?.checkedAt ? hhmm(s.cov.checkedAt) : '';
+  return { k: notable ? 'not' : 'none', long: he ? `לא נמצאה התאמה${checked ? ` · נבדק ${checked}` : ''}` : `No match found${checked ? ` · checked ${checked}` : ''}`, short: he ? 'אין התאמה' : 'No match', ic: 'notfound', tip: L.s5NotTip(checked || (state.data ? ago(state.data.generatedAt) : '')) };
+}
+
+// ---------- editorial explanation (discovery views) ----------
+const LIMITS = {
+  he: { single: 'מקור יחיד - דורש אימות', 'origin-unknown': 'המקור המקורי לא ידוע', cites: (a) => `מצטט את ${a}; הכתבה המקורית לא נאספה`, exclusive: 'כתוב "בלעדי" - לא אומת', time: 'זמן הפרסום לא ידוע', 's5-unavailable': 'בדיקת ספורט 5 לא זמינה', routine: 'חדשות שגרתיות', local: 'מחוץ לליגות במעקב', page: 'דף מידע, לא ידיעה', headline: 'רק כותרת ותקציר - צריך לקרוא את המקור' },
+  en: { single: 'Single source - needs confirmation', 'origin-unknown': 'Original source unknown', cites: (a) => `Cites ${a}; original article not collected`, exclusive: 'Says "exclusive" - not verified', time: 'Publication time unknown', 's5-unavailable': 'Sport5 check unavailable', routine: 'routine news', local: 'outside the followed leagues', page: 'Reference page, not a news story', headline: 'Only headline/description available; source reading needed' },
+};
+function leadOf(s) {
+  const l = s.ev?.lead;
+  if (!l) return null;
+  return { ...l, link: l.link || s.sources[l.i]?.link || s.link };
+}
+function explainHtml(s) {
+  const he = state.ui === 'he';
+  const lang = he ? 'he' : 'en';
+  const view = EDITORIAL_TABS.has(state.tab) || state.tab === 'ilmon';
+  const out = [];
+  if (view && s.ed?.reasons?.length) {
+    const rs = s.ed.reasons.slice(0, 3).map((x) => esc(String(x[lang] || x.en).replace('{t}', x.at ? hhmm(x.at) : '?')));
+    out.push(`<p class="c-why" dir="auto"><span class="c-why-h">${he ? 'למה זה חשוב' : 'Why it matters'}</span> ${rs.join(' · ')}</p>`);
+  }
+  const l = leadOf(s);
+  const ev = s.ev || {};
+  const bits = [];
+  if (view && l) {
+    const nm = `<a href="${esc(l.link)}" target="_blank" rel="noopener">${esc(l.name)}</a>`;
+    if (l.status === 'attributed') bits.push(he ? `מקור: ${nm} (מצוטט ע"י ${ev.attribBy})` : `Source: ${nm} (cited by ${ev.attribBy})`);
+    else if (l.status === 'cites-uncollected') bits.push(he ? `מצטט את ${esc(ev.attrib)} · הדיווח הזר: ${nm}` : `Cites ${esc(ev.attrib)} · foreign report: ${nm}`);
+    else if (l.status === 'earliest') bits.push(he ? `הדיווח הזר המוקדם שנמצא: ${nm} (מקוריות לא ידועה)` : `Earliest foreign report seen: ${nm} (originality unknown)`);
+  }
+  if (view && ev.outlets >= 2) bits.push(he ? `${ev.outlets} כלי תקשורת (${ev.il} ישראליים, ${ev.foreign} זרים) - פרסום, לא אימות` : `${ev.outlets} outlets (${ev.il} Israeli, ${ev.foreign} foreign) - spread, not confirmation`);
+  const comp = s.cov?.comp || [];
+  if (comp.length) bits.push(`${he ? 'נמצא גם אצל המתחרים' : 'Also found on competitors'}: ${esc(comp.slice(0, 3).join(', '))}`);
+  if (bits.length) out.push(`<p class="c-cov" dir="auto">${bits.join(' · ')}</p>`);
+  if (view) {
+    const lim = (s.ed?.limits || []).map((k) => (k === 'cites' ? LIMITS[lang].cites(ev.attrib || '') : LIMITS[lang][k])).filter(Boolean);
+    lim.push(LIMITS[lang].headline);
+    out.push(`<p class="c-lim" dir="auto">${icon('alert', 12, 2)}${esc(lim.join(' · '))}</p>`);
+  }
+  return out.join('');
 }
 
 function cardHtmlV2(s, fresh) {
   const L = t();
   const d = disp(s);
   if (d.link === s.link && s.realLink) d.link = s.realLink;
+  if (state.tab === 'foreign' && leadOf(s)?.origin === 'foreign' && s.lang === 'he') d.link = leadOf(s).link;
   const he = state.ui === 'he';
   // headline in the app's language first, the original under it
   // a Hebrew article keeps its own headline; the model's Hebrew headline is for foreign ones
@@ -993,9 +1100,11 @@ function cardHtmlV2(s, fresh) {
     ? `<a class="s5st s5st--${st.k}" href="${esc(st.link)}" target="_blank" rel="noopener" title="${esc(st.tip || '')}">${stInner}</a>`
     : `<span class="s5st s5st--${st.k}" title="${esc(st.tip || '')}">${stInner}</span>`;
   // labels, at most 3: scoop (reporter) · hot · sport on mixed tabs · topics
-  const mixed = state.tab === 'top' || state.tab === 'foryou';
+  const mixed = state.tab === 'top' || state.tab === 'mytopics';
   const reporter = (s.social || []).find((p) => !/[א-ת]/.test(p));
   const labels = [
+    s.routine ? `<span class="lb lb--local" title="${esc(he ? 'חדשות שגרתיות של ליגה במעקב: מוצג נמוך יותר' : 'Routine news of a followed league: shown lower')}">${he ? 'שגרה' : 'Routine'}</span>` : '',
+    s.found && state.tab === 'mytopics' ? `<span class="lb lb--found" title="${esc(he ? 'הרדאר מצא את זה בחיפוש של הנושא' : "Found by the topic's web search")}">${he ? 'נמצא בחיפוש' : 'From search'}</span>` : '',
     s.local ? `<span class="lb lb--local" title="${esc(he ? 'ליגה מקומית — מוצג נמוך ברשימה' : 'Local league — shown lower')}">${he ? 'מקומי' : 'Local'}</span>` : '',
     reporter ? `<span class="lb lb--scoop" title="${esc(L.socialTip)}">${esc(he ? `סקופ · ${reporter}` : `Scoop · ${reporter}`)}</span>` : '',
     isHot ? `<span class="lb lb--hot">${icon('flame', 12, 2)}${esc(noEmoji(L.hot))}</span>` : '',
@@ -1037,6 +1146,7 @@ function cardHtmlV2(s, fresh) {
       <h2 dir="auto"><a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(main)}</a></h2>
       ${orig ? `<p class="orig" dir="auto">${esc(orig)}</p>` : ''}
       ${sum}
+      ${explainHtml(s)}
       <div class="c-meta">
         <b class="c-src">${esc(lead)}</b>
         ${s.sourceCount > 1 ? `<button type="button" class="src-more" aria-expanded="false">${esc(he ? `+${s.sourceCount - 1} מקורות` : `+${s.sourceCount - 1} sources`)}</button>` : ''}
@@ -1097,7 +1207,7 @@ $('list').addEventListener('click', (e) => {
 });
 // language, newest↔popular and topics sit behind one button; search + Sport5 filter stay visible
 function filtersActive() {
-  return !!(state.langFilter !== 'all' || state.topic || state.league !== 'all' || state.when !== 'all' || state.srcType !== 'all');
+  return !!(state.langFilter !== 'all' || activeTopic() || state.league !== 'all' || state.when !== 'all' || state.srcType !== 'all');
 }
 $('filtersBtn').addEventListener('click', () => {
   const open = !document.body.classList.contains('show-filters');
@@ -1117,6 +1227,7 @@ function renderChromeV2() {
   const btn = (el, ic, label) => { if (el) el.innerHTML = `${icon(ic, 16)}<span class="hb-t">${esc(label)}</span>`; };
   $('tgBtn').innerHTML = `${icon('send', 16)}<span class="hb-t" id="tgLabel">${esc(he ? 'טלגרם' : 'Telegram')}</span>`;
   btn($('reportBtn'), 'flag', he ? 'דיווח' : 'Report');
+  btn($('watchLink'), 'radar', he ? 'מעקב' : 'Watchlist');
   btn($('bellBtn'), 'bell', he ? 'התראות' : 'Alerts');
   btn($('keysBtn'), 'kbd', he ? 'קיצורים' : 'Shortcuts');
   const th = store.get('theme', 'auto');
@@ -1126,7 +1237,7 @@ function renderChromeV2() {
   $('searchBtn').innerHTML = icon('search', 20);
   $('s5Filter').innerHTML = `<span class="sw" aria-hidden="true"><i></i></span>${esc(noEmoji(t().s5Filter))}`;
   $('search').placeholder = he ? 'חיפוש קבוצה, שחקן או מילה — בכל שפה' : 'Search a team, player or word — any language';
-  const n = [state.league !== 'all', state.when !== 'all', state.srcType !== 'all', state.langFilter !== 'all', !!state.topic, state.notS5].filter(Boolean).length;
+  const n = [state.league !== 'all', state.when !== 'all', state.srcType !== 'all', state.langFilter !== 'all', !!activeTopic(), state.notS5].filter(Boolean).length;
   $('filtersBtn').innerHTML = `${icon('filter', 14, 2)}<span class="lbl">${esc(t().v2.filters)}</span>${n ? `<b class="fcount">${n}</b>` : ''}`;
 }
 $('searchBtn').addEventListener('click', () => {
@@ -1163,9 +1274,9 @@ function renderChrome() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => (el.placeholder = t()[el.dataset.i18nPlaceholder]));
 
   const counts = {};
-  if (state.data) for (const tab of TABS) counts[tab] = state.data.stories.filter((s) => inTab(s, tab) && (tab === 'abroad' || langOkFor(s))).length;
+  if (state.data) for (const tab of TABS) counts[tab] = storiesFor(tab).filter((s) => inTab(s, tab) && (isAbroad(tab) || langOkFor(s))).length;
   $('tabs').innerHTML = TABS.map(
-    (tab) => `<button class="tab${tab === 'abroad' ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(V2 ? noEmoji(t().tabs[tab]) : t().tabs[tab])}${
+    (tab) => `<button class="tab${isAbroad(tab) ? ' tab-abroad' : ''}" role="tab" data-tab="${tab}" aria-selected="${tab === state.tab}">${esc(V2 ? noEmoji(t().tabs[tab]) : t().tabs[tab])}${
       state.data ? `<span class="count">${counts[tab]}</span>` : ''
     }</button>`
   ).join('');
@@ -1174,13 +1285,13 @@ function renderChrome() {
     (f) => `<button data-lf="${f}" aria-pressed="${f === state.langFilter}">${esc(t().langs[f])}</button>`
   ).join('');
   $('mixLabelNew').textContent = t().mix.newest;
-  $('mixLabelPop').textContent = t().mix.popular;
-  $('mix').value = state.mix;
+  $('mixLabelPop').textContent = editorialTab() ? t().mix.editorial : t().mix.popular;
+  $('mix').value = mixVal();
 
   // Israeli tabs: filter by the opponent's press (Israel–Ireland → Irish press…)
   const rivalBar = $('rivalBar');
   const rivals = state.tab.startsWith('il') ? (state.data?.rivals || []).filter((g) => (state.tab === 'ilBasketball' ? g.sport === 'basketball' : state.tab === 'ilFootball' ? g.sport === 'football' : true)) : [];
-  const withNews = rivals.filter((g) => state.data.stories.some((s) => s.rival?.opponent === g.opponent));
+  const withNews = rivals.filter((g) => storiesFor().some((s) => s.rival?.opponent === g.opponent));
   if (withNews.length) {
     const when = (ts) => new Date(ts).toLocaleString(state.ui === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
     rivalBar.innerHTML =
@@ -1193,9 +1304,9 @@ function renderChrome() {
 
   // Israelis abroad: player chips + team-news toggle + edit button
   const bar = $('abroadBar');
-  if (state.tab === 'abroad') {
+  if (isAbroad(state.tab)) {
     const n = {};
-    if (state.data) for (const s of state.data.stories) for (const a of s.athletes) n[a] = (n[a] || 0) + 1;
+    if (state.data) for (const s of storiesFor()) for (const a of s.athletes) n[a] = (n[a] || 0) + 1;
     const players = state.athletes?.athletes || [];
     const label = (a) => (state.ui === 'he' && a.name_he ? a.name_he : a.name);
     const teamLabel = (a) => (state.ui === 'he' && a.team_he ? a.team_he : a.team);
@@ -1255,9 +1366,9 @@ function playerCardsHtml() {
   const when = (ts) => new Date(ts).toLocaleString(he ? 'he-IL' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
   const day = (ts) => new Date(ts).toLocaleDateString(he ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' });
   const gi = state.data?.gameInfo || {};
-  const ctx = { nationalSquad: state.athletes?.nationalSquad || [], natGames: (state.data?.rivals || []).filter((g) => g.national), stories: state.data?.stories || [] };
+  const ctx = { nationalSquad: state.athletes?.nationalSquad || [], natGames: (state.data?.rivals || []).filter((g) => g.national), stories: storiesFor() };
   const cards = state.athletes?.cards || {};
-  const newsOf = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name)).sort((a, b) => b.first - a.first)[0];
+  const newsOf = (name) => (storiesFor()).filter((s) => s.athletes?.includes(name)).sort((a, b) => b.first - a.first)[0];
   const rank = (a) => (cards[a.name]?.next?.start ?? Infinity); // next to play first
   const build = (a) => {
     const k = cards[a.name];
@@ -1315,7 +1426,8 @@ function playerCardsHtml() {
     const mini = `<button type="button" class="pmini${state.athlete === a.name ? ' on' : ''}" data-ath="${esc(a.name)}" title="${esc(statusText)}">${icon ? `<span>${icon}</span>` : ''}<b>${esc(name)}</b>${nextShort ? `<small>${esc(nextShort)}</small>` : ''}</button>`;
     return { a, full, mini };
   };
-  const all = [...players].sort((a, b) => rank(a) - rank(b)).map(build);
+  const swA = ABROAD[state.tab] || 'all';
+  const all = [...players].filter((a) => swA === 'all' || (a.sport || 'football') === swA).sort((a, b) => rank(a) - rank(b)).map(build);
   const groups = ['football', 'basketball'].map((sp) => [sp, all.filter((x) => (x.a.sport || 'football') === sp)]).filter(([, list]) => list.length);
   const head = `<div class="seg abroad-view">${['news', 'players']
     .map((v) => `<button type="button" data-av="${v}" aria-pressed="${state.abroadView === v}">${esc(v === 'news' ? L.viewNews : L.viewPlayers)}</button>`)
@@ -1323,7 +1435,7 @@ function playerCardsHtml() {
   if (state.abroadView === 'news') {
     // the 5 with the most news in the last 24h (the selected one stays visible) + a button for everyone
     const since = Date.now() - 24 * 3600e3;
-    const newsN = (name) => (state.data?.stories || []).filter((s) => s.athletes?.includes(name) && (s.latest || s.first) > since).length;
+    const newsN = (name) => (storiesFor()).filter((s) => s.athletes?.includes(name) && (s.latest || s.first) > since).length;
     const top = all.map((x) => ({ ...x, n: newsN(x.a.name) })).sort((p, q) => q.n - p.n).slice(0, 5);
     const sel = state.athlete && !top.some((x) => x.a.name === state.athlete) && all.find((x) => x.a.name === state.athlete);
     if (sel) top[top.length - 1] = sel;
@@ -1344,7 +1456,7 @@ function briefHtml() {
   if (!b || state.tab !== 'top' || state.q.trim() || state.tag || activeTopic()) return '';
   const il = ilNow();
   if (b.day !== il.day || il.hour >= 12 || store.get('briefHidden') === b.day) return '';
-  const byId = new Map(state.data.stories.map((s) => [s.id, s]));
+  const byId = new Map(storiesFor().map((s) => [s.id, s]));
   const items = b.ids.map((id) => byId.get(id)).filter(Boolean);
   if (items.length < 3) return '';
   const he = state.ui === 'he';
@@ -1375,15 +1487,61 @@ $('list').addEventListener('click', (e) => {
   renderList();
 });
 
+// the search the radar runs for a topic ("search actively"): its words and tag names, as one Google query
+function topicQuery(tp) {
+  const q = (x) => (/\s/.test(x) ? `"${x}"` : x);
+  const terms = [...(tp.words || []), ...(tp.tags || []).map((id) => tp.tagLabels?.[id] || '')].map((x) => String(x).trim()).filter(Boolean);
+  let out = '';
+  for (const x of terms) {
+    const next = out ? `${out} OR ${q(x)}` : q(x);
+    if (next.length > 80) break;
+    out = next;
+  }
+  return out;
+}
 function topicsCardHtml() {
   const L = t().topics;
+  const he = state.ui === 'he';
   const chips = topics
     .map((tp) => {
+      const n = topicStories(tp).length;
       const fresh = topicStories(tp).filter((s) => s.first > (tp.seen || 0)).length;
-      return `<button type="button" class="topic-chip" data-topic="${esc(tp.id)}">⭐ ${esc(tp.name)}${fresh ? `<b>${fresh}</b>` : ''}</button>`;
+      const found = topicStories(tp).filter((s) => s.found).length;
+      const act = !topicQuery(tp) ? ''
+        : `<span class="tc-search on" title="${esc(he ? 'הרדאר מחפש את הנושא ברשת בכל כמה דקות, עד שתמחק את הנושא' : 'The radar searches the web for this topic every few minutes, until you delete it')}">${icon('radar', 13, 2)}${esc(he ? `מחפש ברשת${found ? ` · ${found} נמצאו בחיפוש` : ''}` : `Searching the web${found ? ` · ${found} found by the search` : ''}`)}</span>`;
+      return `<span class="tc-item"><button type="button" class="topic-chip" data-topic="${esc(tp.id)}">⭐ ${esc(tp.name)} <small>${n}</small>${fresh ? `<b>${fresh}</b>` : ''}</button>${act}</span>`;
     })
     .join('');
-  return `<section class="topics-card"><div class="tc-head"><b>${esc(L.cardTitle)}</b><button type="button" class="tc-add" data-topic-new="1">${esc(L.addBig)}</button></div>${chips ? `<div class="tc-chips">${chips}</div>` : `<p class="tc-hint">${esc(L.cardHint)}</p>`}</section>`;
+  const note = `<p class="tc-hint">${esc(he ? 'כל נושא הוא חיפוש פעיל: הרדאר מחפש אותו ב-Google News בעברית, אנגלית, ספרדית, איטלקית, גרמנית וצרפתית, עד שתמחק אותו. תוצאות חדשות מגיעות תוך 5-10 דקות. הנושאים שמורים בדפדפן הזה.' : 'Every topic is an active search: the radar searches Google News for it in Hebrew, English, Spanish, Italian, German and French until you delete it. New results arrive within 5-10 minutes. Topics are saved in this browser.')}</p>`;
+  return `<section class="topics-card"><div class="tc-head"><b>${esc(L.cardTitle)}</b><button type="button" class="tc-add" data-topic-new="1">${esc(L.addBig)}</button></div>${chips ? `<div class="tc-chips">${chips}</div>${note}` : `<p class="tc-hint">${esc(L.cardHint)}</p>`}</section>`;
+}
+// football / basketball switch (Israelis abroad, Israeli monitoring)
+function sportSwitchHtml() {
+  const he = state.ui === 'he';
+  const lab = { all: he ? 'הכל' : 'All', football: he ? 'כדורגל' : 'Football', basketball: he ? 'כדורסל' : 'Basketball' };
+  return `<div class="seg sport-sw" role="group">${['all', 'football', 'basketball'].map((k) => `<button type="button" data-sw="${k}" aria-pressed="${state.sw[state.tab] === k}">${esc(lab[k])}</button>`).join('')}</div>`;
+}
+$('list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-sw]');
+  if (!b || !state.sw[state.tab]) return;
+  state.sw[state.tab] = b.dataset.sw;
+  store.set('sw.' + state.tab, b.dataset.sw);
+  renderChrome();
+  renderList();
+});
+// Every topic is an active search: the collector searches it until the topic is deleted. The request is renewed
+// daily from here (and when the topic's words change); a topic nobody renews for 3 days stops being searched.
+function syncTopicSearches() {
+  let changed = false;
+  for (const tp of topics) {
+    const q = topicQuery(tp);
+    if (!q || (tp.searchQ === q && Date.now() - (tp.searchSent || 0) < 864e5)) continue;
+    sendFeedback({ type: 'search', q, topic: true });
+    Object.assign(tp, { searchQ: q, searchSent: Date.now() });
+    delete tp.searchUntil;
+    changed = true;
+  }
+  if (changed) saveTopics();
 }
 $('list').addEventListener('click', (e) => {
   const card = e.target.closest('.topics-card');
@@ -1409,8 +1567,8 @@ function webSearch(q) {
       const j = await res.json();
       if (web.q !== q) return; // a newer search started
       // drop what the radar already has (same link, or the same headline)
-      const links = new Set(state.data.stories.flatMap((s) => s.sources.map((x) => x.link)));
-      const heads = new Set(state.data.stories.flatMap((s) => s.sources.map((x) => normText(x.title))));
+      const links = new Set(storiesFor().flatMap((s) => s.sources.map((x) => x.link)));
+      const heads = new Set(storiesFor().flatMap((s) => s.sources.map((x) => normText(x.title))));
       Object.assign(web, { loading: false, items: (j.items || []).filter((x) => !links.has(x.link) && !heads.has(normText(x.title))).slice(0, 30) });
     } catch {
       Object.assign(web, { loading: false, error: true, items: [] });
@@ -1455,7 +1613,7 @@ $('list').addEventListener('click', (e) => {
 
 function renderList(freshIds = new Set()) {
   const list = visibleStories();
-  const tagInfo = state.tag && state.data?.stories.flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
+  const tagInfo = state.tag && storiesFor().flatMap((s) => s.tags || []).find((g) => g.id === state.tag);
   const tagBar = tagInfo ? `<div class="tag-filter"><button type="button" class="tag on" data-tag="${esc(tagInfo.id)}">${TAG_ICON[tagInfo.k] || ''} ${esc(tagName(tagInfo))} ✕</button></div>` : '';
   const tp = activeTopic();
   const topicBar = tp ? `<div class="topic-banner"><b>⭐ ${esc(tp.name)}</b><span class="muted">${esc(t().topics.banner(list.length))}</span><button type="button" class="small-btn" data-topic-edit="${esc(tp.id)}">${esc(t().topics.edit)}</button><button type="button" class="small-btn" data-topic="${esc(tp.id)}">${esc(t().topics.clear)}</button></div>` : '';
@@ -1465,24 +1623,28 @@ function renderList(freshIds = new Set()) {
   const searchBar = state.q.trim() && (state.searchExtra > 0 || state.searchAll)
     ? `<div class="search-bar">${state.searchAll ? '' : `<span>${esc(F.moreTabs(state.searchExtra))}</span>`}<button type="button" class="small-btn" id="searchAllBtn">${esc(state.searchAll ? F.backTab : F.showAll)}</button></div>`
     : '';
-  const banner = searchBar + briefHtml() + (state.tab === 'foryou' && !tp ? topicsCardHtml() : '') + sinceBar + topicBar + tagBar + (state.tab === 'foryou' && !tp
-    ? `<div class="foryou-bar"><span>${esc(Learn.count() >= 3 ? t().forYou.intro(Learn.count()) : t().forYou.cold)}</span>${Learn.count() ? `<button class="small-btn" id="resetLearn">${esc(t().forYou.reset)}</button>` : ''}</div>`
-    : '');
-  const cardsRow = state.tab === 'abroad' && !tp ? playerCardsHtml() : '';
-  const playersOnly = state.tab === 'abroad' && state.abroadView === 'players' && !tp;
+  const swBar = state.sw[state.tab] && !tp ? sportSwitchHtml() : '';
+  const banner = searchBar + briefHtml() + (state.tab === 'mytopics' && !tp ? topicsCardHtml() : '') + swBar + sinceBar + topicBar + tagBar;
+  const cardsRow = isAbroad(state.tab) && !tp ? playerCardsHtml() : '';
+  const playersOnly = isAbroad(state.tab) && state.abroadView === 'players' && !tp;
   // new design: the feed sits in one frame with a header (tab · sort · count) and its own empty state
   const he = state.ui === 'he';
   const searching = !!state.q.trim();
   const feedHead = V2 && !playersOnly
-    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : state.mix >= 50 ? (he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
+    ? `<div class="feed-head">${searching ? `<span class="fh-ic">${icon('radar', 14, 2)}</span>` : ''}<b>${esc(searching ? (he ? 'ברדאר' : 'In the radar') : tp ? tp.name : noEmoji(t().tabs[state.tab]))}</b><span class="fh-note">${esc(searching ? (he ? 'ההתאמה הטובה ביותר ראשונה' : 'Best match first') : mixVal() >= 50 ? (editorialTab() ? (he ? 'מיון: חשיבות לעורך, אחר כך זמן' : 'Sorted: editorial rank, then time') : he ? 'מיון: חשיבות, אחר כך זמן' : 'Sorted: importance, then time') : (he ? 'מיון: החדש ביותר קודם' : 'Sorted: newest first'))}</span><span class="fh-sp"></span><span class="fh-count">${esc(he ? `${list.length} ידיעות` : `${list.length} stories`)}</span></div>`
     : '';
   const emptyV2 = V2 && !playersOnly && !list.length
     ? state.notS5
       ? `<div class="empty-v2"><span class="ev-ic ev-ok">${icon('check', 22)}</span><b>${esc(he ? 'הכל מכוסה — אין ידיעות שלא בספורט 5' : 'All covered — nothing missing from Sport5')}</b><span>${esc(he ? `הרדאר ממשיך לסרוק ${state.data?.sources?.total || ''} מקורות. ידיעה חדשה תופיע כאן אוטומטית.` : 'The radar keeps scanning. A new story will appear here automatically.')}</span><button type="button" class="small-btn" id="showAllBtn">${esc(he ? 'הצג גם מה שבספורט 5' : 'Show covered stories too')}</button></div>`
       : `<div class="empty-v2"><span class="ev-ic">${icon('search', 22)}</span><b>${esc(t().empty)}</b></div>`
     : '';
-  $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + emptyV2 + webHtml());
-  $('empty').hidden = V2 || list.length > 0 || (state.tab === 'abroad' && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
+  const off = state.offList;
+  const offOpen = !!state.showOff[state.tab];
+  const offHtml = off.length && !playersOnly
+    ? `<div class="offbeat-bar"><span>${esc(he ? `${off.length} ידיעות מחוץ לתחום הדסק: ליגות שלא במעקב, שגרה של קבוצות קטנות, כרטיסים, סקרים ושידורים (בלי ישראלי, כוכב או סיפור גדול)` : `${off.length} stories outside the desk's beat: leagues it doesn't follow, small clubs' routine news, tickets, polls, streams (no Israeli, star or big story)`)}</span><button type="button" class="small-btn" id="offToggle">${esc(offOpen ? (he ? 'הסתר' : 'Hide') : (he ? 'הצג' : 'Show'))}</button></div>${offOpen ? off.map((s) => cardHtml(s, freshIds.has(s.id))).join('') : ''}`
+    : '';
+  $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + offHtml + emptyV2 + webHtml());
+  $('empty').hidden = V2 || list.length > 0 || (isAbroad(state.tab) && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());
   paintClaims();
   if (seenObserver) {
     seenObserver.disconnect();
@@ -1490,10 +1652,16 @@ function renderList(freshIds = new Set()) {
   }
 }
 
+$('list').addEventListener('click', (e) => {
+  if (!e.target.closest('#offToggle')) return;
+  state.showOff[state.tab] = !state.showOff[state.tab];
+  renderList();
+});
+
 // ---------- rendering: just in ----------
 function renderJustIn(freshIds = new Set()) {
   if (!state.data) return;
-  const list = state.data.stories
+  const list = storiesFor()
     .filter(langOkFor)
     .filter((s) => !s.dateUnknown && Date.now() - s.first < 6 * 3600e3)
     .sort((a, b) => b.first - a.first)
@@ -1518,7 +1686,7 @@ function renderTrends() {
   const T = state.data?.trends;
   const L = t().trends;
   if (!T) return void ($('trendsPane').innerHTML = `<p class="muted pad">${esc(L.empty)}</p>`);
-  const byId = new Map((state.data.stories || []).map((s) => [s.id, s]));
+  const byId = new Map(storiesFor().map((s) => [s.id, s]));
   const he = state.ui === 'he';
   const storyTitle = (s) => (he ? (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title) : s.lang === 'en' ? s.title : s.t?.en?.title) || disp(s).title;
   const row = (g) => {
@@ -1564,7 +1732,7 @@ $('trendsPane').addEventListener('click', (e) => {
 $('trendsPane').addEventListener('click', (e) => {
   const b = e.target.closest('[data-athlete-go]');
   if (!b) return;
-  state.tab = 'abroad';
+  state.tab = athleteSport(b.dataset.athleteGo) === 'basketball' ? 'abroadB' : 'abroad';
   state.athlete = b.dataset.athleteGo;
   state.view = 'news';
   renderChrome();
@@ -1590,7 +1758,7 @@ function renderScores() {
       nationalSquad: state.athletes?.nationalSquad || [],
       natGames: (state.data?.rivals || []).filter((g) => g.national),
       gameInfo: state.data?.gameInfo || {},
-      stories: state.data?.stories || [],
+      stories: storiesFor(),
     },
   });
 }
@@ -1987,8 +2155,13 @@ $('langFilter').addEventListener('click', (e) => {
   renderChrome(); renderList(); renderJustIn(); renderTrends();
 });
 $('mix').addEventListener('input', (e) => {
-  state.mix = Number(e.target.value);
-  store.set('mix', state.mix);
+  if (editorialTab()) {
+    state.mixF = Number(e.target.value);
+    store.set('mixF', state.mixF);
+  } else {
+    state.mix = Number(e.target.value);
+    store.set('mix', state.mix);
+  }
   renderList();
 });
 $('rivalBar').addEventListener('click', (e) => {
@@ -2015,7 +2188,7 @@ function recordOpen(e) {
   const a = e.target.closest('a[href]');
   const holder = a && e.target.closest('[data-id]');
   if (!holder || a.closest('.meta')) return; // the translate link etc. is not a read
-  const s = state.data?.stories.find((x) => x.id === holder.dataset.id);
+  const s = storiesFor().find((x) => x.id === holder.dataset.id);
   if (s) Learn.record(s);
   markSeen(s);
 }
@@ -2069,7 +2242,7 @@ $('list').addEventListener('click', (e) => {
   }
   const opt = e.target.closest('[data-fix]');
   if (!opt) return;
-  const s = state.data?.stories.find((x) => x.id === opt.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === opt.closest('.card').dataset.id);
   if (!s) return;
   const v = opt.dataset.fix;
   sendFix(s, v === 'hide' ? { hide: true } : v === 'il' ? { israel: true } : v === 'notIl' ? { israel: false } : { sport: v });
@@ -2099,7 +2272,7 @@ $('list').addEventListener('click', (e) => {
   const btn = e.target.closest('.vote-btn');
   if (!btn) return;
   const card = btn.closest('.card');
-  const s = state.data?.stories.find((x) => x.id === card.dataset.id);
+  const s = storiesFor().find((x) => x.id === card.dataset.id);
   if (!s) return;
   const v = Number(btn.dataset.vote);
   const next = myVotes[s.id] === v ? 0 : v; // click again to withdraw
@@ -2109,6 +2282,25 @@ $('list').addEventListener('click', (e) => {
   card.querySelectorAll('.vote-btn').forEach((b) => b.classList.toggle('on', Number(b.dataset.vote) === next));
   const s5 = !s.s5 ? 'none' : s.s5.where === 'channel' ? 'channel' : s.s5.probable ? 'probable' : 'site';
   sendFeedback({ type: 'vote', id: s.id, vote: next, title: (s.ai?.he?.title || s.title).slice(0, 200), sport: s.sport, israel: !!s.israel, s5, link: s.link });
+  // a 👎 asks why (optional, one tap): the reasons feed the radar's evaluation
+  card.querySelector('.vote-why')?.remove();
+  if (next === -1) {
+    const L = t().vote;
+    const row = document.createElement('div');
+    row.className = 'vote-why';
+    row.innerHTML = `<span>${esc(L.whyQ)}</span>${Object.entries(L.reasons).map(([k, v]) => `<button type="button" data-why="${k}">${esc(v)}</button>`).join('')}`;
+    (card.querySelector('.c-main') || card).appendChild(row);
+  }
+});
+$('list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-why]');
+  if (!b) return;
+  const card = b.closest('.card');
+  const s = storiesFor().find((x) => x.id === card?.dataset.id);
+  if (!s || myVotes[s.id] !== -1) return;
+  const s5 = !s.s5 ? 'none' : s.s5.where === 'channel' ? 'channel' : s.s5.probable ? 'probable' : 'site';
+  sendFeedback({ type: 'vote', id: s.id, vote: -1, reason: b.dataset.why, title: (s.ai?.he?.title || s.title).slice(0, 200), sport: s.sport, israel: !!s.israel, s5, link: s.link });
+  b.closest('.vote-why').innerHTML = `<span>${esc(t().vote.thanks)}</span>`;
 });
 function openReport() {
   const L = t().report;
@@ -2136,7 +2328,7 @@ $('reportForm').addEventListener('click', async (e) => {
   }
   const name = $('rpName').value.trim().slice(0, 30);
   if (name) store.set('editorName', name);
-  await sendFeedback({ type: 'report', text: text.slice(0, 1000), link: $('rpLink').value.trim().slice(0, 600), name, page: state.topic ? 'topic' : state.tab });
+  await sendFeedback({ type: 'report', text: text.slice(0, 1000), link: $('rpLink').value.trim().slice(0, 600), name, page: activeTopic() ? 'topic' : state.tab });
   $('reportDialog').close();
   toast(t().report.sent);
 });
@@ -2217,7 +2409,7 @@ async function loadClaims() {
 // update the badges / buttons in place (no full re-render while someone is reading)
 function paintClaims() {
   document.querySelectorAll('#list .card[data-id]').forEach((card) => {
-    const s = state.data?.stories.find((x) => x.id === card.dataset.id);
+    const s = storiesFor().find((x) => x.id === card.dataset.id);
     if (!s) return;
     const slot = card.querySelector('.claim-slot');
     if (slot) slot.innerHTML = claimBadge(s);
@@ -2248,7 +2440,7 @@ async function toggleClaim(s) {
 $('list').addEventListener('click', (e) => {
   const btn = e.target.closest('.claim-btn');
   if (!btn) return;
-  const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === btn.closest('.card').dataset.id);
   if (s) toggleClaim(s);
 });
 
@@ -2261,6 +2453,7 @@ function s5Badge(s) {
     return `<a class="badge s5${s.s5.newer >= 2 ? ' newer' : ''}${s.s5.probable ? ' probable' : ''}" href="${esc(s.s5.link)}" target="_blank" rel="noopener" title="${esc(s.s5.probable ? L.s5ProbTip : L.s5Tip)}">${esc(label)}</a>`;
   }
   // "not on Sport5" only where it matters (stories several outlets carry), so the feed isn't covered in red
+  if (s.cov?.s5 === 'unavailable') return '';
   return s.big || s.sourceCount >= 3 ? `<span class="badge s5 not" title="${esc(L.s5NotTip(state.data ? ago(state.data.generatedAt) : ''))}">${esc(L.s5Not)}</span>` : '';
 }
 // Hebrew text for the site's editing system: headline, summary, source
@@ -2283,7 +2476,7 @@ $('list').addEventListener('click', async (e) => {
   const copy = e.target.closest('.copy-btn');
   const mail = e.target.closest('.mail-btn');
   if (!copy && !mail) return;
-  const s = state.data?.stories.find((x) => x.id === e.target.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === e.target.closest('.card').dataset.id);
   if (!s) return;
   const { title, text } = editorText(s);
   if (copy) {
@@ -2311,7 +2504,7 @@ $('list').addEventListener('click', (e) => {
   const eb = e.target.closest('.embed-btn');
   if (!qb && !eb) return;
   e.stopPropagation();
-  const s = state.data?.stories.find((x) => x.id === e.target.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === e.target.closest('.card').dataset.id);
   if (!s) return;
   if (qb) {
     const q = s.ai?.he?.quotes?.[Number(qb.dataset.q)];
@@ -2390,7 +2583,7 @@ function shareText(s) {
 $('list').addEventListener('click', async (e) => {
   const btn = e.target.closest('.share-btn');
   if (!btn) return;
-  const s = state.data?.stories.find((x) => x.id === btn.closest('.card').dataset.id);
+  const s = storiesFor().find((x) => x.id === btn.closest('.card').dataset.id);
   if (!s) return;
   const { text } = shareText(s);
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
@@ -2497,7 +2690,11 @@ $('topicsBar').addEventListener('click', (e) => {
   openTopic(chip.dataset.topic);
 });
 function openTopic(id) {
-  state.topic = state.topic === id ? null : id; // click again to close
+  state.topic = state.topic === id && state.tab === 'mytopics' ? null : id; // click again to close
+  if (state.topic) {
+    state.tab = 'mytopics'; // a topic opens in "my topics"
+    store.set('tab', state.tab);
+  }
   const tp = activeTopic();
   if (tp) {
     tp.seen = Date.now();
@@ -2562,7 +2759,10 @@ $('topicForm').addEventListener('click', (e) => {
   saveTopics();
   $('topicDialog').close();
   state.topic = d.id;
+  state.tab = 'mytopics';
+  store.set('tab', state.tab);
   d.seen = Date.now();
+  syncTopicSearches();
   renderChrome();
   renderList();
   window.scrollTo({ top: 0 });
@@ -2577,6 +2777,8 @@ $('topicForm').addEventListener('click', (e) => {
   await loadAthletes();
   await load({ initial: true });
   loadScores();
+  syncTopicSearches();
+  setInterval(syncTopicSearches, 3600e3);
   setInterval(load, REFRESH_MS);
   loadClaims();
   setInterval(loadClaims, 60 * 1000);

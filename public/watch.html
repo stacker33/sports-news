@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ניהול מעקב - רדאר ספורט</title>
+  <link rel="icon" href="icon.svg" />
+  <link rel="stylesheet" href="style.css?v=45" />
+  <link rel="stylesheet" href="watch.css?v=45" />
+</head>
+<body class="wl">
+  <header class="wl-head">
+    <a class="wl-back" href="./" id="backLink">← רדאר ספורט</a>
+    <h1 id="title">ניהול מעקב</h1>
+    <span class="wl-sp"></span>
+    <button type="button" class="wl-lang" id="langBtn">EN</button>
+  </header>
+
+  <p class="wl-mode" id="mode" role="status"></p>
+
+  <nav class="wl-tabs" id="tabs" role="tablist"></nav>
+
+  <section class="wl-bar" id="draftBar" hidden></section>
+
+  <main id="main" class="wl-main"><p class="wl-empty">…</p></main>
+
+  <input type="file" id="importFile" accept="application/json,.json" hidden />
+  <script type="module" src="watch.js?v=45"></script>
+</body>
+</html>

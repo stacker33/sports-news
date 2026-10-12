@@ -1,16 +1,16 @@
 [
   {"name":"Oscar Gloukh","name_he":"אוסקר גלוך","alt":["Gloukh","Gloch","גלוך"],"team":"Ajax","team_he":"אייאקס","team_alt":[],"country":"netherlands","sport":"football"},
-  {"name":"Anan Khalaili","name_he":"ענאן ח'לאילי","alt":["Khalaili","Khalaily","ח'לאילי","חלאילי"],"team":"Crystal Palace","team_he":"קריסטל פאלאס","team_alt":[],"country":"england","sport":"football"},
+  {"name":"Anan Khalaili","name_he":"ענאן ח'לאילי","alt":["Khalaili","Khalaily","ח'לאילי","חלאילי","ענאן חלאיילי","חלאיילי"],"team":"Crystal Palace","team_he":"קריסטל פאלאס","team_alt":[],"country":"england","sport":"football"},
   {"name":"Manor Solomon","name_he":"מנור סולומון","alt":[],"team":"West Ham","team_he":"ווסטהאם","team_alt":[],"country":"england","sport":"football"},
   {"name":"Daniel Peretz","name_he":"דניאל פרץ","alt":[],"team":"Southampton","team_he":"סאות'המפטון","team_alt":[],"country":"england","sport":"football"},
-  {"name":"Roy Revivo","name_he":"רועי רביבו","alt":["Revivo","רביבו"],"team":"Elche","team_he":"אלצ'ה","team_alt":[],"country":"spain","sport":"football"},
+  {"name":"Roy Revivo","name_he":"רועי רביבו","alt":["Revivo","רביבו","רוי רביבו"],"team":"Elche","team_he":"אלצ'ה","team_alt":[],"country":"spain","sport":"football"},
   {"name":"Tai Abed","name_he":"תאי עבד","alt":[],"team":"Real Valladolid","team_he":"ויאדוליד","team_alt":[],"country":"spain","sport":"football"},
   {"name":"Omri Gandelman","name_he":"עומרי גנדלמן","alt":["Gandelman","גנדלמן","גאנדלמן"],"team":"Lecce","team_he":"לצ'ה","team_alt":[],"country":"italy","sport":"football"},
   {"name":"Stav Lemkin","name_he":"סתיו למקין","alt":["Lemkin","למקין"],"team":"Twente","team_he":"טוונטה","team_alt":[],"country":"netherlands","sport":"football"},
   {"name":"Eli Dasa","name_he":"אלי דסה","alt":["Dasa","דסה"],"team":"NEC Nijmegen","team_he":"נאק ניימיכן","team_alt":[],"country":"netherlands","sport":"football"},
-  {"name":"Nikita Stoinov","name_he":"ניקיטה סטוינוב","alt":["Stoinov","סטוינוב"],"team":"Dinamo Bucuresti","team_he":"דינמו בוקרשט","team_alt":[],"country":"romania","sport":"football"},
+  {"name":"Nikita Stoinov","name_he":"ניקיטה סטוינוב","alt":["Stoinov","סטוינוב","ניקיטה סטויאנוב","סטויאנוב"],"team":"Dinamo Bucuresti","team_he":"דינמו בוקרשט","team_alt":[],"country":"romania","sport":"football"},
   {"name":"Mohammad Abu Fani","name_he":"מוחמד אבו פאני","alt":["Abu Fani","אבו פאני"],"team":"Crvena Zvezda","team_he":"הכוכב האדום בלגרד","team_alt":[],"country":"serbia","sport":"football"},
-  {"name":"Neta Lavi","name_he":"נטע לביא","alt":[],"team":"Machida Zelvia","team_he":"מאצ'ידה זלביה","team_alt":[],"country":"japan","sport":"football"},
+  {"name":"Neta Lavi","name_he":"נטע לביא","alt":[],"team":"Machida Zelvia","team_he":"מאצ'ידה זלביה","team_alt":[],"country":"japan","sport":"football","local":["ネタ・ラヴィ"]},
   {"name":"Dor Turgeman","name_he":"דור טורג'מן","alt":["Turgeman","טורג'מן","תורג'מן"],"team":"New England Revolution","team_he":"ניו אינגלנד","team_alt":[],"country":"usa","sport":"football"},
   {"name":"Ilay Feingold","name_he":"עילאי פיינגולד","alt":["Feingold","פיינגולד"],"team":"New England Revolution","team_he":"ניו אינגלנד","team_alt":[],"country":"usa","sport":"football"},
   {"name":"Tai Baribo","name_he":"תאי בריבו","alt":["Baribo","בריבו"],"team":"D.C. United","team_he":"די.סי. יונייטד","team_alt":["DC United"],"country":"usa","sport":"football"},
@@ -38,5 +38,9 @@
   {"name":"Eyal Harel","name_he":"אייל הראל","alt":[],"team":"Idaho State Bengals","team_he":"איידהו סטייט","team_alt":["Idaho State"],"country":"usa","sport":"basketball","college":true},
   {"name":"Roi Behar","name_he":"","alt":[],"team":"Bryant Bulldogs","team_he":"בראיינט","team_alt":["Bryant"],"country":"usa","sport":"basketball","college":true},
   {"name":"Or Faran","name_he":"","alt":[],"team":"Mercyhurst Lakers","team_he":"מרסיהרסט","team_alt":["Mercyhurst"],"country":"usa","sport":"basketball","college":true},
-  {"name":"Emanuel Sharp","name_he":"עמנואל שארפ","alt":["Emmanuel Sharp","אמנואל שארפ"],"team":"Sacramento Kings","team_he":"סקרמנטו","team_alt":[],"country":"usa","sport":"basketball"}
+  {"name":"Emanuel Sharp","name_he":"עמנואל שארפ","alt":["Emmanuel Sharp","אמנואל שארפ"],"team":"Sacramento Kings","team_he":"סקרמנטו","team_alt":[],"country":"usa","sport":"basketball"},
+  {"name":"Mahmoud Jaber","name_he":"מחמוד ג'אבר","alt":["Mahmud Jaber","Jaber","ג'אבר"],"team":"Saint-Etienne","team_he":"סנט אטיין","team_alt":["Saint-Étienne","ASSE"],"country":"france","sport":"football"},
+  {"name":"Lisav Eissat","name_he":"ליסב עיסאת","alt":["Eissat","עיסאת"],"team":"Bristol City","team_he":"בריסטול סיטי","team_alt":[],"country":"england","sport":"football"},
+  {"name":"Ofri Arad","name_he":"עופרי ארד","alt":[],"team":"FCSB","team_he":"סטיאווה בוקרשט","team_alt":["Steaua Bucuresti","Steaua"],"country":"romania","sport":"football","team365":2041},
+  {"name":"Dia Saba","name_he":"דיא סבע","alt":["סבע"],"team":"Amed SK","team_he":"אמדספור","team_alt":["Amedspor","Amed Sportif"],"country":"turkey","sport":"football","team365":26968}
 ]

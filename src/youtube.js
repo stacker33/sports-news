@@ -11,13 +11,26 @@
 
 export const ytFeed = (channelId) => `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 
-const DROP = /#shorts|\btop ?\d+\b|\bevery (goal|nets|player)\b|\ball (the )?goals\b|compilation|\bskills\b|\bgotm\b|goal of the month|\blive\b|🔴|🚨|full game|full match|משחק מלא|שידור חי|podcast|פודקאסט|\bepisode\b|\bep\.? ?\d|פרק \d|\btapes\b|behind the scenes|\bvlog\b|\bwomen\b|vrouwen|\b[uo]1[6-9]\b|\b[uo]2[13]\b|academy|נשים|נוער|ילדים|unboxing|giveaway|\bkit\b|\bmerch|\bticket|\bpredict|\bquiz\b|reaction video|\bmic'?d up\b|הרמת כוסית|ראש השנה|חגיגות|\bwsl\b|כל השערים שלנו|לפי סדר השערים|ללא שדרים|^\d+ שערים|\b(19\d\d|[5-9]\d\/[5-9]\d)\b/i;
+// always dropped: Shorts, compilations, live streams, archive games, merchandise, quizzes...
+const DROP = /#shorts|\btop ?\d+\b|\bevery (goal|nets|player)\b|\ball (the )?goals\b|compilation|\bskills\b|\bgotm\b|goal of the month|\blive\b|🔴|🚨|full game|full match|משחק מלא|שידור חי|ילדים|unboxing|giveaway|\bkit\b|\bmerch|\bticket|\bpredict|\bquiz\b|reaction video|הרמת כוסית|ראש השנה|חגיגות|כל השערים שלנו|לפי סדר השערים|ללא שדרים|^\d+ שערים|\b(19\d\d|[5-9]\d\/[5-9]\d)\b/i;
+// dropped unless a tracked person is named (an Israeli in a podcast, a women's or youth game, a vlog)
+const SOFT_DROP = /podcast|פודקאסט|\bepisode\b|\bep\.? ?\d|פרק \d|\btapes\b|behind the scenes|\bvlog\b|\bwomen\b|vrouwen|\b[uo]1[6-9]\b|\b[uo]2[13]\b|academy|נשים|נוער|\bmic'?d up\b|\bwsl\b/i;
 const PRESS = /press conference|news conference|media availability|media day|\binterview|\breacts?\b|\breaction\b|\bspeaks\b|\bexplains\b|\bon why\b|announce|\bofficial\b|\bsigns\b|signing|injury|update|pre-?match|post-?match|post-?game|pre-?game|מסיבת עיתונאים|מסע["״]?ת|ראיון|מדבר|הצהרה|רשמי|פציעה|חתם|לקראת|אחרי המשחק|לאחר/i;
 const HIGHLIGHTS = /highlights|extended|\bhl\b|samenvatting|תקציר|השערים|כל השערים מהמשחק|\d+\s*[-:]\s*\d+/i;
 
+// Who counts as tracked (set by collect.js from the verified watchlist and the editors' list)
+let tracked = () => false;
+export function setTracked(fn) {
+  tracked = typeof fn === 'function' ? fn : () => false;
+}
+
 // 'press' | 'highlights' | null (drop)
-export function videoKind(title) {
+export function videoKind(title, isTracked = tracked) {
   if (!title || DROP.test(title)) return null;
+  if (SOFT_DROP.test(title)) {
+    if (!isTracked(title)) return null;
+    return HIGHLIGHTS.test(title) && !PRESS.test(title) ? 'highlights' : 'press'; // a podcast or vlog with the person is an interview
+  }
   if (PRESS.test(title)) return 'press';
   if (HIGHLIGHTS.test(title)) return 'highlights';
   return null;

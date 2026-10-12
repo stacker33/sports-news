@@ -131,7 +131,6 @@ export const SOURCES = [
   { id: 'bs-ornstein', name: 'David Ornstein', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=david-ornstein.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', every: 2 },
   { id: 'bs-jacobs', name: 'Ben Jacobs', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=jacobsben.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 2, parser: 'bluesky', sport: 'football', every: 2 },
   { id: 'bs-athletic', name: 'The Athletic', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=theathleticfc.bsky.social&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', sport: 'football', reporter: false },
-  { id: 'stein', name: 'Marc Stein', url: 'https://marcstein.substack.com/feed', lang: 'en', weight: 3, sport: 'basketball', reporter: true, every: 3 },
   { id: 'dimarzio', name: 'Gianluca Di Marzio', url: 'https://gianlucadimarzio.com/rss', lang: 'it', weight: 3, sport: 'football', reporter: true, every: 2 },
   { id: 'relevo', name: 'Relevo', url: 'https://www.relevo.com/rss/', lang: 'es', weight: 2, reporter: true, every: 3 },
   { id: 'bs-bbcsport', name: 'BBC Sport', url: 'https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=bbcsport.xmirror.bot&limit=30&filter=posts_no_replies', lang: 'en', weight: 3, parser: 'bluesky', reporter: false },
@@ -237,4 +236,29 @@ export const SOURCES = [
   { id: 'novosti-sport', name: 'Novosti', url: 'https://www.novosti.rs/rss/sport', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 5, max: 60 },
   { id: 'sportske', name: 'Sportske', url: 'https://www.sportske.net/rss', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 5 },
   { id: 'gsp', name: 'Gazeta Sporturilor', url: 'https://www.gsp.ro/rss.xml', lang: 'ro', country: 'Romania', weight: 1, assist: true, every: 5, max: 40 },
+
+  // ---------- Round 5 (2026-10-11): the big leagues, transfers, NBA / European basketball, Japan ----------
+  // Feeds checked live before adding (fresh items, HTTP 200). Sites whose feeds are blocked or stale are read
+  // through Google News by site (as with Israel Hayom). Basketnews, the EuroLeague site, MLSsoccer and NBA.com
+  // are not in Google News and have no working feed.
+  { id: 'tmw', name: 'TuttoMercatoWeb', url: 'https://www.tuttomercatoweb.com/rss/', lang: 'it', country: 'Italy', weight: 2, sport: 'football', every: 2 },
+  { id: 'gazzetta-gn', name: 'La Gazzetta dello Sport', url: gnews('site:gazzetta.it when:1d', 'it'), lang: 'it', country: 'Italy', weight: 3, google: true, every: 3 },
+  { id: 'skysport-it-gn', name: 'Sky Sport', url: gnews('site:sport.sky.it when:1d', 'it'), lang: 'it', country: 'Italy', weight: 2, google: true, every: 4 },
+  { id: 'sport-es-gn', name: 'Sport', url: gnews('site:sport.es when:1d', 'es'), lang: 'es', country: 'Spain', weight: 2, google: true, every: 3 },
+  { id: 'gigantes', name: 'Gigantes del Basket', url: 'https://www.gigantes.com/feed/', lang: 'es', country: 'Spain', weight: 1, sport: 'basketball', every: 3 },
+  { id: 'footmercato', name: 'Foot Mercato', url: 'https://www.footmercato.net/flux-rss', lang: 'fr', country: 'France', weight: 2, sport: 'football', every: 2 },
+  { id: 'lequipe-basket', name: "L'Équipe", url: 'https://dwh.lequipe.fr/api/edito/rss?path=/Basket/', lang: 'fr', country: 'France', weight: 2, sport: 'basketball', every: 3 },
+  { id: 'sofoot-gn', name: 'So Foot', url: gnews('site:sofoot.com when:1d', 'fr'), lang: 'fr', country: 'France', weight: 1, google: true, every: 5 },
+  { id: 'sportschau', name: 'Sportschau', url: 'https://www.sportschau.de/fussball/index~rss2.xml', lang: 'de', country: 'Germany', weight: 2, sport: 'football', every: 3 },
+  { id: 'transfermarkt-de', name: 'Transfermarkt', url: 'https://www.transfermarkt.de/rss/news', lang: 'de', country: 'Germany', weight: 1, sport: 'football', every: 3 },
+  { id: 'bild-gn', name: 'Bild', url: gnews('site:bild.de/sport when:1d', 'de'), lang: 'de', country: 'Germany', weight: 2, google: true, every: 4 },
+  { id: 'sport1-de-gn', name: 'Sport1', url: gnews('site:sport1.de when:1d', 'de'), lang: 'de', country: 'Germany', weight: 1, google: true, every: 5 },
+  { id: 'dailymail-football', name: 'Daily Mail', url: 'https://www.dailymail.co.uk/sport/football/index.rss', lang: 'en', weight: 2, sport: 'football', every: 2, max: 60 },
+  { id: 'football-london', name: 'football.london', url: 'https://www.football.london/?service=rss', lang: 'en', weight: 1, sport: 'football', every: 3 },
+  { id: 'transfermarkt-en', name: 'Transfermarkt', url: 'https://www.transfermarkt.com/rss/news', lang: 'en', weight: 1, sport: 'football', every: 3 },
+  { id: 'athletic-nba', name: 'The Athletic', url: 'https://www.nytimes.com/athletic/rss/nba/', lang: 'en', weight: 3, sport: 'basketball', every: 3 },
+  { id: 'clutchpoints-nba', name: 'ClutchPoints', url: 'https://clutchpoints.com/nba/feed', lang: 'en', weight: 1, sport: 'basketball', every: 3 },
+  // Japan (Neta Lavi): only stories with a known player / team / Israeli angle are kept (assist); no country, so the language marks them local
+  { id: 'gekisaka', name: 'ゲキサカ', url: 'https://web.gekisaka.jp/feed', lang: 'ja', weight: 1, sport: 'football', assist: true, every: 5 },
+  { id: 'soccer-king', name: 'サッカーキング', url: 'https://www.soccer-king.jp/feed', lang: 'ja', weight: 1, sport: 'football', assist: true, every: 5 },
 ];

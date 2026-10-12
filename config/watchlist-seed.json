@@ -1,0 +1,1061 @@
+{
+  "about": "Candidate corpus for the watchlist (from the editors' brief, appendix A). NOT a verified roster: scripts/build-watchlist.mjs checks every name against config/athletes.json (the editors' list) and the 365Scores knowledge base (public/data/entities.json) and writes config/watchlist.json with a status per entry. Slash-separated names in the brief are given here as alias arrays [canonical, ...aliases]. Different people with the same name stay separate.",
+  "groups": [
+    {
+      "key": "il-football",
+      "type": "player",
+      "sport": "football",
+      "category": "israeli-candidate",
+      "names": [
+        "Manor Solomon",
+        [
+          "Oscar Gloukh",
+          "Oscar Glukh"
+        ],
+        "Daniel Peretz",
+        "Anan Khalaili",
+        "Liel Abada",
+        [
+          "Dor Turgeman",
+          "Dor Turgman"
+        ],
+        "Tai Baribo",
+        [
+          "Mohammad Abu Fani",
+          "Mohammed Abu Fani"
+        ],
+        "Omri Gandelman",
+        "Raz Shlomo",
+        "Roy Revivo",
+        "Eli Dasa",
+        "Neta Lavi",
+        "Dan Biton",
+        "Dor Peretz",
+        [
+          "Gabi Kanichowsky",
+          "Gavriel Kanichowsky"
+        ],
+        "Denny Gropper",
+        "Sean Goldberg",
+        "Stav Lemkin",
+        "Idan Toklomati",
+        "Omer Atzili",
+        "Dean David",
+        "Yarden Shua",
+        "Dia Saba",
+        "Yarden Cohen",
+        "Eylon Almog",
+        "Osher Davida",
+        "Doron Leidner",
+        [
+          "Sagiv Jehezkel",
+          "Sagiv Yehezkel"
+        ],
+        [
+          "Eden Karzev",
+          "Eden Kartsev"
+        ],
+        "Ramzi Safuri",
+        "Shon Weissman",
+        [
+          "Yonatan Cohen",
+          "Jonathan Cohen"
+        ],
+        "Elad Madmon",
+        "Stav Nachmani",
+        "Stav Turiel",
+        "Amir Ganah",
+        "Hamza Shibli",
+        "Adi Yona",
+        [
+          "Ethane Azoulay",
+          "Eitan Azoulay"
+        ],
+        "El Yam Kancepolsky",
+        "Niv Eliasi",
+        "Ofir Marciano",
+        [
+          "Omer Nir On",
+          "Omer Nir'on"
+        ],
+        "Daniel Tenenbaum",
+        "Eran Zahavi",
+        [
+          "Munas Dabbur",
+          "Moanes Dabour"
+        ],
+        "Tomer Hemed",
+        [
+          "Bibras Natcho",
+          "Bibras Natkho"
+        ]
+      ]
+    },
+    {
+      "key": "il-related-football",
+      "type": "player",
+      "sport": "football",
+      "category": "israel-related-candidate",
+      "note": "connection to Israel needs separate verification",
+      "names": [
+        "Finn Azaz",
+        "Daniel Edelman",
+        "Josh Cohen"
+      ]
+    },
+    {
+      "key": "il-women-football",
+      "type": "player",
+      "sport": "football",
+      "category": "israeli-women-candidate",
+      "women": true,
+      "names": [
+        "Sharon Beck",
+        "Noa Selimhodzic",
+        "Karin Sendel",
+        "Shani David",
+        "Lee Falkon",
+        "Moran Lavi",
+        "Dani Helena",
+        "Rachel Shtainshnaider"
+      ]
+    },
+    {
+      "key": "football-figures",
+      "type": "coach",
+      "sport": "football",
+      "category": "israel-linked-figure-candidate",
+      "note": "roles and Israel links to verify individually",
+      "names": [
+        "Ran Ben Shimon",
+        "Barak Bakhar",
+        "Ofir Haim",
+        "Alon Hazan",
+        "Robbie Keane",
+        [
+          "Vladimir Ivic",
+          "Vladimir Ivić"
+        ],
+        [
+          "Slavisa Jokanovic",
+          "Slaviša Jokanović"
+        ],
+        "Paulo Sousa",
+        "Peter Bosz",
+        "Avram Grant"
+      ]
+    },
+    {
+      "key": "football-former",
+      "type": "former-player",
+      "sport": "football",
+      "category": "israel-linked-figure-candidate",
+      "names": [
+        "Yossi Benayoun",
+        "Eyal Berkovic",
+        "Haim Revivo"
+      ]
+    },
+    {
+      "key": "football-agents",
+      "type": "agent",
+      "sport": "football",
+      "category": "israel-linked-figure-candidate",
+      "names": [
+        "Pini Zahavi",
+        "Dudu Dahan"
+      ]
+    },
+    {
+      "key": "il-basketball",
+      "type": "player",
+      "sport": "basketball",
+      "category": "israeli-candidate",
+      "names": [
+        "Deni Avdija",
+        "Ben Saraf",
+        "Danny Wolf",
+        "Yam Madar",
+        "Tamir Blatt",
+        "Roman Sorkin",
+        [
+          "Noam Yaacov",
+          "Noam Yaakov"
+        ],
+        [
+          "Yovel Zoosman",
+          "Yuval Zoosman"
+        ],
+        "Yuval Kravitz",
+        "Bar Timor",
+        "Tomer Ginat",
+        "Rafi Menco",
+        "Jake Cohen",
+        "Nimrod Levi",
+        [
+          "Gabriel Chachashvili",
+          "Gaby Chachashvili"
+        ],
+        "Roi Huber",
+        "Gil Beni",
+        "Guy Palatin",
+        "Noam Dovrat",
+        "Noam Avivi",
+        "Raz Adam",
+        "Netanel Artzi",
+        "Yiftach Ziv",
+        "Oz Blayzer",
+        "Will Rayman",
+        "Max Heidegger",
+        "John DiBartolomeo",
+        [
+          "TJ Leaf",
+          "T.J. Leaf"
+        ],
+        "Ryan Turell",
+        "Daniel Rosenbaum"
+      ]
+    },
+    {
+      "key": "il-women-basketball",
+      "type": "player",
+      "sport": "basketball",
+      "category": "israel-related-candidate",
+      "women": true,
+      "names": [
+        "Alyssa Baron",
+        "Alysha Clark",
+        "Abby Meyers",
+        "Eden Rotberg",
+        "Yarden Garzon",
+        "Lior Garzon",
+        "Dor Saar",
+        "Jennie Simms",
+        "Daniel Raber"
+      ]
+    },
+    {
+      "key": "basketball-coaches",
+      "type": "coach",
+      "sport": "basketball",
+      "category": "israel-linked-figure-candidate",
+      "names": [
+        "Oded Kattash",
+        "Dimitris Itoudis",
+        [
+          "Sasa Obradovic",
+          "Saša Obradović"
+        ],
+        "Dimitris Priftis",
+        "Guy Goodes",
+        "Danny Franco",
+        "Ariel Beit Halachmi",
+        "Oren Amiel",
+        "Rami Hadar",
+        "David Blatt",
+        "Pini Gershon",
+        "Ettore Messina",
+        [
+          "Zeljko Obradovic",
+          "Željko Obradović"
+        ],
+        "Ergin Ataman",
+        "Georgios Bartzokas",
+        [
+          "Sarunas Jasikevicius",
+          "Šarūnas Jasikevičius"
+        ]
+      ]
+    },
+    {
+      "key": "basketball-foreign",
+      "type": "player",
+      "sport": "basketball",
+      "category": "foreign-relevance-candidate",
+      "note": "possible Israeli or wider European relevance; NOT labelled ex-Israel",
+      "names": [
+        "Wade Baldwin",
+        "Lorenzo Brown",
+        "Scottie Wilbekin",
+        [
+          "Vasilije Micic",
+          "Vasilije Micić"
+        ],
+        "Elijah Bryant",
+        "Johnathan Motley",
+        "Antonio Blakeney",
+        "Patrick Beverley",
+        "Keenan Evans",
+        "James Nnaji",
+        "Daniel Theis",
+        "Lonnie Walker IV",
+        "Jordan Loyd",
+        "Bonzie Colson",
+        "Josh Nebo",
+        "Mathias Lessort",
+        "Derrick Williams",
+        "Darrun Hilliard",
+        "Kendrick Ray",
+        "Chris Jones",
+        "Mike James",
+        "Kendrick Nunn",
+        "Sasha Vezenkov",
+        "Evan Fournier",
+        "Facundo Campazzo",
+        "Walter Tavares",
+        "Mario Hezonja",
+        [
+          "Nikola Mirotic",
+          "Nikola Mirotić"
+        ],
+        "Shane Larkin",
+        "Nigel Hayes-Davis",
+        [
+          "Marko Guduric",
+          "Marko Gudurić"
+        ],
+        "Chima Moneke",
+        "Kevin Punter",
+        "Kevin Porter Jr.",
+        "Jared Butler",
+        "Jared Harper",
+        "Austin Wiley",
+        "Khadeen Carrington",
+        "Kenneth Lofton Jr.",
+        "David Roddy",
+        [
+          "Dusan Miletic",
+          "Dušan Miletić"
+        ]
+      ]
+    },
+    {
+      "key": "il-clubs-football",
+      "type": "club",
+      "sport": "football",
+      "category": "israeli-club",
+      "names": [
+        [
+          "Maccabi Tel Aviv",
+          "Maccabi Tel-Aviv",
+          "Maccabi TA"
+        ],
+        [
+          "Hapoel Tel Aviv",
+          "Hapoel Tel-Aviv",
+          "Hapoel TA"
+        ],
+        "Maccabi Haifa",
+        [
+          "Hapoel Beer Sheva",
+          "Hapoel Be'er Sheva",
+          "Hapoel Beer-Sheva"
+        ],
+        [
+          "Beitar Jerusalem",
+          "Beitar Yerushalayim"
+        ],
+        "Hapoel Jerusalem",
+        "Maccabi Netanya",
+        "Hapoel Haifa",
+        [
+          "Maccabi Petah Tikva",
+          "Maccabi Petach Tikva"
+        ],
+        [
+          "Hapoel Petah Tikva",
+          "Hapoel Petach Tikva"
+        ],
+        [
+          "Bnei Sakhnin",
+          "Bnei Saknin"
+        ],
+        [
+          "FC Ashdod",
+          "Ashdod SC",
+          "SC Ashdod"
+        ],
+        [
+          "Ironi Kiryat Shmona",
+          "Hapoel Kiryat Shmona",
+          "Kiryat Shmona"
+        ],
+        "Ironi Tiberias",
+        [
+          "Maccabi Bnei Reineh",
+          "Maccabi Bnei Raina"
+        ]
+      ]
+    },
+    {
+      "key": "il-clubs-basketball",
+      "type": "club",
+      "sport": "basketball",
+      "category": "israeli-club",
+      "names": [
+        [
+          "Maccabi Tel Aviv",
+          "Maccabi Tel-Aviv",
+          "Maccabi TA"
+        ],
+        [
+          "Hapoel Tel Aviv",
+          "Hapoel Tel-Aviv",
+          "Hapoel TA"
+        ],
+        "Hapoel Jerusalem",
+        "Hapoel Holon",
+        [
+          "Bnei Herzliya",
+          "Bnei Hertzliya"
+        ],
+        [
+          "Ironi Ness Ziona",
+          "Ironi Nes Ziona"
+        ],
+        "Maccabi Rishon LeZion",
+        [
+          "Hapoel Galil Elyon",
+          "Hapoel Galil Elion",
+          "Hapoel Upper Galilee"
+        ],
+        "Hapoel Gilboa Galil",
+        "Ironi Kiryat Ata",
+        "Elitzur Netanya",
+        [
+          "Maccabi Ramat Gan",
+          "Maccabi Ironi Ramat Gan"
+        ],
+        [
+          "Hapoel HaEmek",
+          "Hapoel Haemek"
+        ],
+        [
+          "Hapoel Beer Sheva Dimona",
+          "Hapoel Be'er Sheva Dimona"
+        ],
+        "Maccabi Haifa"
+      ]
+    },
+    {
+      "key": "world-football",
+      "type": "player",
+      "sport": "football",
+      "category": "world-star",
+      "names": [
+        "Lionel Messi",
+        "Cristiano Ronaldo",
+        [
+          "Kylian Mbappe",
+          "Kylian Mbappé"
+        ],
+        "Erling Haaland",
+        "Lamine Yamal",
+        "Jude Bellingham",
+        [
+          "Vinicius Junior",
+          "Vinicius Jr",
+          "Vinícius Júnior"
+        ],
+        "Mohamed Salah",
+        "Harry Kane",
+        "Neymar",
+        [
+          "Ousmane Dembele",
+          "Ousmane Dembélé"
+        ],
+        "Raphinha",
+        "Pedri",
+        "Gavi",
+        "Robert Lewandowski",
+        "Rodri",
+        "Phil Foden",
+        "Cole Palmer",
+        "Bukayo Saka",
+        "Declan Rice",
+        "Bruno Fernandes",
+        "Florian Wirtz",
+        "Jamal Musiala",
+        "Alexander Isak",
+        [
+          "Viktor Gyokeres",
+          "Viktor Gyökeres"
+        ],
+        "Victor Osimhen",
+        "Lautaro Martinez",
+        "Julian Alvarez",
+        "Khvicha Kvaratskhelia",
+        "Luis Diaz",
+        [
+          "Rafael Leao",
+          "Rafael Leão"
+        ],
+        [
+          "Rasmus Hojlund",
+          "Rasmus Højlund"
+        ],
+        [
+          "Benjamin Sesko",
+          "Benjamin Šeško"
+        ],
+        "Endrick",
+        [
+          "Estevao",
+          "Estêvão"
+        ],
+        [
+          "Arda Guler",
+          "Arda Güler"
+        ],
+        "Franco Mastantuono",
+        [
+          "Desire Doue",
+          "Désiré Doué"
+        ],
+        [
+          "Joao Neves",
+          "João Neves"
+        ],
+        [
+          "Pau Cubarsi",
+          "Pau Cubarsí"
+        ],
+        [
+          "Kenan Yildiz",
+          "Kenan Yıldız"
+        ],
+        [
+          "Kendry Paez",
+          "Kendry Páez"
+        ],
+        "Virgil van Dijk",
+        "William Saliba",
+        "Achraf Hakimi",
+        "Trent Alexander-Arnold",
+        "Thibaut Courtois",
+        "Gianluigi Donnarumma",
+        "Alisson Becker",
+        "Emiliano Martinez",
+        [
+          "Luka Modric",
+          "Luka Modrić"
+        ],
+        "Karim Benzema",
+        "Luis Suarez",
+        "Sergio Ramos",
+        "Antoine Griezmann",
+        "Kevin De Bruyne",
+        "Zlatan Ibrahimovic",
+        "Gareth Bale",
+        "Toni Kroos",
+        "Gerard Pique",
+        "Sergio Aguero"
+      ]
+    },
+    {
+      "key": "world-football-coaches",
+      "type": "coach",
+      "sport": "football",
+      "category": "world-star",
+      "names": [
+        "Pep Guardiola",
+        "Jose Mourinho",
+        "Carlo Ancelotti",
+        "Jurgen Klopp",
+        "Jurgen Klinsmann",
+        "Zinedine Zidane",
+        "Xabi Alonso",
+        "Hansi Flick",
+        "Mikel Arteta",
+        "Arne Slot",
+        "Luis Enrique",
+        "Diego Simeone",
+        "Antonio Conte",
+        "Thomas Tuchel",
+        "Jorge Jesus",
+        "Unai Emery",
+        "Roberto De Zerbi",
+        "Mauricio Pochettino"
+      ]
+    },
+    {
+      "key": "world-women-football",
+      "type": "player",
+      "sport": "football",
+      "category": "world-star",
+      "women": true,
+      "names": [
+        "Aitana Bonmati",
+        "Alexia Putellas",
+        "Sam Kerr",
+        "Marta",
+        "Salma Paralluelo",
+        "Caroline Graham Hansen",
+        "Alessia Russo",
+        "Lauren James",
+        "Trinity Rodman",
+        "Sophia Wilson"
+      ]
+    },
+    {
+      "key": "world-basketball",
+      "type": "player",
+      "sport": "basketball",
+      "category": "world-star",
+      "names": [
+        "LeBron James",
+        [
+          "Stephen Curry",
+          "Steph Curry"
+        ],
+        "Kevin Durant",
+        [
+          "Nikola Jokic",
+          "Nikola Jokić"
+        ],
+        [
+          "Luka Doncic",
+          "Luka Dončić"
+        ],
+        "Giannis Antetokounmpo",
+        "Shai Gilgeous-Alexander",
+        "Victor Wembanyama",
+        "Anthony Edwards",
+        "Jayson Tatum",
+        "Jaylen Brown",
+        "Devin Booker",
+        "Donovan Mitchell",
+        "Jalen Brunson",
+        "Joel Embiid",
+        "Anthony Davis",
+        "Kawhi Leonard",
+        "James Harden",
+        "Kyrie Irving",
+        "Damian Lillard",
+        "Ja Morant",
+        "Zion Williamson",
+        "LaMelo Ball",
+        "Paolo Banchero",
+        "Cade Cunningham",
+        "Chet Holmgren",
+        [
+          "Alperen Sengun",
+          "Alperen Şengün"
+        ],
+        "Tyrese Haliburton",
+        "Tyrese Maxey",
+        "Cooper Flagg",
+        "Dylan Harper",
+        "Bronny James"
+      ]
+    },
+    {
+      "key": "basketball-figures",
+      "type": "media",
+      "sport": "basketball",
+      "category": "world-star",
+      "note": "historical / media figures; no assumption about current roles",
+      "names": [
+        "Michael Jordan",
+        "Shaquille O'Neal",
+        "Charles Barkley",
+        "Draymond Green",
+        "Gilbert Arenas",
+        "Paul Pierce",
+        "Kevin Garnett",
+        "Carmelo Anthony"
+      ]
+    },
+    {
+      "key": "world-women-basketball",
+      "type": "player",
+      "sport": "basketball",
+      "category": "world-star",
+      "women": true,
+      "names": [
+        "Caitlin Clark",
+        "Angel Reese",
+        "A'ja Wilson",
+        "Breanna Stewart",
+        "Sabrina Ionescu",
+        "Paige Bueckers",
+        "Napheesa Collier",
+        "Cameron Brink"
+      ]
+    },
+    {
+      "key": "other-sports-world",
+      "type": "player",
+      "sport": "other",
+      "category": "world-star",
+      "names": [
+        "Novak Djokovic",
+        "Carlos Alcaraz",
+        "Jannik Sinner",
+        "Daniil Medvedev",
+        "Alexander Zverev",
+        [
+          "Iga Swiatek",
+          "Iga Świątek"
+        ],
+        "Aryna Sabalenka",
+        "Coco Gauff",
+        "Naomi Osaka",
+        "Max Verstappen",
+        "Lewis Hamilton",
+        "Lando Norris",
+        "Charles Leclerc",
+        "Oscar Piastri",
+        "Fernando Alonso",
+        "Noah Lyles",
+        [
+          "Armand Duplantis",
+          "Mondo Duplantis"
+        ],
+        "Sydney McLaughlin-Levrone",
+        "Faith Kipyegon",
+        "Letsile Tebogo",
+        "Sifan Hassan",
+        [
+          "Leon Marchand",
+          "Léon Marchand"
+        ],
+        "Summer McIntosh",
+        "Katie Ledecky",
+        "Simone Biles",
+        "Rebeca Andrade",
+        "Conor McGregor",
+        "Jon Jones",
+        "Islam Makhachev",
+        "Alex Pereira",
+        "Ilia Topuria",
+        "Oleksandr Usyk",
+        "Tyson Fury",
+        "Anthony Joshua",
+        "Canelo Alvarez",
+        "Jake Paul",
+        "Patrick Mahomes",
+        "Lamar Jackson",
+        "Josh Allen",
+        "Travis Kelce",
+        "Shohei Ohtani",
+        "Aaron Judge",
+        "Tiger Woods",
+        "Rory McIlroy",
+        "Scottie Scheffler",
+        [
+          "Tadej Pogacar",
+          "Tadej Pogačar"
+        ],
+        "Jonas Vingegaard"
+      ]
+    },
+    {
+      "key": "other-sports-israeli",
+      "type": "player",
+      "sport": "other",
+      "category": "israeli-candidate",
+      "names": [
+        [
+          "Artem Dolgopyat",
+          "Artem Dolhopiat"
+        ],
+        "Daria Atamanov",
+        [
+          "Avishag Semberg",
+          "Avishag Samberg"
+        ],
+        "Raz Hershko",
+        "Inbar Lanir",
+        "Peter Paltchik",
+        "Timna Nelson Levy",
+        "Gefen Primo",
+        "Kerem Primo",
+        "Sagi Muki",
+        "Anastasia Gorbenko",
+        "Denis Loktev",
+        "Tomer Frankel",
+        "Sharon Kantor",
+        "Tom Reuveny",
+        "Katy Spychakov",
+        "Maru Teferi",
+        "Lonah Chemtai Salpeter",
+        "Blessing Afrifah"
+      ]
+    },
+    {
+      "key": "world-clubs",
+      "type": "club",
+      "sport": "football",
+      "category": "world-club",
+      "names": [
+        "Real Madrid",
+        "Barcelona",
+        "Atletico Madrid",
+        "Liverpool",
+        "Manchester United",
+        "Manchester City",
+        "Arsenal",
+        "Chelsea",
+        "Tottenham",
+        "Newcastle United",
+        "Bayern Munich",
+        "Borussia Dortmund",
+        "Bayer Leverkusen",
+        [
+          "Paris Saint-Germain",
+          "PSG"
+        ],
+        "Inter Milan",
+        "Juventus",
+        "AC Milan",
+        "Napoli",
+        "Roma",
+        "Benfica",
+        "Porto",
+        "Sporting CP",
+        "Ajax",
+        "PSV",
+        "Feyenoord",
+        "Celtic",
+        "Rangers",
+        "Galatasaray",
+        [
+          "Fenerbahce",
+          "Fenerbahçe"
+        ],
+        [
+          "Besiktas",
+          "Beşiktaş"
+        ],
+        "Olympiacos",
+        "Panathinaikos",
+        "AEK Athens",
+        "PAOK",
+        "Inter Miami",
+        "Al Nassr",
+        "Al Hilal",
+        "Al Ittihad"
+      ]
+    },
+    {
+      "key": "world-clubs-basketball",
+      "type": "club",
+      "sport": "basketball",
+      "category": "world-club",
+      "names": [
+        "Panathinaikos",
+        "Olympiacos",
+        [
+          "Fenerbahce",
+          "Fenerbahçe"
+        ],
+        "Anadolu Efes",
+        "Real Madrid",
+        "Barcelona",
+        [
+          "AS Monaco",
+          "Monaco"
+        ],
+        [
+          "Olimpia Milano",
+          "Olimpia Milan"
+        ],
+        "Baskonia",
+        "Valencia Basket",
+        "Partizan",
+        [
+          "Crvena Zvezda",
+          "Red Star Belgrade"
+        ],
+        [
+          "Zalgiris",
+          "Žalgiris"
+        ],
+        "Bayern Munich",
+        "ASVEL",
+        "Paris Basketball",
+        "Dubai Basketball",
+        "Virtus Bologna",
+        "Cedevita Olimpija"
+      ]
+    }
+  ],
+  "corrections": [
+    "Elad Madmon is one candidate (no separate 'Ilay Madmon').",
+    "Oz Blayzer only; no 'Or Blayzer' duplicate.",
+    "Alyssa Baron and Alysha Clark are different people.",
+    "Liel Abada is men's football (moved from the women's list).",
+    "Ryan Turell is basketball (moved from football).",
+    "'Daniel Wolf' is NOT recorded as an alias of Danny Wolf until validated.",
+    "'Sophia Smith' is not recorded as an alias of Sophia Wilson (alias history unverified)."
+  ],
+  "excluded": [
+    {
+      "name": "Manor?",
+      "why": "accidental row in the raw brainstorm"
+    },
+    {
+      "name": "Barbra Banda",
+      "why": "irrelevant digression in the brainstorm"
+    },
+    {
+      "name": "Tessel Middag",
+      "why": "irrelevant digression in the brainstorm"
+    },
+    {
+      "name": "Dani Avramovic (basketball)",
+      "why": "intended person not identified from reliable evidence"
+    },
+    {
+      "name": "Yossi Dahan",
+      "why": "intended person not identified from reliable evidence"
+    },
+    {
+      "name": "Daniel Peretz (taekwondo)",
+      "why": "intended person not identified; the footballer Daniel Peretz is a separate entry"
+    }
+  ],
+  "focus": {
+    "about": "The desk's focus list (from the editors, 2026-10-09): stories about these names rank higher (\"on the desk list\") and are never pushed down as local. Hebrew spellings as the editors write them, plus common short forms. Names must exist in the groups above.",
+    "names": [
+      [
+        "Neymar",
+        [
+          "ניימאר",
+          "נימאר"
+        ]
+      ],
+      [
+        "Lionel Messi",
+        [
+          "מסי",
+          "ליונל מסי",
+          "ליאו מסי",
+          "Leo Messi"
+        ]
+      ],
+      [
+        "Erling Haaland",
+        [
+          "ארלינג הולאנד",
+          "הולאנד",
+          "האלנד"
+        ]
+      ],
+      [
+        "Cristiano Ronaldo",
+        [
+          "כריסטיאנו רונאלדו",
+          "רונאלדו",
+          "CR7"
+        ]
+      ],
+      [
+        "Lamine Yamal",
+        [
+          "לאמין ימאל",
+          "ימאל",
+          "יאמאל"
+        ]
+      ],
+      [
+        "Liverpool",
+        [
+          "ליברפול"
+        ]
+      ],
+      [
+        "Real Madrid",
+        [
+          "ריאל מדריד"
+        ]
+      ],
+      [
+        "Barcelona",
+        [
+          "ברצלונה",
+          "ברסה"
+        ]
+      ],
+      [
+        "Deni Avdija",
+        [
+          "דני אבדיה",
+          "אבדיה"
+        ]
+      ],
+      [
+        "Kylian Mbappe",
+        [
+          "קיליאן אמבפה",
+          "אמבפה",
+          "Mbappe",
+          "Mbappé"
+        ]
+      ],
+      [
+        "LeBron James",
+        [
+          "לברון ג'יימס",
+          "לברון"
+        ]
+      ],
+      [
+        "Vinicius Junior",
+        [
+          "ויניסיוס ג'וניור",
+          "ויניסיוס",
+          "Vini Jr"
+        ]
+      ],
+      [
+        "Luka Doncic",
+        [
+          "לוקה דונצ'יץ'",
+          "דונצ'יץ'",
+          "Doncic",
+          "Dončić"
+        ]
+      ],
+      [
+        "Victor Wembanyama",
+        [
+          "ויקטור וומבניאמה",
+          "וומבניאמה",
+          "וומבאניאמה",
+          "Wembanyama",
+          "Wemby"
+        ]
+      ],
+      [
+        "Manchester United",
+        [
+          "מנצ'סטר יונייטד",
+          "Man United",
+          "Man Utd"
+        ]
+      ],
+      [
+        "Anthony Edwards",
+        [
+          "אנתוני אדוורדס",
+          "Ant Edwards"
+        ]
+      ],
+      [
+        "Michael Jordan",
+        [
+          "מייקל ג'ורדן"
+        ]
+      ],
+      [
+        "Stephen Curry",
+        [
+          "סטף קרי",
+          "סטפן קרי"
+        ]
+      ]
+    ]
+  }
+}

@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify, JUNK_TITLE, SITE_TITLE } from './classify.js';
-import { editorialBoost, bigEvent, markLocal, memberLocal } from './editorial.js';
+import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap } from './ai.js';
@@ -22,7 +22,8 @@ import { clusterItems, buildStory, tokens } from './cluster.js';
 import { translateItems } from './translate.js';
 import { findRivalGames, rivalSources } from './rivals.js';
 import { loadSignals } from './signals.js';
-import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources } from './trends.js';
+import { trendBoard, nextTrendSearches, trendSources, nextUserSearches, userSearchSources, FOLLOW_HOURS, TOPIC_DAYS } from './trends.js';
+import { queryMetrics, discoveryDelay, usefulness, lowRankReasons } from './metrics.js';
 import { loadWikipedia } from './wikipedia.js';
 import { loadEntityDb, refreshEntityDb, buildEntityIndex, findEntities } from './entities.js';
 import { fillSummaries } from './summaries.js';
@@ -39,6 +40,10 @@ function entityIndex(db) {
   return entityCache.index;
 }
 import { loadAthletes, resolveTeams, athleteSources, buildMatchers, COUNTRIES } from './athletes.js';
+import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candidateQueries, planQueries, recordQueries, watchSources, norm as watchNorm, entryLocales, entryPriority, searchable, loadOverrides } from './watchlist.js';
+import { setTracked } from './youtube.js';
+import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
+import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'public', 'data');
@@ -46,6 +51,7 @@ const KEEP_ITEMS_H = 48; // raw items remembered between runs
 const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
 const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
+const WATCH_BUDGET = 6; // watchlist / discovery queries per run (src/watchlist.js)
 
 
 const itemId = (link, title) => {
@@ -72,6 +78,14 @@ async function writeJson(path, data) {
   await rename(tmp, path);
 }
 
+// Keep at most `max` stories (sorted newest first): Israeli-angle stories first, then the newest; order kept
+export function capStories(stories, max) {
+  if (stories.length <= max) return stories;
+  const keep = new Set(stories.filter((s) => s.israel || s.abroad || s.watchIsrael).slice(0, max));
+  for (const s of stories) if (keep.size < max) keep.add(s);
+  return stories.filter((s) => keep.has(s));
+}
+
 // force = fetch every source regardless of its interval (used after editing the athlete list)
 export async function collect({ log = console.log, force = false } = {}) {
   const started = Date.now();
@@ -89,6 +103,15 @@ export async function collect({ log = console.log, force = false } = {}) {
     matchers: buildMatchers(athletes, teamCache),
     athleteSport: Object.fromEntries(athletes.map((a) => [a.name, a.sport])),
   };
+
+  // Watchlist (verified registry + bounded discovery queries); YouTube keeps a podcast / women's / youth video
+  // only when it names someone tracked
+  const watchEntries = await loadWatchlist(ROOT);
+  const watchMatch = buildWatchMatchers(watchEntries);
+  setTracked((title) => ctx.matchers.players(String(title).toLowerCase()).length > 0 || watchMatch(title).some((h) => h.israelLink));
+  const editorsNames = new Set(athletes.map((a) => watchNorm(a.name)));
+  const vocab = await loadVocabulary(ROOT);
+  const watchCandidates = candidateQueries(watchEntries, vocab, { skipNames: editorsNames });
 
   const now = Date.now();
 
@@ -115,7 +138,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     } catch {}
   }
 
-  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch)];
+  const watchPlan = planQueries(watchCandidates, state.watchSched, { now, budget: WATCH_BUDGET });
+  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch), ...watchSources(watchPlan.run)];
   const srcById = new Map(sources.map((s) => [s.id, s]));
   const due = sources.filter((s) => {
     const m = meta[s.id];
@@ -126,9 +150,15 @@ export async function collect({ log = console.log, force = false } = {}) {
   });
 
   const results = await pool(due, 12, (s) => fetchFeed(s));
+  // watch query schedule: success resets, failure backs off; queries no longer generated are forgotten
+  const watchRun = watchPlan.run.filter((c) => due.some((d) => d.id === c.id));
+  const watchSched = recordQueries(state.watchSched, watchRun, watchRun.map((c) => {
+    const r = results[due.findIndex((d) => d.id === c.id)];
+    return r?.ok ? { ok: true, count: r.value.length } : { ok: false };
+  }), now, new Set(watchCandidates.map((c) => c.id)));
   // what was filtered out and why (diagnostics for misses): article link → { t, src, title, link, why }
   const rejected = new Map((state.rejected || []).filter((r) => now - r.at < 24 * 3600e3).map((r) => [r.link, r]));
-  const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, title: String(raw.title).slice(0, 200), link: raw.link, why });
+  const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, sid: src.id, title: String(raw.title).slice(0, 200), link: raw.link, why });
   let fresh = 0;
 
   results.forEach((r, idx) => {
@@ -173,6 +203,10 @@ export async function collect({ log = console.log, force = false } = {}) {
         image: raw.image,
         publisher: raw.publisher,
         sourceId: src.id,
+        // discovery provenance: the source / query that found it first, and every source that found it since
+        // (items collected before provenance existed: their last source and first-seen time, marked approximate)
+        via: prev?.via || (prev ? { src: prev.sourceId, at: prev.seen ?? prev.published, approx: true } : { src: src.id, at: now }),
+        paths: [...new Set([...(prev?.paths || (prev ? [prev.sourceId] : [])), src.id])].slice(0, 10),
         lang: src.lang,
         weight: src.weight,
         google: !!src.google,
@@ -384,20 +418,62 @@ export async function collect({ log = console.log, force = false } = {}) {
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
     .map((s) => applySignals(s, signals))
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
+    // watchlist people / clubs named in the story (only verified entries may carry an Israel link)
+    .map((s) => annotateWatch(s, watchMatch))
     // Other sports (NFL, MLB, NHL, tennis, cycling…): only big events — finals, Grand Slams, Grand Prix, Olympics… —
     // or a story carried internationally (8+ sources in 3+ languages); anything Israeli is always kept
-    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))
+    // other sports: only with a reason (an editor's topic search found it is one)
+    .filter((s) => s.sport !== 'other' || s.israel || s.abroad || s.watchIsrael || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s) || s._members.some((m) => srcById.get(m.sourceId)?.topic))
     // editors' priorities: big competitions, transfers and scoops up; betting / how-to-watch / live blogs down
     .map(editorialBoost)
     // local leagues (Greece, Portugal, Turkey…): low and out of Hot / brief / Telegram unless there's a reason
     .map((s) => markLocal(s, (m) => memberLocal(m, srcById.get(m.sourceId))))
+    .map(markLow) // tickets, polls, live streams: collapsed in the world tabs
     // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
-    .sort((a, b) => b.latest - a.latest)
-    .slice(0, MAX_STORIES);
+    .sort((a, b) => b.latest - a.latest);
+  // The cap keeps the newest stories, but an Israeli-angle story inside the 36-hour window is never cut for space
+  // (found by the evaluation set: a day-old Spanish story about Roy Revivo was dropped for space)
+  stories.splice(0, stories.length, ...capStories(stories, MAX_STORIES));
 
   // Sport5 coverage, second check: same-day Sport5 article about the same thing worded differently
   const s5probable = sport5Probable(stories, items, tokens);
+  // Source roles, evidence, truthful coverage, views and the editorial rank (src/roles.js, src/rank.js).
+  // Votes come from the previous run's feedback (loaded later in this run).
+  const s5check = sport5Check(meta, now);
+  const rankCfg = loadRankConfig(join(ROOT, 'config', 'editorial-rank.json'));
+  loadRankVocabulary(join(ROOT, 'config', 'vocabulary.json')); // the editors' keyword list for news value
+  const heOf = new Map(athletes.filter((a) => a.name_he).map((a) => [a.name, a.name_he]));
+  const heName = (n) => heOf.get(n) || n;
+  for (const s of stories) {
+    const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
+    for (const x of s.sources) if (roles[x.link]) [x.o, x.r] = roles[x.link];
+    // Israeli sites are shown only in Israeli monitoring: for a story with both, the foreign report the other tabs
+    // show instead (its own headline, translated; never an Israeli outlet's headline, link, picture or video)
+    const foreignM = s._members.filter((m) => roles[m.link]?.[0] !== 'il');
+    if (ev.il > 0 && foreignM.length) {
+      const f = foreignM.find((m) => m.link === ev.lead?.link) || [...foreignM].sort((a, b) => (b.google ? 0 : 1) - (a.google ? 0 : 1) || b.weight - a.weight || a.published - b.published)[0];
+      const trF = tr[f.id] || {};
+      const pick = (lang) => (f.lang === lang ? { title: f.title, link: f.link } : trF[lang] ? { title: trF[lang], link: f.link, from: f.lang } : null);
+      const pubs = new Set(foreignM.map((m) => String(m.publisher || '').toLowerCase()));
+      s.fv = { title: f.title, link: f.link, lang: f.lang, t: { he: pick('he'), en: pick('en') }, image: f.image || foreignM.find((m) => m.image)?.image || null, video: foreignM.find((m) => m.video)?.link || null, sourceCount: pubs.size, langs: [...new Set(foreignM.map((m) => m.lang))] };
+    }
+    // found by an editor's topic search ("my topics"): the page marks these as new from the search
+    const found = [...new Set(s._members.map((m) => srcById.get(m.sourceId)).filter((x) => x?.topic).map((x) => x.trend))];
+    if (found.length) s.found = found;
+    s.ev = ev;
+    s.cov = storyCoverage(s, s5check, ev);
+    s.v = storyViews(s, ev);
+    s.ed = editorialRank(s, { now, cfg: rankCfg, votes: state.feedback?.votes?.[s.id], heName });
+  }
+  // quality numbers for the watchlist page (src/metrics.js): measured, never fed back into collection
+  const rejectedNow = [...rejected.values()];
+  const quality = {
+    queries: queryMetrics(stories, new Set(watchCandidates.map((c) => c.id)), rejectedNow),
+    delay: discoveryDelay(items),
+    usefulness: usefulness(state.feedback?.votes, stories),
+    low: lowRankReasons(stories, rejectedNow),
+  };
 
   // Summaries: feed descriptions + article pages, most important stories first (Israeli / abroad, then popular & fresh)
   const sums = state.sums || {};
@@ -445,9 +521,16 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   for (const id of Object.keys(sums)) if (!liveIds.has(id)) delete sums[id];
 
-  const health = sources.filter((s) => !s.trend).map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
+  const health = sources.filter((s) => !s.trend && !s.watch).map((s) => ({ id: s.id, name: s.name, ok: meta[s.id]?.ok !== false, count: meta[s.id]?.count ?? 0, error: meta[s.id]?.error }));
   const okCount = health.filter((h) => h.ok).length;
 
+  // evidence for the app: the lead points into the story's sources when it is one of them (no repeated long links)
+  const slimEv = (s) => {
+    const { lead, outlets, il, foreign, attrib, attribBy, official, reporter } = s.ev;
+    const i = lead ? s.sources.slice(0, 8).findIndex((x) => x.link === lead.link) : -1;
+    const l = lead && { name: lead.name, status: lead.status, origin: lead.origin, role: lead.role, ...(i >= 0 ? { i } : { link: lead.link }) };
+    return { lead: l, outlets, il, foreign, ...(attrib ? { attrib, attribBy } : {}), ...(official ? { official } : {}), ...(reporter ? { reporter } : {}) };
+  };
   // What the app needs, nothing more (phones): ≤8 sources per story, no repeated links, no unused fields
   const slim = (s) => {
     const { summary: _s, seen: _seen, ...rest } = s;
@@ -456,14 +539,44 @@ export async function collect({ log = console.log, force = false } = {}) {
     return {
       ...rest,
       t,
-      sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}) })),
+      sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown, o, r }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}), ...(o ? { o, r } : {}) })),
       sum: s.ai?.he?.sum ? undefined : s.sum, // the language model's summary replaces the feed blurb
+      ...(s.ed ? { ed: { score: s.ed.score, reasons: s.ed.reasons, limits: s.ed.limits.map((l) => l.k).filter((k) => k !== 'headline'), ...(s.ed.votes ? { votes: s.ed.votes } : {}) } } : {}),
+      ...(s.ev ? { ev: slimEv(s) } : {}),
     };
   };
   // First screen: the newest 300 + everything Israeli / Israelis abroad; the rest loads right after
   const byNew = [...stories].sort((a, b) => b.first - a.first);
   const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad)].map((s) => s.id));
   const head = { generatedAt: now, tookMs: Date.now() - started, sources: { total: sources.length, ok: okCount, fetched: due.length } };
+  // The watchlist page's data: every entry with its state, every query with why it exists, its schedule and its value
+  const hitsBy = {};
+  for (const s of stories) for (const h of s.watch || []) hitsBy[h.id] = (hitsBy[h.id] || 0) + 1;
+  const deferredBy = new Map(watchPlan.deferred.map((d) => [d.id, d]));
+  const ranIds = new Set(watchRun.map((c) => c.id));
+  await writeJson(join(DATA, 'watch.json'), {
+    generatedAt: now,
+    registry: { verified: watchEntries.filter((e) => e.status === 'verified').length, pending: watchEntries.filter((e) => e.status === 'pending').length, sourceOnly: watchEntries.filter((e) => e.status === 'source-only').length },
+    budget: WATCH_BUDGET,
+    entries: watchEntries.map((e) => ({
+      id: e.id, name: e.name, he: e.he || '', aliases: e.aliases || [], type: e.type, sport: e.sport, category: e.category, status: e.status,
+      basis: e.israelLink?.basis || null, note: e.israelLink?.note || e.why || '', team: e.team?.en || '', ambiguous: !!e.ambiguous,
+      enabled: e.enabled !== false, priority: entryPriority(e), langs: entryLocales(e), ...(e.until ? { until: e.until } : {}),
+      searched: searchable(e, editorsNames), queries: watchCandidates.filter((c) => c.entryIds.includes(e.id)).map((c) => c.id), hits: hitsBy[e.id] || 0,
+    })),
+    queries: watchCandidates.map((c) => ({
+      id: c.id, mode: c.mode, ...(c.family ? { family: c.family } : {}), priority: c.priority, locale: c.locale, q: c.q, why: c.why, entryIds: c.entryIds,
+      last: watchSched[c.id]?.last || null, fails: watchSched[c.id]?.fails || 0, count: watchSched[c.id]?.count ?? null, error: meta[c.id]?.ok === false ? meta[c.id].error : null,
+      state: ranIds.has(c.id) ? 'ran' : deferredBy.get(c.id)?.why || 'not due yet', nextAt: deferredBy.get(c.id)?.nextAt || null,
+      value: quality.queries[c.id] || null,
+    })),
+    families: ['israeliAngle', 'exceptional'].map((key) => ({ key, enabled: vocab.familyOverrides?.[key]?.enabled !== false, priority: vocab.familyOverrides?.[key]?.priority || null, queries: (vocab.querySets?.[key] || []).length })),
+    // temporary "follow in the radar" searches (an active collection subscription, unlike a saved display topic)
+    follows: Object.entries(state.userSearch || {}).map(([q, t]) => ({ q, since: t.since, topic: !!t.topic, expires: t.since + (t.topic ? TOPIC_DAYS * 864e5 : FOLLOW_HOURS * 3600e3) })),
+    overrides: await loadOverrides(ROOT), // the current editor decisions (the page starts its draft from these)
+    hits: stories.filter((s) => s.watch).length,
+    quality: { ...quality, queries: undefined },
+  });
   await writeJson(join(DATA, 'news-more.json'), { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) });
   await writeJson(join(DATA, 'news.json'), {
     ...head,
@@ -484,7 +597,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
   });
   // Source health for the "system" panel: last check, last success, consecutive failures; quiet ≠ failed
-  const sourceHealth = sources.filter((s) => !s.trend).map((s) => {
+  const sourceHealth = sources.filter((s) => !s.trend && !s.watch).map((s) => {
     const m = meta[s.id] || {};
     return { id: s.id, name: s.name, ok: m.ok !== false, last: m.last || null, lastOk: m.lastOk || (m.ok ? m.last : null), failStreak: m.failStreak || 0, count: m.count ?? 0, error: m.ok === false ? m.error : undefined };
   });
@@ -506,7 +619,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

@@ -1,0 +1,4 @@
+{
+  "about": "Editor decisions that override the automatic check in scripts/build-watchlist.mjs. Key = entry ID from config/watchlist.json. status: verified | pending | excluded. A verified entry needs an israelLink with a basis and a note.",
+  "entries": {}
+}

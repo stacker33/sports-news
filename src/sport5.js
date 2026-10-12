@@ -3,11 +3,14 @@
 // Telegram channel, YouTube channel). Sources that joined the story well after Sport5 published are "new since".
 
 const SPORT5_SOURCES = new Set(['sport5-home', 'sport5', 'tg-sport5', 'yt-sport5']);
-const isSport5 = (m) => SPORT5_SOURCES.has(m.sourceId) || /(^|\.)sport5\.co\.il\//.test(m.link.replace(/^https?:\/\//, ''));
+// a Google News result from any search whose publisher is Sport5 is a Sport5 site article too
+const SPORT5_PUB = /^(ספורט 5|sport ?5|sport5\.co\.il)$/i;
+const googleSport5 = (m) => !!m.google && SPORT5_PUB.test(String(m.publisher || '').trim());
+export const isSport5 = (m) => SPORT5_SOURCES.has(m.sourceId) || /(^|\.)sport5\.co\.il\//.test(m.link.replace(/^https?:\/\//, '')) || googleSport5(m);
 const LATER = 20 * 60000; // a source counts as new if it was published 20+ minutes after Sport5's article
 // the website (homepage, Google results for the site) vs Sport5's other channels (Telegram, YouTube)
 const SITE_SOURCES = new Set(['sport5-home', 'sport5']);
-const where = (m) => (SITE_SOURCES.has(m.sourceId) || /sport5\.co\.il/.test(m.link) ? 'site' : 'channel');
+const where = (m) => (SITE_SOURCES.has(m.sourceId) || /sport5\.co\.il/.test(m.link) || googleSport5(m) ? 'site' : 'channel');
 
 // → null (no match) or { at, link, newer, where } — where: 'site' (a website article) or 'channel' (only Sport5's
 // Telegram / YouTube); newer = distinct outlets that published after Sport5 (more publications, not necessarily news)

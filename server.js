@@ -39,6 +39,28 @@ async function api(req, res, path) {
     await tick();
     return json(res, 200, { ok: true, athletes: saved });
   }
+  // Watchlist overrides (watch.html), local mode only: validated, written to config/, the registry rebuilt.
+  // The published site has no such endpoint; there the page exports a file for the admin to commit.
+  if (path === '/api/watchlist-overrides' && req.method === 'GET') {
+    let raw = { entries: {}, families: {} };
+    try { raw = JSON.parse(await readFile(join(ROOT, 'config', 'watchlist-overrides.json'), 'utf8')); } catch {}
+    return json(res, 200, { editable: true, overrides: raw });
+  }
+  if (path === '/api/watchlist-overrides' && req.method === 'PUT') {
+    const { validateOverrides } = await import('./public/watchlist-rules.js');
+    const known = new Set(JSON.parse(await readFile(join(ROOT, 'config', 'watchlist.json'), 'utf8')).entries.map((e) => e.id));
+    const checked = validateOverrides(JSON.parse(await readBody(req)), known);
+    if (!checked.ok) return json(res, 400, { error: 'invalid', errors: checked.errors });
+    const body = { about: 'Editor decisions that override the automatic check in scripts/build-watchlist.mjs. See public/watchlist-rules.js for the fields.', ...checked.clean };
+    const file = join(ROOT, 'config', 'watchlist-overrides.json');
+    await writeFile(file + '.tmp', JSON.stringify(body, null, 2) + '\n');
+    await rename(file + '.tmp', file);
+    const { execFile } = await import('node:child_process');
+    await new Promise((ok) => execFile(process.execPath, [join(ROOT, 'scripts', 'build-watchlist.mjs')], () => ok()));
+    console.log(new Date().toLocaleTimeString(), '[watchlist] overrides saved, registry rebuilt, collecting…');
+    tick();
+    return json(res, 200, { ok: true });
+  }
   // "Ignore" a suggestion for the Israelis-abroad list (remembered so it isn't suggested again)
   if (path === '/api/athletes/ignore' && req.method === 'POST') {
     const { key } = JSON.parse(await readBody(req));

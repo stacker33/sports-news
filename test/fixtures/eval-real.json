@@ -1,0 +1,16 @@
+{
+  "about": "REAL observed examples (headlines seen in the radar's own data, with the date observed), hand-labelled with what an editor expects. Kept apart from synthetic fixtures (eval-synthetic.json). scripts/evaluate.mjs checks each against the current local data; an example older than the 48-hour data window is reported as 'out of window', not as a miss.",
+  "examples": [
+    { "id": "revivo-elche-celta", "observed": "2026-10-07", "match": "un Elche CF-Celta de Vigo especial para Roy Revivo", "expect": { "view": "f", "israeliAngle": true }, "note": "Spanish local press, one Israeli abroad, one source" },
+    { "id": "uefa-spitting-en", "observed": "2026-10-07", "match": "UEFA probes Israeli player for allegedly spitting", "expect": { "view": "f", "israeliAngle": true }, "note": "Israel national team incident reported abroad" },
+    { "id": "uefa-spitting-nl", "observed": "2026-10-07", "match": "UEFA onderzoekt Israëlische speler", "expect": { "view": "f" }, "note": "found by the Dutch discovery search" },
+    { "id": "turkish-israeli-player", "observed": "2026-10-07", "match": "İsrailli futbolcu için", "expect": { "view": "f" }, "note": "found by the Turkish discovery search" },
+    { "id": "khalaili-inter", "observed": "2026-10-08", "match": "Chi è Khalaili", "expect": { "view": "f", "israeliAngle": true, "minScore": 50 }, "note": "Italian profile of an Israeli abroad" },
+    { "id": "saraf-bench", "observed": "2026-10-08", "match": "Ben Saraf News: Scores eight off bench", "expect": { "view": "f", "israeliAngle": true } },
+    { "id": "rice-bbc-attributed", "observed": "2026-10-08", "match": "Rice close to agreeing new Arsenal deal", "expect": { "view": "f", "leadStatus": "attributed" }, "note": "others cite the BBC, whose article is in the story" },
+    { "id": "injury-report-page", "observed": "2026-10-08", "match": "EuroLeague Injury Report (updated daily)", "expect": { "maxScore": 35 }, "note": "a reference page, not news" },
+    { "id": "paok-michailidis-local", "observed": "2026-10-08", "match": "οψιόν στο συμβόλαιο του Μιχαηλίδη", "expect": { "local": true }, "note": "PAOK domestic contract news: local. Known miss: a Reddit r/soccer post was attached to the story (signal matching), which exempts it" },
+    { "id": "greek-live-page", "observed": "2026-10-08", "match": "Live 08-10-26", "expect": { "rejected": "junk" }, "note": "live-score widget page" },
+    { "id": "connections-puzzle", "observed": "2026-10-06", "match": "Connections: Sports Edition", "expect": { "rejected": "junk" }, "note": "a puzzle, flagged by an editor in the pilot" }
+  ]
+}

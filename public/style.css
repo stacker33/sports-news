@@ -962,3 +962,52 @@ body.v2 .mix input[type="range"] { width: 110px; accent-color: var(--brand); }
 }
 body.v2 .pmini-all { font-weight: 700; color: var(--brand); border-style: dashed; }
 body.v2 .lb--local { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line2); }
+body.v2 .lb--found { background: transparent; color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+/* stories outside the desk's beat: collapsed at the bottom of the world tabs */
+.offbeat-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 6px; padding: 10px 12px; border: 1px dashed var(--line2); border-radius: 10px; color: var(--muted); font-size: 13px; }
+.offbeat-bar span { flex: 1 1 200px; }
+
+/* ---------- discovery views: why it matters, coverage, limitations ---------- */
+.v2card .c-why { margin: 6px 0 2px; font-size: 13px; line-height: 1.5; color: var(--text, inherit); }
+.v2card .c-why-h { display: inline-block; margin-inline-end: 6px; padding: 0 6px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 11.5px; font-weight: 700; }
+.v2card .c-cov { margin: 2px 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.v2card .c-cov a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.v2card .c-lim { display: flex; gap: 5px; align-items: flex-start; margin: 2px 0 4px; font-size: 11.5px; line-height: 1.45; color: var(--muted); opacity: .85; }
+.v2card .c-lim svg { flex: none; margin-top: 2px; }
+
+/* 👎 reason chips */
+.vote-why { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.vote-why button { border: 1px solid var(--line); background: var(--surface, transparent); color: inherit; border-radius: 999px; padding: 3px 10px; font: inherit; cursor: pointer; }
+.vote-why button:hover { border-color: var(--accent); color: var(--accent); }
+
+
+/* my topics: a chip + its "also search the web" action; football / basketball switch */
+.topics-card .tc-item { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 6px; margin-inline-end: 10px; }
+.topics-card .topic-chip small { opacity: .7; font-weight: 400; margin-inline-start: 3px; }
+.topics-card .tc-search { display: inline-flex; align-items: center; gap: 4px; border: 1px dashed var(--line); background: transparent; color: var(--muted); border-radius: 999px; padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+.topics-card .tc-search.on { border-style: solid; border-color: var(--accent); color: var(--accent); }
+.sport-sw { display: inline-flex; margin: 4px 0 10px; }
+.sport-sw button { font: inherit; font-size: 13px; padding: 5px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
+.sport-sw button:first-child { border-start-start-radius: 8px; border-end-start-radius: 8px; }
+.sport-sw button:last-child { border-start-end-radius: 8px; border-end-end-radius: 8px; }
+.sport-sw button + button { border-inline-start: 0; }
+.sport-sw button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* the header must never be wider than the screen (the trial added "מעקב" and the trial label) */
+@media (max-width: 1199px) {
+  body.v2 .bar .hb-t { display: none; }
+  body.v2 .bar .tg-btn, body.v2 .bar .icon-btn { padding: 0 9px; }
+}
+body.v2 .bar { min-width: 0; }
+body.v2 .bar .status { min-width: 0; overflow: hidden; }
+@media (max-width: 700px) {
+  body.v2 .bar .watch-link { display: none; } /* the watchlist page is a desk tool: from a computer */
+}
+/* a guard: nothing may make the page scroll sideways (clip keeps sticky headers working) */
+body.v2 { overflow-x: clip; }
+body.v2 .news-controls, body.v2 .filters { min-width: 0; max-width: 100%; }
+body.v2 .filters { flex-wrap: wrap; }
+html { overflow-x: clip; }
+@media (max-width: 700px) {
+  body.v2 .bar { gap: 6px; }
+}

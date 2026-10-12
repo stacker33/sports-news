@@ -9,7 +9,10 @@ const TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
 const KEEP_DAYS = 30;
 const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;
-const SEARCHES_PER_DEVICE_DAY = 20;
+const SEARCHES_PER_DEVICE_DAY = 40; // "my topics" renew their searches daily
+
+// structured reasons (a fixed list: no free text goes through the public channel)
+export const VOTE_REASONS = ['useful', 'irrelevant', 'covered', 'duplicate', 'identity'];
 
 const str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 
@@ -45,12 +48,17 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
         v.down = v.down.filter((d) => d !== device);
         if (j.vote === 1) v.up.push(device);
         if (j.vote === -1) v.down.push(device);
+        // the reason for this device's vote (latest wins; withdrawn with the vote)
+        v.why = Object.fromEntries(Object.entries(v.why || {}).map(([k, ds]) => [k, ds.filter((d) => d !== device)]).filter(([, ds]) => ds.length));
+        const reason = j.vote === 1 ? 'useful' : VOTE_REASONS.includes(j.reason) ? j.reason : null;
+        if (j.vote && reason) v.why[reason] = [...(v.why[reason] || []), device];
         Object.assign(v, { title: str(j.title, 200), sport: str(j.sport, 12), israel: !!j.israel, s5: str(j.s5, 12), link: str(j.link, 600), t: now });
         st.votes[j.id] = v;
       } else if (j.type === 'search' && str(j.q, 80).length >= 2) {
         if ((st.perDevice[key] || 0) >= SEARCHES_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
-        searches.push({ q: str(j.q, 80), at: m.time * 1000 });
+        // topic: a saved "my topics" search, kept while the page renews it (daily, until the topic is deleted)
+        searches.push({ q: str(j.q, 80), at: m.time * 1000, ...(j.topic ? { topic: true } : {}) });
       } else if (j.type === 'report' && str(j.text, 1000)) {
         if ((st.perDevice[key] || 0) >= REPORTS_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
@@ -66,5 +74,5 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
 // the public file: per story the vote counts and what the story was (no device ids)
 export const votesFile = (st, now) => ({
   generatedAt: now,
-  stories: Object.fromEntries(Object.entries(st.votes).filter(([, v]) => v.up.length || v.down.length).map(([id, v]) => [id, { up: v.up.length, down: v.down.length, title: v.title, sport: v.sport, israel: v.israel, s5: v.s5, link: v.link, t: v.t }])),
+  stories: Object.fromEntries(Object.entries(st.votes).filter(([, v]) => v.up.length || v.down.length).map(([id, v]) => [id, { up: v.up.length, down: v.down.length, ...(v.why ? { why: Object.fromEntries(Object.entries(v.why).map(([k, ds]) => [k, ds.length])) } : {}), title: v.title, sport: v.sport, israel: v.israel, s5: v.s5, link: v.link, t: v.t }])),
 });
