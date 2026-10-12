@@ -69,13 +69,25 @@ Examples:
 - "Ajax (v) deelt tik uit aan Feyenoord (v), Sparta (v) viert doelpuntenfestijn" → "נשות אייאקס הכו את פיינורד, חגיגת שערים לספרטה"
 Return JSON: {"titles":[{"id":"…","title_he":"…"}]} with every id you were given.`;
 
-// What is the story ABOUT, and is it for the desk? Decided by the subject, not by which club is named: not every
-// Ajax story matters, an Ajax story about Oscar Gloukh does; a quarrel between two journalists doesn't, unless it
-// is about Cristiano Ronaldo.
-const CLASSIFY_PER_REQUEST = 40;
-const CLASSIFY_CAP = Number(process.env.AI_CLASSIFY_CAP) || 250; // requests a day (light model), apart from DAILY_CAP
-const DESK_SYSTEM = `You help the world-sports desk of an Israeli sports website (Sport5) decide which foreign football and basketball stories are worth their attention.
-For each story, first decide what it is mainly ABOUT (the person, club or event at its center), then whether it is for the desk.
+// The card of every foreign story, in one pass (light model): a fluent Hebrew headline, one or two Hebrew sentences
+// on what it is about (so the editor can tell at a glance if it's relevant), and what the story is ABOUT / is it for
+// the desk. The subject decides, not which club is named: not every Ajax story matters, an Ajax story about Oscar
+// Gloukh does; a quarrel between two journalists doesn't, unless it is about Cristiano Ronaldo.
+const CARD_VERSION = 2; // 1 = subject only (no headline / summary): redone
+const CARDS_PER_REQUEST = 20;
+const CARD_CALLS_PER_RUN = 2; // a second call only while there is a backlog
+const CLASSIFY_CAP = Number(process.env.AI_CLASSIFY_CAP) || 450; // requests a day (light model), apart from DAILY_CAP
+const DESK_SYSTEM = `${STYLE}
+
+You prepare story cards for the world-sports desk of Sport5. For each story you get its headlines (one or more outlets, various languages) and, when there is one, the outlets' short description. Write:
+- "title_he": the headline in fluent Hebrew, the way Sport5 would write it. Keep the sports terms an editor uses (הארכת חוזה, סגל, הרכב, פציעה בירך, שער ניצחון, טרייד, חוזה מקסימום, פלייאוף). Say what the main headline says — its meaning, not word for word.
+- "summary_he": ONE or TWO short Hebrew sentences: what happened and who is involved, so the editor knows at once what the item is about. Only facts from the texts. If the texts give nothing beyond the headline, return "" — never invent and never just repeat the headline.
+- "about": the subject in a few English words (e.g. "Cristiano Ronaldo", "Elche coach change"); "about_he": the same in Hebrew.
+- "desk": true / false, by the rules below.
+Example:
+- Headline "Real Madrid bereikt akkoord met Courtois over nieuw contract", description "De Belgische doelman tekent bij tot 2028; een officiële aankondiging volgt binnenkort." → title_he "ריאל מדריד הגיעה להסכם עם קורטואה על הארכת חוזה", summary_he "השוער הבלגי יחתום עד 2028, והכרזה רשמית צפויה בימים הקרובים.", about "Thibaut Courtois contract", about_he "החוזה של טיבו קורטואה", desk true
+
+Is it for the desk? First decide what the story is mainly ABOUT (the person, club or event at its center).
 For the desk (desk: true) when the story is mainly about:
 - a world star or famous name: e.g. Messi, Cristiano Ronaldo, Neymar, Haaland, Lamine Yamal, Mbappé, Vinicius, Salah, Kane, Bellingham, LeBron James, Stephen Curry, Luka Dončić, Victor Wembanyama, Nikola Jokić, Giannis Antetokounmpo, Anthony Edwards, Michael Jordan, Mourinho, Guardiola, Ancelotti, Klopp;
 - a top club: Real Madrid, Barcelona, Atlético Madrid, Manchester City, Manchester United, Liverpool, Arsenal, Chelsea, Tottenham, Newcastle, Bayern Munich, Borussia Dortmund, Bayer Leverkusen, PSG, Juventus, Inter, AC Milan, Napoli, Roma;
@@ -83,16 +95,17 @@ For the desk (desk: true) when the story is mainly about:
 - an Israeli player, coach or club, or anything about Israel;
 - an extraordinary or viral story the whole sports world is talking about.
 Not for the desk (desk: false): routine news of other clubs (Serie B, the English Championship and lower, the Eredivisie, Portugal, Greece, Belgium, Turkey, Scotland, MLS, Saudi Arabia, South America...) unless it is about one of the above; smaller big-5 clubs' everyday news (training, squad lists, minor injuries); the WNBA and college sports; tickets, polls, live streams, betting, quizzes, lifestyle, recipes, cars; quarrels between journalists or pundits unless they are about a star.
-"about" = the subject in a few English words (e.g. "Cristiano Ronaldo", "Elche coach change"); "about_he" = the same in Hebrew.
-Return JSON: {"items":[{"id":"…","about":"…","about_he":"…","desk":true}]} with every id you were given.`;
+For other sports, decide "desk" the same way (a big event or a famous name: true).
+Return JSON: {"items":[{"id":"…","title_he":"…","summary_he":"…","about":"…","about_he":"…","desk":true}]} with every id you were given.`;
 
-// Before ranking: each story gets the subject verdict saved for it on an earlier run (aiSummaries step 3)
+// Before ranking: each football / basketball story gets the subject verdict saved for it on an earlier run
+// (aiSummaries step 3; the off-beat rules are for those two sports)
 export function attachDesk(stories, aiState = {}) {
   const desk = aiState.desk || {};
   for (const s of stories) {
-    if (!s._members?.length) continue;
+    if (!s._members?.length || (s.sport !== 'football' && s.sport !== 'basketball')) continue;
     const r = desk[storyKey(s)];
-    if (r) s.aiDesk = { desk: r.desk, about: r.about, ...(r.about_he ? { about_he: r.about_he } : {}) };
+    if (r && typeof r.desk === 'boolean') s.aiDesk = { desk: r.desk, about: r.about, ...(r.about_he ? { about_he: r.about_he } : {}) };
   }
   return stories;
 }
@@ -102,7 +115,8 @@ const clip = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '')
 export const goodHe = (t) =>
   typeof t === 'string' && /[א-ת]/.test(t) && t.trim().length > 3 &&
   !/[؀-ۿݐ-ݿͰ-Ͽ\u0400-\u04FF]/.test(t) && // Arabic, Greek or Cyrillic letters
-  !/[א-ת][A-Za-z]|[A-Za-z][א-ת]/.test(t); // a Latin letter glued to a Hebrew one inside a word ("המffמן", "סרcסטית")
+  !/[א-ת][A-Za-z]|[A-Za-z][א-ת]/.test(t) && // a Latin letter glued to a Hebrew one inside a word ("המffמן", "סרcסטית")
+  !/[ךםןףץ][א-ת]/.test(t); // a final letter inside a word is always a slip ("בןן", "מןאמן")
 const clean = (t) => String(t || '').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '').trim();
 
 // "Hebrew names: Real Valladolid = ריאל ויאדוליד; …" from the story's tags (knowledge base) and Israelis abroad
@@ -249,6 +263,49 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   }
 
   let done = 0;
+  // 0) cards: every new foreign story gets a fluent Hebrew headline, a one-or-two-sentence Hebrew summary and the
+  // subject verdict, in the run that collected it (own daily budget, the light model). The verdict decides off-beat
+  // from the next run (attachDesk → markLocal); the headline and summary show at once.
+  const cday = st.cls?.day === day ? st.cls : { day, used: 0 };
+  st.cls = cday;
+  st.desk = { ...(prev.desk || {}) };
+  for (const [key, r] of Object.entries(st.desk)) if (now - r.at > KEEP_DAYS * 864e5) delete st.desk[key];
+  const pending = token
+    ? stories
+        .filter((s) => s.lang !== 'he' && now - s.first < 18 * 3600e3)
+        .filter((s) => (st.desk[keyOf.get(s)]?.v || 1) < CARD_VERSION)
+        // the visible ones first, then the newest
+        .sort((a, b) => (a.local || a.minor || a.low ? 1 : 0) - (b.local || b.minor || b.low ? 1 : 0) || b.first - a.first)
+    : [];
+  for (let c = 0; c < CARD_CALLS_PER_RUN && pending.length && cday.used < CLASSIFY_CAP && !(st.clsCooldown > now); c++) {
+    if (c > 0 && pending.length < CARDS_PER_REQUEST) break; // a second call only for a backlog
+    const batch = pending.splice(0, CARDS_PER_REQUEST);
+    cday.used++;
+    try {
+      const out = await callModel(token, FALLBACK, DESK_SYSTEM, batch.map((s, i) => `### id: ${i}\n${storyInput(s, sums, heName)}`).join('\n\n'));
+      for (const r of out.items || out.stories || []) {
+        const s = batch[Number(String(r.id).replace(/\D/g, ''))];
+        if (!s) continue;
+        const title = clean(r.title_he);
+        const sum = clean(r.summary_he);
+        if (!goodHe(title)) continue; // rejected → retried on a later run
+        st.desk[keyOf.get(s)] = {
+          v: CARD_VERSION,
+          title_he: clip(title, 220),
+          ...(goodHe(sum) && sum !== title ? { sum_he: clip(sum, 400) } : {}),
+          ...(typeof r.desk === 'boolean' ? { desk: r.desk } : {}),
+          about: clip(String(r.about || ''), 60),
+          ...(goodHe(r.about_he || '') ? { about_he: clip(clean(r.about_he), 60) } : {}),
+          at: now,
+        };
+      }
+      st.clsError = null;
+    } catch (e) {
+      st.clsError = String(e.message).slice(0, 160);
+      if (/HTTP 429/.test(e.message)) st.clsCooldown = now + 30 * 60000;
+      break;
+    }
+  }
   try {
     // 1) summaries: new / grown stories, and results from older prompts
     if (room()) {
@@ -279,8 +336,8 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     // 2) headlines: foreign stories without a (current) summary still get a real Hebrew headline
     if (room()) {
       const heads = stories
-        .filter((s) => s.lang !== 'he' && now - s.first < 18 * 3600e3)
-        .filter((s) => !st.res[keyOf.get(s)] && !st.heads[keyOf.get(s)]) // no AI text at all yet
+        .filter((s) => s.lang !== 'he' && now - s.first < 18 * 3600e3 && !s.local && !s.minor && !s.low) // not the collapsed ones
+        .filter((s) => !st.res[keyOf.get(s)] && !st.heads[keyOf.get(s)] && !st.desk[keyOf.get(s)]?.title_he) // no AI text at all yet
         .sort((a, b) => b.score - a.score)
         .slice(0, HEADLINES_PER_REQUEST);
       if (heads.length >= 5) {
@@ -289,34 +346,6 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         for (const r of out.titles || []) {
           const s = heads[Number(String(r.id).replace(/\D/g, ''))];
           if (s && goodHe(r.title_he)) st.heads[keyOf.get(s)] = { title_he: clip(r.title_he, 220), at: now };
-        }
-      }
-    }
-    // 3) subject: what each new foreign football / basketball story is ABOUT, and is it for the desk (its own small
-    // budget, the light model; applied on the next run by attachDesk → markLocal)
-    const cday = st.cls?.day === day ? st.cls : { day, used: 0 };
-    st.cls = cday;
-    st.desk = { ...(prev.desk || {}) };
-    for (const [key, r] of Object.entries(st.desk)) if (now - r.at > KEEP_DAYS * 864e5) delete st.desk[key];
-    if (token && cday.used < CLASSIFY_CAP && !(st.clsCooldown > now)) {
-      const need = stories
-        .filter((s) => (s.sport === 'football' || s.sport === 'basketball') && !(s.langs || []).every((l) => l === 'he'))
-        .filter((s) => !(s.israel || s.abroad || s.watchIsrael) && now - s.first < 18 * 3600e3)
-        .filter((s) => !st.desk[keyOf.get(s)])
-        .sort((a, b) => b.first - a.first)
-        .slice(0, CLASSIFY_PER_REQUEST);
-      if (need.length >= 5) {
-        cday.used++;
-        try {
-          const out = await callModel(token, FALLBACK, DESK_SYSTEM, need.map((s, i) => `### id: ${i}\n${storyInput(s, sums, heName)}`).join('\n\n'));
-          for (const r of out.items || out.stories || []) {
-            const s = need[Number(String(r.id).replace(/\D/g, ''))];
-            if (!s || typeof r.desk !== 'boolean') continue;
-            st.desk[keyOf.get(s)] = { desk: r.desk, about: clip(String(r.about || ''), 60), ...(goodHe(r.about_he || '') ? { about_he: clip(r.about_he, 60) } : {}), at: now };
-          }
-        } catch (e) {
-          st.clsError = String(e.message).slice(0, 160);
-          if (/HTTP 429/.test(e.message)) st.clsCooldown = now + 30 * 60000;
         }
       }
     }
@@ -330,7 +359,9 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   for (const s of stories) {
     const r = st.res[keyOf.get(s)];
     const h = st.heads[keyOf.get(s)];
+    const c = st.desk[keyOf.get(s)];
     if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he, ...(r.facts?.length ? { facts: r.facts } : {}), ...(r.quotes?.length ? { quotes: r.quotes } : {}) }, en: { sum: r.summary_en } };
+    else if (c?.title_he) s.ai = { he: { title: c.title_he, ...(c.sum_he ? { sum: c.sum_he } : {}) } };
     else if (h) s.ai = { he: { title: h.title_he } };
   }
   return { ai: st, done };
