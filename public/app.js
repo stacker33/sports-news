@@ -378,7 +378,7 @@ const state = {
   notS5: store.get('notS5', false), // 🔴 show only stories Sport5 hasn't covered
   rival: null,
   mix: Number(store.get('mix', 40)),
-  mixF: Number(store.get('mixF', 80)), // foreign discovery keeps its own slider: editorial rank by default
+  mixF: Number(store.get('mixF', 50)), // main / world tabs: half editorial rank, half newness (80 buried new stories)
   abroadView: store.get('abroadView', 'news') === 'players' ? 'players' : 'news', // Israelis abroad: 📰 news | 👤 players // 0 = newest … 100 = most popular
   affinity: null,
   tag: null, // topic filter (clicked tag)
@@ -822,6 +822,7 @@ function visibleStories() {
     return list.filter((s) => sc.get(s) > 0).sort((a, b) => sc.get(b) - sc.get(a) || (b.latest || b.first) - (a.latest || a.first)).slice(0, 300);
   };
   state.offList = [];
+  state.newNow = [];
   if (tp) {
     // an open topic: everything that matches
     const list = storiesFor().filter((s) => matchTopic(s, tp) && langOk(s) && s5ok(s) && filtersOk(s));
@@ -858,9 +859,15 @@ function visibleStories() {
   // viral angle; tickets / polls / live streams) are taken out of the list and collapsed at the bottom. Scoring
   // them lower was not enough: sorted by time, a fresh PAOK story still landed on top.
   state.offList = [];
+  state.newNow = [];
   if (OFFBEAT_TABS.has(state.tab)) {
     state.offList = list.filter((s) => s.local || s.low || s.minor).slice(0, 150);
     list = list.filter((s) => !s.local && !s.low && !s.minor);
+    // "new now": the last 20 minutes on top, newest first, whatever the sort (the ranked list below keeps the rest)
+    const now = Date.now();
+    state.newNow = list.filter((s) => !s.dateUnknown && now - s.first < NEW_NOW_MIN * 60000).sort((a, b) => b.first - a.first).slice(0, 6);
+    const ids = new Set(state.newNow.map((s) => s.id));
+    list = list.filter((s) => !ids.has(s.id));
   }
   // at the popular end, keep the list focused
   return list.slice(0, mixVal() >= 70 ? 120 : 300);
@@ -868,6 +875,7 @@ function visibleStories() {
 
 // Slider: 0 = newest first … 100 = most popular (coverage, languages, Google Trends, Reddit, Wikipedia)
 const OFFBEAT_TABS = new Set(['top', 'football', 'basketball']);
+const NEW_NOW_MIN = 20;
 const EDITORIAL_TABS = new Set(['top', 'football', 'basketball', 'abroad', 'abroadB']);
 const editorialTab = () => EDITORIAL_TABS.has(state.tab) && !activeTopic();
 const mixVal = () => (editorialTab() ? state.mixF : state.mix);
@@ -1451,6 +1459,18 @@ function ilNow() {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(Date.now()).map((x) => [x.type, x.value]));
   return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
 }
+// "new now" strip (main / world tabs): what arrived in the last 20 minutes, newest first
+function newNowHtml() {
+  const items = state.newNow || [];
+  if (!items.length || state.q.trim() || state.tag) return '';
+  const he = state.ui === 'he';
+  const mins = (s) => Math.max(1, Math.round((Date.now() - s.first) / 60000));
+  const title = (s) => (he ? (s.lang === 'he' ? s.title : s.ai?.he?.title || (s.t?.he?.from ? s.t.he.title : '')) : s.lang === 'en' ? s.title : s.t?.en?.from ? s.t.en.title : '') || disp(s).title;
+  return `<section class="brief-card brief-v2 new-now"><div class="brief-head"><span class="bh-ic">${icon('radar', 20)}</span><div class="bh-t"><b>${esc(he ? 'חדש עכשיו' : 'New now')}</b><span>${esc(he ? `${items.length} ידיעות מ-${NEW_NOW_MIN} הדקות האחרונות · החדשה ראשונה` : `${items.length} stories from the last ${NEW_NOW_MIN} minutes · newest first`)}</span></div></div><ol>${items
+    .map((s) => `<li data-id="${esc(s.id)}"><span class="bt">${esc(he ? `לפני ${mins(s)} דק׳` : `${mins(s)} min`)}</span><span class="bx"><a href="${esc(s.realLink || disp(s).link)}" target="_blank" rel="noopener" dir="auto">${esc(title(s))}</a><span class="bs">${esc(s.sources[0]?.name || '')}${s.sourceCount > 1 ? ` +${s.sourceCount - 1}` : ''}</span></span></li>`)
+    .join('')}</ol></section>`;
+}
+
 function briefHtml() {
   const b = state.data?.brief;
   if (!b || state.tab !== 'top' || state.q.trim() || state.tag || activeTopic()) return '';
@@ -1626,7 +1646,7 @@ function renderList(freshIds = new Set()) {
     ? `<div class="search-bar">${state.searchAll ? '' : `<span>${esc(F.moreTabs(state.searchExtra))}</span>`}<button type="button" class="small-btn" id="searchAllBtn">${esc(state.searchAll ? F.backTab : F.showAll)}</button></div>`
     : '';
   const swBar = state.sw[state.tab] && !tp ? sportSwitchHtml() : '';
-  const banner = searchBar + briefHtml() + (state.tab === 'mytopics' && !tp ? topicsCardHtml() : '') + swBar + sinceBar + topicBar + tagBar;
+  const banner = searchBar + briefHtml() + newNowHtml() + (state.tab === 'mytopics' && !tp ? topicsCardHtml() : '') + swBar + sinceBar + topicBar + tagBar;
   const cardsRow = isAbroad(state.tab) && !tp ? playerCardsHtml() : '';
   const playersOnly = isAbroad(state.tab) && state.abroadView === 'players' && !tp;
   // new design: the feed sits in one frame with a header (tab · sort · count) and its own empty state
