@@ -18,8 +18,10 @@ permissions:
 
 concurrency:
   group: pages
-  # a newer run replaces one that is stuck (a deployment "waiting" for hours blocked every run on 2026-10-06)
-  cancel-in-progress: true
+  # A newer run WAITS for the one in progress (GitHub keeps one waiting run). Cancelling it threw away runs on
+  # every push and, mid-publish, jammed GitHub Pages (2026-10-11 / 12). Stuck runs are still ended: the job's
+  # 8-minute limit and the watchdog (cancels runs stuck 12+ minutes).
+  cancel-in-progress: false
 
 jobs:
   collect:

@@ -2,7 +2,7 @@
 // Needs TELEGRAM_BOT_TOKEN (GitHub secret) and TELEGRAM_CHAT (repository variable: "@channel_name" or "-100…");
 // without them nothing is sent.
 //
-// - ☀️ Morning briefing once a day after 07:00 Israel time: the night's top stories (world first) + how the Israelis
+// - ☀️ Morning briefing once a day after 06:00 Israel time: the night's top stories (world first) + how the Israelis
 //   abroad did. The same list is pinned on the site until noon (morningBrief → news.json "brief").
 // - 🔔 Alerts (not 01:00–06:00), world news first: reporters' scoops (🔴), stories spreading across countries /
 //   trending, the big leagues / Champions League / NBA / EuroLeague, important Israeli and Israelis-abroad news; the biggest
@@ -16,7 +16,7 @@ const PER_HOUR = 15;
 const PER_DAY = 120;
 const QUIET = [1, 6]; // no alerts from 01:00 to 05:59 Israel time
 // competitions the editors follow (tag ids from src/entities.js)
-const BRIEF_HOUR = 7;
+const BRIEF_HOUR = 6; // the morning editor starts at 6
 
 const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 export const ilParts = (ts) => {
@@ -82,7 +82,7 @@ export function briefingTop(stories, now) {
     .filter((s) => !s.israel || ++il <= 3)
     .slice(0, 10);
 }
-// For the site: the morning's list, fixed once a day at the first run after 07:00; kept until noon
+// For the site: the morning's list, fixed once a day at the first run after 06:00; kept until noon
 export function morningBrief(stories, prev, now) {
   const il = ilParts(now);
   if (il.hour < BRIEF_HOUR || il.hour >= 12) return null;
