@@ -18,8 +18,11 @@ const LOW_VALUE = /\b(how to watch|where to watch|tv channel|live stream(ing)?|o
 
 // Not stories at all, in any language: ticket sales, polls, live streams of training, live tickers. Flagged "low":
 // the world tabs collapse them with the off-beat leagues (they are kept, never deleted).
-const NOT_NEWS = /(tickets?|buy tickets|on sale|polls?:|poll|vote now|cast your vote|watch (the )?(training|live)|live training|open training|live ?ticker|live blog|get your latest|newsletter|wiretap|youtube gold)|biglietti|entradas|bilhetes|billetterie|εισιτήρι|bilet(ler)?|sondaggio|encuesta|sondage|umfrage|enquete|ψηφοφορ|em direto|ao vivo|en direct|en directo|en vivo|in diretta|liveticker|כרטיסים|הצבעה:|סקר:/i;
+const NOT_NEWS = /\b(tickets?|buy tickets|on sale|polls?:|poll\b|vote now|cast your vote|watch (the )?(training|live)|live training|open training|live ?ticker|live blog|get your latest|newsletter|wiretap|youtube gold)\b|biglietti|entradas|bilhetes|billetterie|εισιτήρι|bilet(ler)?\b|sondaggio|encuesta|sondage|umfrage|enquete|ψηφοφορ|em direto|ao vivo|en direct|en directo|en vivo|in diretta|liveticker|כרטיסים|הצבעה:|סקר:/i;
+// a headline that is only a name ("Yonatan Revivo"): a profile page, not a story, whoever it is about
+const NAME_ONLY = /^[A-ZÀ-ſ][\wÀ-ſ'.-]+( [A-ZÀ-ſ][\wÀ-ſ'.-]+){0,2}$/;
 export function markLow(s) {
+  if (NAME_ONLY.test(String(s.title).trim())) return { ...s, low: true };
   if (trackedIsraeli(s)) return s;
   const titles = [s.title, s.t?.en?.title || ''];
   return titles.some((x) => NOT_NEWS.test(x) || LOW_VALUE.test(x)) ? { ...s, low: true } : s;
@@ -97,7 +100,10 @@ const ROUTINE_FACTOR = 0.45; // routine news of a followed league: lower
 
 export const memberLocal = (m, src) => (src?.country ? LOCAL_COUNTRIES.has(src.country) : LOCAL_LANGS.has(m.lang));
 
-const viral = (s) => (s.langs?.length || 0) >= 3 || !!s.trending || (!!s.reddit && (s.langs?.length || 0) >= 2);
+// a Google trend counts in Israel / the US / the UK; a trend in one local market (Greece, Italy...) is not viral
+const viral = (s) => (s.langs?.length || 0) >= 3 || ['IL', 'US', 'GB'].includes(s.trending?.geo) || (!!s.reddit && (s.langs?.length || 0) >= 2);
+// basketball the desk doesn't follow, even when the knowledge base tags it NBA (the WNBA did)
+const OFF_BASKET = /\b(WNBA|NCAA|college basketball|men's basketball|women's basketball|March Madness|G League|Big Ten|Big 12|Big East)\b/;
 const star = (s) => !!s.watchStar || STARS.test(text(s));
 const hebrew = (s) => (s.langs || []).includes('he'); // Israeli outlets: the Israeli tabs decide
 const hasClub = (s) => (s.tags || []).some((g) => g.k === 'team');
@@ -112,6 +118,7 @@ export function markLocal(s, isLocal) {
   if (has(NATIONAL)) return s; // national teams
   const t = text(s);
   if (s.sport === 'basketball') {
+    if (OFF_BASKET.test(t)) return scale(s, LOCAL_FACTOR, 'local');
     if (has(EURO_BASKET)) {
       const named = EURO_NAMED.test(t) || (s._members || []).some((m) => (m.ents || []).some((id) => EURO_BASKET.has(id)));
       return named || BIG_NEWS.test(t) ? s : scale(s, ROUTINE_FACTOR, 'routine');
