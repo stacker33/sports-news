@@ -148,7 +148,7 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
   const stars = (s.watch || []).filter((h) => h.category === 'world-star');
   // a local-league story (Benfica, PAOK, Ajax...) gets no credit for its club's European cup: the cup is the
   // club's season, not this story (the "European cup / national teams" label was raising them)
-  if (s.local) dims.importance = 0.15;
+  if (s.local || s.minor) dims.importance = 0.15;
   else if (comps.some((c) => MAJOR.has(c))) {
     dims.importance = 1;
     why('importance', 'major', 'Major competition', 'מסגרת מרכזית');
@@ -252,6 +252,9 @@ export function editorialRank(s, { now = Date.now(), cfg = DEFAULTS, votes = nul
   if (s.local) {
     score *= 0.5;
     limit('local', 'Outside the leagues the desk follows', 'מחוץ לליגות שהדסק עוקב אחריהן');
+  } else if (s.minor) {
+    score *= 0.5;
+    limit('minor', 'Routine news of a smaller club in a big-5 league', 'חדשות שגרתיות של קבוצה קטנה בליגה גדולה');
   } else if (s.routine) {
     score *= 0.75;
     limit('routine', 'Routine news of a followed league', 'חדשות שגרתיות של ליגה במעקב');

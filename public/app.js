@@ -859,8 +859,8 @@ function visibleStories() {
   // them lower was not enough: sorted by time, a fresh PAOK story still landed on top.
   state.offList = [];
   if (OFFBEAT_TABS.has(state.tab)) {
-    state.offList = list.filter((s) => s.local || s.low).slice(0, 150);
-    list = list.filter((s) => !s.local && !s.low);
+    state.offList = list.filter((s) => s.local || s.low || s.minor).slice(0, 150);
+    list = list.filter((s) => !s.local && !s.low && !s.minor);
   }
   // at the popular end, keep the list focused
   return list.slice(0, mixVal() >= 70 ? 120 : 300);
@@ -1641,7 +1641,7 @@ function renderList(freshIds = new Set()) {
   const off = state.offList;
   const offOpen = !!state.showOff[state.tab];
   const offHtml = off.length && !playersOnly
-    ? `<div class="offbeat-bar"><span>${esc(he ? `${off.length} ידיעות מחוץ לתחום הדסק: ליגות שלא במעקב (בלי ישראלי, כוכב או סיפור ויראלי), כרטיסים, סקרים ושידורים` : `${off.length} stories outside the desk's beat: leagues it doesn't follow (no Israeli, star or viral story), tickets, polls, streams`)}</span><button type="button" class="small-btn" id="offToggle">${esc(offOpen ? (he ? 'הסתר' : 'Hide') : (he ? 'הצג' : 'Show'))}</button></div>${offOpen ? off.map((s) => cardHtml(s, freshIds.has(s.id))).join('') : ''}`
+    ? `<div class="offbeat-bar"><span>${esc(he ? `${off.length} ידיעות מחוץ לתחום הדסק: ליגות שלא במעקב, שגרה של קבוצות קטנות, כרטיסים, סקרים ושידורים (בלי ישראלי, כוכב או סיפור גדול)` : `${off.length} stories outside the desk's beat: leagues it doesn't follow, small clubs' routine news, tickets, polls, streams (no Israeli, star or big story)`)}</span><button type="button" class="small-btn" id="offToggle">${esc(offOpen ? (he ? 'הסתר' : 'Hide') : (he ? 'הצג' : 'Show'))}</button></div>${offOpen ? off.map((s) => cardHtml(s, freshIds.has(s.id))).join('') : ''}`
     : '';
   $('list').innerHTML = cardsRow + (playersOnly ? '' : feedHead + banner + list.map((s) => cardHtml(s, freshIds.has(s.id))).join('') + offHtml + emptyV2 + webHtml());
   $('empty').hidden = V2 || list.length > 0 || (isAbroad(state.tab) && state.abroadView === 'players') || !!(SEARCH_URL && state.q.trim());

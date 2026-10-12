@@ -95,6 +95,10 @@ const BIG5_NAMES = new RegExp(String.raw`\b(Premier League|La ?Liga|Serie A|Bund
   String.raw`PSG|Paris Saint-Germain|Marseille|OM|Lyon|OL|Monaco|Lille|OGC Nice|Lens|Rennes|Nantes|Strasbourg|Toulouse|Brest|Auxerre|Angers|Le Havre|Lorient|Metz|Paris FC)\b`);
 const BASKET_NAMES = new RegExp(String.raw`\b(NBA|EuroLeague|Euroleague|EuroCup|Eurocup|Hawks|Celtics|Nets|Hornets|Bulls|Cavaliers|Cavs|Mavericks|Mavs|Nuggets|Pistons|Warriors|Rockets|Pacers|Clippers|Lakers|Grizzlies|Heat|Bucks|Timberwolves|Pelicans|Knicks|Thunder|Magic|76ers|Sixers|Suns|Blazers|Kings|Spurs|Raptors|Jazz|Wizards|` +
   String.raw`Real Madrid|Barcelona|Bar[cç]a|Olympiacos|Olympiakos|Panathinaikos|Fenerbah[cç]e|Efes|Monaco|Partizan|Crvena [Zz]vezda|Red Star|[ŽZ]algiris|Baskonia|Bayern|Virtus|Olimpia Milano|Armani|ASVEL|Paris Basketball|Valencia|Dubai Basketball|Hapoel|Maccabi)\b`);
+// The big-5 clubs whose everyday news the desk covers (case-sensitive, headline + English translation)
+const TOP_CLUBS = new RegExp(String.raw`\b(Real Madrid|Barcelona|Bar[cç]a|Atl[eé]tico|Atleti|Man(chester)? City|Man(chester)? United|Man Utd|Liverpool|Arsenal|Chelsea|Tottenham|Spurs|Newcastle|Aston Villa|` +
+  String.raw`Bayern|Dortmund|BVB|Leverkusen|Leipzig|PSG|Paris Saint-Germain|Marseille|OM|Juventus|Juve|Inter|Milan|Napoli|Roma|Lazio|Atalanta)\b`);
+const REPLACE = /national (team|side)|Nationalmannschaft|Selecci[oó]n|Nazionale|נבחרת|fires|sacks|dismisse[sd]|parts? ways|part company|\b(replace[sd]?|new (manager|coach)|takes over|interim)\b|מחליף|מאמן חדש/i;
 const LOCAL_FACTOR = 0.15; // "local": far down
 const ROUTINE_FACTOR = 0.45; // routine news of a followed league: lower
 
@@ -127,7 +131,9 @@ export function markLocal(s, isLocal) {
     if (hasClub(s) && !has(BASKET_BIG)) return scale(s, LOCAL_FACTOR, 'local'); // a club outside EuroLeague / EuroCup / NBA
     if (!comps.size && !hasClub(s) && !hebrew(s) && !BASKET_NAMES.test(t)) return scale(s, LOCAL_FACTOR, 'local'); // college, WNBA, misfiled
   } else if (s.sport !== 'other') {
-    if (has(BIG5)) return s; // a big-5 club (also when it plays a smaller one)
+    // a big-5 club: the top clubs always; a smaller one (Elche, Mainz, Lecce...) only with big news (coach, transfer,
+    // scandal) or a top club in the story; its routine news is collapsed like an off-beat league ("minor")
+    if (has(BIG5)) return !hasClub(s) || TOP_CLUBS.test(t) || BIG_NEWS.test(t) || REPLACE.test(t) ? s : scale(s, LOCAL_FACTOR, 'minor');
     if (hasClub(s) || comps.size) return scale(s, LOCAL_FACTOR, 'local'); // clubs outside the big 5
     if (!hebrew(s) && !BIG5_NAMES.test(t)) return scale(s, LOCAL_FACTOR, 'local'); // no known club, none named: Serie B, Championship...
   }
