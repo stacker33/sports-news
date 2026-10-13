@@ -30,6 +30,37 @@ let heMap = new Map();
 // how much an editor wants this right now (world stories are first-class)
 const urgency = (s) => s.score + (!s.s5 || s.s5.probable || s.s5.where === 'channel' ? 2 : 0) + (s.s5?.newer >= 2 ? 1 : 0) + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
 const titleHe = (s) => (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title || heMap.get(s)) || s.title;
+
+// The same event from another outlet / language is not a new post (Coventry 4-1 Newcastle went out 7 times on
+// 2026-10-13). A story's fingerprint: its clubs / players, the words of its Hebrew headline, the scores in it.
+const RECENT_H = 12;
+const scoresIn = (t) => [...String(t).matchAll(/(\d{1,3})\s*[-–:]\s*(\d{1,3})/g)].map((m) => [m[1], m[2]].sort().join('-'));
+export function fingerprint(s) {
+  const he = titleHe(s);
+  return {
+    ids: [...new Set([...(s.tags || []).filter((g) => g.k === 'team' || g.k === 'player' || g.k === 'a').map((g) => g.id), ...(s.athletes || [])])],
+    words: [...new Set(he.replace(/[^\p{L}\d\s]/gu, ' ').split(/\s+/).filter((w) => w.length >= 3))],
+    scores: [...new Set([he, s.title].flatMap(scoresIn))],
+    // the subject the language model gave it ("Cristiano Ronaldo Al Nassr") and the numbers in the headline (981)
+    about: [...new Set(String(s.aiDesk?.about || '').toLowerCase().split(/[^a-zÀ-ɏ]+/).filter((w) => w.length >= 4))],
+    nums: [...new Set((he.match(/\d{2,}/g) || []).filter((n) => !/^20\d\d$/.test(n)))],
+  };
+}
+export function sameEvent(a, b) {
+  const shared = a.ids.filter((x) => b.ids.includes(x)).length;
+  const inter = a.words.filter((w) => b.words.includes(w)).length;
+  const jac = inter / Math.max(1, new Set([...a.words, ...b.words]).size);
+  const sameScore = a.scores.some((x) => b.scores.includes(x));
+  const sameAbout = (a.about || []).filter((w) => (b.about || []).includes(w)).length >= 2;
+  const sameNum = (a.nums || []).some((n) => (b.nums || []).includes(n));
+  return shared >= 2 || ((shared >= 1 || sameAbout) && (jac >= 0.25 || sameScore || sameNum)) || jac >= 0.5;
+}
+// a foreign world story waits for the language model's verdict on what it is about (src/ai.js; the next run),
+// so a misfiled non-sport item (an actor's obituary) or a routine one is not posted; after 15 minutes without a
+// verdict (the model down / out of quota) it can go as before
+const AI_WAIT_MS = 15 * 60000;
+const needsVerdict = (s, now) =>
+  (s.sport === 'football' || s.sport === 'basketball') && !s.aiDesk && !(s.israel || s.abroad || s.watchIsrael) && !(s.langs || []).includes('he') && now - s.first < AI_WAIT_MS;
 const isHe = (t) => /[א-ת]/.test(t || '');
 const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
 
@@ -113,6 +144,7 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
   const chat = process.env.TELEGRAM_CHAT;
   const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, error: null };
   for (const [k, t] of Object.entries(st.sent)) if (now - t > 3 * 864e5) delete st.sent[k];
+  st.recent = (prev.recent || []).filter((r) => now - r.at < RECENT_H * 3600e3); // what was posted: fingerprints
   if (!token || !chat) return { tg: { ...st, error: 'no TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT' }, posted: 0 };
 
   // once per channel: check (without posting) that the bot is an admin that may post there
@@ -167,12 +199,21 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     if (firstRun) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now));
     else if (il.hour < QUIET[0] || il.hour >= QUIET[1]) {
       const room = Math.min(PER_RUN, PER_HOUR - st.hour.length, PER_DAY - st.dayCount);
-      for (const s of fresh.sort((a, b) => urgency(b) - urgency(a)).slice(0, Math.max(0, room))) {
+      let left = Math.max(0, room);
+      for (const s of fresh.filter((x) => !needsVerdict(x, now)).sort((a, b) => urgency(b) - urgency(a))) {
+        if (!left) break;
+        const fp = fingerprint(s);
+        if (st.recent.some((r) => sameEvent(fp, r))) {
+          st.sent[keyOf.get(s)] = now; // already posted from another outlet: never post it
+          continue;
+        }
         await send(token, chat, alertText(s, siteUrl, new Map((athletes || []).map((a) => [a.name, a.name_he || a.name]))), true);
         st.sent[keyOf.get(s)] = now;
+        st.recent.push({ ...fp, at: now });
         st.hour.push(now);
         st.dayCount++;
         posted++;
+        left--;
       }
     }
     // stories that were worth it but didn't fit stay unsent; once older than 90 minutes they're dropped

@@ -283,6 +283,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     cday.used++;
     try {
       const out = await callModel(token, FALLBACK, DESK_SYSTEM, batch.map((s, i) => `### id: ${i}\n${storyInput(s, sums, heName)}`).join('\n\n'));
+      cday.tokens = (cday.tokens || 0) + (lastUsage?.total_tokens || 0); // for the daily usage / cost estimate
       for (const r of out.items || out.stories || []) {
         const s = batch[Number(String(r.id).replace(/\D/g, ''))];
         if (!s) continue;
