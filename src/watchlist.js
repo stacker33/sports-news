@@ -134,7 +134,7 @@ export function buildWatchMatchers(entries) {
       } else if (e.sport !== 'other' && storySport && storySport !== e.sport && !ctx.some((f) => f(text))) {
         continue; // a football name inside a basketball story: a namesake
       }
-      hits.push({ id: e.id, name: e.name, he: e.he || '', type: e.type, status: e.status, category: e.category, israelLink: e.status === 'verified' && !!e.israelLink, via, ...(e.focus ? { focus: true } : {}) });
+      hits.push({ id: e.id, name: e.name, he: e.he || (e.aliases || []).find((x) => /[א-ת]/.test(x)) || '', type: e.type, status: e.status, category: e.category, israelLink: e.status === 'verified' && !!e.israelLink, via, ...(e.focus ? { focus: true } : {}) });
     }
     return hits;
   };

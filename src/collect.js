@@ -13,6 +13,7 @@ import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './edi
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap, attachDesk } from './ai.js';
+import { mergeSameEvent } from './merge.js';
 import { telegramPost, adminHealthAlerts, adminHello, adminReports, morningBrief } from './telegram.js';
 import { loadFeedback, votesFile } from './feedback.js';
 import { assignStoryIds } from './storyids.js';
@@ -407,7 +408,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
 
   // stable story ids across runs (see src/storyids.js)
-  const clusters = clusterItems(items.filter((i) => !i.hidden));
+  // + the same event across languages, once the language model has written its card (src/merge.js)
+  const clusters = mergeSameEvent(clusterItems(items.filter((i) => !i.hidden)), state.ai?.desk);
   const { ids: storyIdList, map: storyIds } = assignStoryIds(clusters, state.storyIds);
   const stories = clusters
     .map((members, i) => {

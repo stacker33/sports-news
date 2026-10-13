@@ -1078,6 +1078,24 @@ function explainHtml(s) {
   return out.join('');
 }
 
+// The editors' keywords found in the story: Israelis abroad and the watchlist (players, coaches, clubs, the desk's
+// names), only when named in the text itself (an Ajax story without Gloukh gets "אייאקס", not "אוסקר גלוך").
+function keywordTags(s) {
+  const he = state.ui === 'he';
+  const out = [];
+  const add = (name, cls) => {
+    if (name && !out.some((x) => x.name === name)) out.push({ name, cls });
+  };
+  for (const n of s.athletes || []) {
+    const a = state.athletes?.athletes.find((x) => x.name === n);
+    add(he && a?.name_he ? a.name_he : n, 'kw--il');
+  }
+  const hits = [...(s.watch || [])].sort((a, b) => (b.israelLink ? 1 : 0) - (a.israelLink ? 1 : 0) || (b.focus ? 1 : 0) - (a.focus ? 1 : 0) || (a.type === 'club' ? 1 : 0) - (b.type === 'club' ? 1 : 0));
+  for (const h of hits) add(he && h.he ? h.he : h.name, h.israelLink ? 'kw--il' : h.focus ? 'kw--focus' : '');
+  const list = out.slice(0, 5);
+  return list.length ? `<div class="c-kw">${list.map((x) => `<span class="kw ${x.cls}">${esc(x.name)}</span>`).join('')}</div>` : '';
+}
+
 function cardHtmlV2(s, fresh) {
   const L = t();
   const d = disp(s);
@@ -1145,6 +1163,7 @@ function cardHtmlV2(s, fresh) {
       ${labels ? `<div class="c-labels">${labels}</div>` : ''}
       <h2 dir="auto"><a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(main)}</a></h2>
       ${orig ? `<p class="orig" dir="auto">${esc(orig)}</p>` : ''}
+      ${keywordTags(s)}
       ${sum}
       ${explainHtml(s)}
       <div class="c-meta">
