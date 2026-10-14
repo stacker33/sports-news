@@ -81,8 +81,21 @@ jobs:
         with:
           path: public
 
+      # GitHub Pages sometimes fails on its side ("status: 500", or the artifact it was just given "not found",
+      # 2026-10-14): one more try 30 seconds later before the run counts as failed (and emails the owner)
       - id: deploy
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+        timeout-minutes: 6
+
+      - name: Wait before retrying the publish
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 30
+
+      - id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        timeout-minutes: 6
 
       # GitHub pauses scheduled workflows after 60 days without repo activity; re-enabling resets that.
       - name: Keep schedule alive
