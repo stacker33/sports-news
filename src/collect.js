@@ -549,9 +549,11 @@ export async function collect({ log = console.log, force = false } = {}) {
       ...(s.ev ? { ev: slimEv(s) } : {}),
     };
   };
-  // First screen: the newest 300 + everything Israeli / Israelis abroad; the rest loads right after
+  // First screen: the newest 300 + everything Israeli / Israelis abroad + the night summary's stories (they're from
+  // the night, so mostly not among the newest: the summary card waited for the second file); the rest loads right after
   const byNew = [...stories].sort((a, b) => b.first - a.first);
-  const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad)].map((s) => s.id));
+  const briefIds = new Set(brief?.ids || []);
+  const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad || briefIds.has(s.id))].map((s) => s.id));
   const head = { generatedAt: now, tookMs: Date.now() - started, sources: { total: sources.length, ok: okCount, fetched: due.length } };
   // The watchlist page's data: every entry with its state, every query with why it exists, its schedule and its value
   const hitsBy = {};

@@ -36,7 +36,7 @@ const titleHe = (s) => (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.
 const RECENT_H = 12;
 const scoresIn = (t) => [...String(t).matchAll(/(\d{1,3})\s*[-–:]\s*(\d{1,3})/g)].map((m) => [m[1], m[2]].sort().join('-'));
 export function fingerprint(s) {
-  const he = titleHe(s);
+  const he = titleHe(s) || '';
   return {
     ids: [...new Set([...(s.tags || []).filter((g) => g.k === 'team' || g.k === 'player' || g.k === 'a').map((g) => g.id), ...(s.athletes || [])])],
     words: [...new Set(he.replace(/[^\p{L}\d\s]/gu, ' ').split(/\s+/).filter((w) => w.length >= 3))],
@@ -55,6 +55,9 @@ export function sameEvent(a, b) {
   const sameNum = (a.nums || []).some((n) => (b.nums || []).includes(n));
   return shared >= 2 || ((shared >= 1 || sameAbout) && (jac >= 0.25 || sameScore || sameNum)) || jac >= 0.5;
 }
+// not a story for a summary: a live-score update ("דקה 31: לבאנטה - סביליה 1:0", "Minute 31'") or a stream link
+const LIVE_ITEM = /^\s*(דקה|minute|minuto|minuut|dakika|λεπτό)\s*\d+|\d+'\s*[:|-]|צפו בשידור|שידור חי|\blive\s*(stream|score|blog)?\s*[:|]|\bEN VIVO\b|\bUŽIVO\b|\bCANLI\b|ΖΩΝΤΑΝΑ/i;
+
 // a foreign world story waits for the language model's verdict on what it is about (src/ai.js; the next run),
 // so a misfiled non-sport item (an actor's obituary) or a routine one is not posted; after 15 minutes without a
 // verdict (the model down / out of quota) it can go as before
@@ -107,9 +110,20 @@ function abroadLines(athletes, cards, gameInfo, now) {
 export function briefingTop(stories, now) {
   const rank = (s) => (s.pop ?? s.score) + (s.langs?.length >= 3 ? 2 : 0) + (s.big ? 1 : 0);
   let il = 0;
-  return stories
+  // one place per event (2026-10-13: Coventry - Newcastle took 3 of the 10: the preview, a live update, the result),
+  // the result rather than the preview; no live-score updates or "watch the stream" items
+  const picked = [];
+  for (const s of stories
     .filter((s) => !s.dateUnknown && !s.local && !s.low && !s.minor && now - s.first < 10 * 3600e3 && (s.sport !== 'other' || s.big))
-    .sort((a, b) => rank(b) - rank(a))
+    .filter((s) => !LIVE_ITEM.test(titleHe(s) || '') && !LIVE_ITEM.test(s.title || ''))
+    .sort((a, b) => rank(b) - rank(a))) {
+    const fp = fingerprint(s);
+    const i = picked.findIndex((p) => sameEvent(p.fp, fp));
+    if (i < 0) picked.push({ s, fp });
+    else if (!picked[i].fp.scores.length && fp.scores.length) picked[i] = { s, fp }; // the result replaces the preview
+  }
+  return picked
+    .map((p) => p.s)
     .filter((s) => !s.israel || ++il <= 3)
     .slice(0, 10);
 }

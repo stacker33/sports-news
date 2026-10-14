@@ -84,6 +84,7 @@ You prepare story cards for the world-sports desk of Sport5. For each story you 
 - "summary_he": ONE or TWO short Hebrew sentences: what happened and who is involved, so the editor knows at once what the item is about. Only facts from the texts. If the texts give nothing beyond the headline, return "" — never invent and never just repeat the headline.
 - "about": the subject in a few English words (e.g. "Cristiano Ronaldo", "Elche coach change"); "about_he": the same in Hebrew.
 - "desk": true / false, by the rules below.
+- "sport": what the story is really about: "football" (soccer), "basketball", "other" (another sport: tennis, ice hockey, American football, baseball, motor racing, cycling...) or "none" (not a sports story: politics, entertainment, an actor's death, lifestyle). Careful with team names shared across sports: the Minnesota Wild / the Iowa Wild are ice hockey, the "Kings", "Jets", "Panthers" can be hockey or American football.
 Example:
 - Headline "Real Madrid bereikt akkoord met Courtois over nieuw contract", description "De Belgische doelman tekent bij tot 2028; een officiële aankondiging volgt binnenkort." → title_he "ריאל מדריד הגיעה להסכם עם קורטואה על הארכת חוזה", summary_he "השוער הבלגי יחתום עד 2028, והכרזה רשמית צפויה בימים הקרובים.", about "Thibaut Courtois contract", about_he "החוזה של טיבו קורטואה", desk true
 
@@ -96,16 +97,24 @@ For the desk (desk: true) when the story is mainly about:
 - an extraordinary or viral story the whole sports world is talking about.
 Not for the desk (desk: false): routine news of other clubs (Serie B, the English Championship and lower, the Eredivisie, Portugal, Greece, Belgium, Turkey, Scotland, MLS, Saudi Arabia, South America...) unless it is about one of the above; smaller big-5 clubs' everyday news (training, squad lists, minor injuries); the WNBA and college sports; tickets, polls, live streams, betting, quizzes, lifestyle, recipes, cars; quarrels between journalists or pundits unless they are about a star.
 For other sports, decide "desk" the same way (a big event or a famous name: true).
-Return JSON: {"items":[{"id":"…","title_he":"…","summary_he":"…","about":"…","about_he":"…","desk":true}]} with every id you were given.`;
+Return JSON: {"items":[{"id":"…","title_he":"…","summary_he":"…","about":"…","about_he":"…","desk":true,"sport":"football"}]} with every id you were given.`;
 
 // Before ranking: each football / basketball story gets the subject verdict saved for it on an earlier run
 // (aiSummaries step 3; the off-beat rules are for those two sports)
 export function attachDesk(stories, aiState = {}) {
   const desk = aiState.desk || {};
   for (const s of stories) {
-    if (!s._members?.length || (s.sport !== 'football' && s.sport !== 'basketball')) continue;
+    if (!s._members?.length) continue;
     const r = desk[storyKey(s)];
-    if (r && typeof r.desk === 'boolean') s.aiDesk = { desk: r.desk, about: r.about, ...(r.about_he ? { about_he: r.about_he } : {}) };
+    if (!r) continue;
+    // the model's sport, when it differs: a hockey story read as basketball (the Minnesota Wild, 2026-10-13) moves to
+    // other sports; a story that isn't sport at all (an actor's death) is collapsed with the junk. An Israeli angle
+    // keeps its tab.
+    if (r.sport && r.sport !== s.sport && !(s.israel || s.abroad || s.watchIsrael)) {
+      if (r.sport === 'none') s.low = true;
+      else s.sport = r.sport;
+    }
+    if ((s.sport === 'football' || s.sport === 'basketball') && typeof r.desk === 'boolean') s.aiDesk = { desk: r.desk, about: r.about, ...(r.about_he ? { about_he: r.about_he } : {}) };
   }
   return stories;
 }
@@ -295,6 +304,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
           title_he: clip(title, 220),
           ...(goodHe(sum) && sum !== title ? { sum_he: clip(sum, 400) } : {}),
           ...(typeof r.desk === 'boolean' ? { desk: r.desk } : {}),
+          ...(['football', 'basketball', 'other', 'none'].includes(r.sport) ? { sport: r.sport } : {}),
           about: clip(String(r.about || ''), 60),
           ...(goodHe(r.about_he || '') ? { about_he: clip(clean(r.about_he), 60) } : {}),
           at: now,

@@ -54,6 +54,12 @@ export const GN_LOCALES = {
   sv: ['sv', 'SE', 'SE:sv'],
   no: ['no', 'NO', 'NO:no'],
   uk: ['uk', 'UA', 'UA:uk'],
+  da: ['da', 'DK', 'DK:da'],
+  hr: ['hr', 'HR', 'HR:hr'],
+  'ar-SA': ['ar', 'SA', 'SA:ar'],
+  'es-UY': ['es-419', 'UY', 'UY:es-419'],
+  'en-CA': ['en-CA', 'CA', 'CA:en'],
+  'fr-CH': ['fr', 'CH', 'CH:fr'],
 };
 
 // Google News 'top sports headlines' of a country
@@ -261,4 +267,56 @@ export const SOURCES = [
   // Japan (Neta Lavi): only stories with a known player / team / Israeli angle are kept (assist); no country, so the language marks them local
   { id: 'gekisaka', name: 'ゲキサカ', url: 'https://web.gekisaka.jp/feed', lang: 'ja', weight: 1, sport: 'football', assist: true, every: 5 },
   { id: 'soccer-king', name: 'サッカーキング', url: 'https://www.soccer-king.jp/feed', lang: 'ja', weight: 1, sport: 'football', assist: true, every: 5 },
+  // ---------- Round 6 (2026-10-14): the desk's list of foreign sites ----------
+  // Direct feeds where they work; Google News for the site where the feed is blocked or missing. Local-market sites
+  // are "assist": only their stories that name a known club / player or have an Israeli angle get in.
+  // Romania · Serbia · Bulgaria · Croatia
+  { id: 'digisport-ro', name: 'Digi Sport', url: 'https://www.digisport.ro/rss', lang: 'ro', country: 'Romania', weight: 2, assist: true, every: 3 },
+  { id: 'informer-rs', name: 'Informer', url: 'https://informer.rs/rss/sport', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 3 },
+  { id: 'mondo-rs', name: 'Mondo', url: 'https://mondo.rs/rss/644/Sport', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 3 },
+  { id: 'telegraf-rs', name: 'Telegraf', url: 'https://www.telegraf.rs/rss/sport', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 3 },
+  { id: 'kurir-rs', name: 'Kurir', url: 'https://www.kurir.rs/rss/sport', lang: 'sr', country: 'Serbia', weight: 1, assist: true, every: 3 },
+  { id: 'sportal-bg', name: 'Sportal.bg', url: 'https://sportal.bg/rss', lang: 'bg', country: 'Bulgaria', weight: 1, assist: true, every: 3 },
+  { id: 'vecernji-hr', name: 'Večernji list', url: 'https://www.vecernji.hr/feeds/section/sport', lang: 'hr', country: 'Croatia', weight: 1, assist: true, every: 3 },
+  { id: '24sata-hr', name: '24sata', url: 'https://www.24sata.hr/feeds/sport.xml', lang: 'hr', country: 'Croatia', weight: 1, assist: true, every: 3 },
+  // Greece
+  { id: 'pickandroll-gr', name: 'Pick and Roll', url: 'https://www.pickandroll.gr/feed/', lang: 'el', country: 'Greece', weight: 2, sport: 'basketball', assist: true, every: 3 },
+  { id: 'sdna-gn', name: 'SDNA', url: gnews('site:sdna.gr when:1d', 'el'), lang: 'el', country: 'Greece', weight: 1, google: true, assist: true, every: 5 },
+  { id: 'gazzetta-gr-gn', name: 'Gazzetta.gr', url: gnews('site:gazzetta.gr when:1d', 'el'), lang: 'el', country: 'Greece', weight: 2, google: true, assist: true, every: 5 },
+  { id: 'sport24-gr-gn', name: 'Sport24', url: gnews('site:sport24.gr when:1d', 'el'), lang: 'el', country: 'Greece', weight: 2, google: true, assist: true, every: 5 },
+  { id: 'sportdog-gn', name: 'Sportdog', url: gnews('site:sportdog.gr when:1d', 'el'), lang: 'el', country: 'Greece', weight: 1, google: true, assist: true, every: 5 },
+  // Turkey · Czechia · Poland · Sweden · Denmark
+  { id: 'sabah-spor', name: 'Sabah Spor', url: 'https://www.sabah.com.tr/rss/spor.xml', lang: 'tr', country: 'Turkey', weight: 1, assist: true, every: 3 },
+  { id: 'fanatik-gn', name: 'Fanatik', url: gnews('site:fanatik.com.tr when:1d', 'tr'), lang: 'tr', country: 'Turkey', weight: 2, google: true, assist: true, every: 5 },
+  { id: 'denik-gn', name: 'Deník', url: gnews('site:denik.cz sport when:1d', 'cs'), lang: 'cs', country: 'Czechia', weight: 1, google: true, assist: true, mixed: true, every: 8 },
+  { id: 'przeglad', name: 'Przegląd Sportowy', url: 'https://przegladsportowy.onet.pl/.feed', lang: 'pl', country: 'Poland', weight: 2, assist: true, every: 3 },
+  { id: 'meczyki-gn', name: 'Meczyki', url: gnews('site:meczyki.pl when:1d', 'pl'), lang: 'pl', country: 'Poland', weight: 1, google: true, assist: true, every: 5 },
+  { id: 'expressen-sport', name: 'Expressen', url: 'https://feeds.expressen.se/sport/', lang: 'sv', country: 'Sweden', weight: 1, assist: true, every: 3 },
+  { id: 'tipsbladet-gn', name: 'Tipsbladet', url: gnews('tipsbladet when:1d', 'da'), lang: 'da', country: 'Denmark', weight: 1, google: true, assist: true, every: 8 },
+  // Netherlands · Belgium · Switzerland
+  { id: 'telegraaf', name: 'De Telegraaf', url: 'https://www.telegraaf.nl/rss', lang: 'nl', country: 'Netherlands', weight: 2, assist: true, mixed: true, every: 3 },
+  { id: 'nieuwsblad', name: 'Het Nieuwsblad', url: 'https://www.nieuwsblad.be/rss', lang: 'nl', country: 'Belgium', weight: 1, assist: true, mixed: true, every: 3 },
+  { id: 'blick-sport', name: 'Blick', url: 'https://www.blick.ch/sport/rss.xml', lang: 'de', country: 'Switzerland', weight: 1, assist: true, every: 3 },
+  { id: 'rts-gn', name: 'RTS Sport', url: gnews('site:rts.ch/sport when:1d', 'fr-CH'), lang: 'fr', country: 'Switzerland', weight: 1, google: true, assist: true, every: 8 },
+  // USA · Canada · Australia (English)
+  { id: 'si-soccer-gn', name: 'Sports Illustrated', url: gnews('site:si.com/soccer when:1d'), lang: 'en', weight: 2, google: true, sport: 'football', every: 5 },
+  { id: 'espn-soccer-gn', name: 'ESPN', url: gnews('site:espn.com/soccer when:1d'), lang: 'en', weight: 2, google: true, sport: 'football', every: 5 },
+  { id: 'tsn-gn', name: 'TSN', url: gnews('site:tsn.ca when:1d', 'en-CA'), lang: 'en', country: 'Canada', weight: 1, google: true, assist: true, every: 8 },
+  { id: 'globeandmail-sport', name: 'The Globe and Mail', url: 'https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/sports/', lang: 'en', country: 'Canada', weight: 1, assist: true, every: 5 },
+  { id: 'abc-au-sport', name: 'ABC Sport', url: 'https://www.abc.net.au/news/feed/45924/rss.xml', lang: 'en', country: 'Australia', weight: 1, assist: true, every: 5 },
+  { id: 'foxsports-au', name: 'Fox Sports Australia', url: 'https://www.foxsports.com.au/content-feeds/football/', lang: 'en', country: 'Australia', weight: 1, sport: 'football', assist: true, every: 5 },
+  // Argentina · Brazil · Uruguay · Costa Rica (Spanish / Portuguese)
+  { id: 'clarin-dep', name: 'Clarín', url: 'https://www.clarin.com/rss/deportes/', lang: 'es', country: 'Argentina', weight: 2, assist: true, every: 3 },
+  { id: 'tyc-gn', name: 'TyC Sports', url: gnews('site:tycsports.com when:1d', 'es-AR'), lang: 'es', country: 'Argentina', weight: 2, google: true, assist: true, every: 5 },
+  { id: 'lance-gn', name: 'Lance!', url: gnews('site:lance.com.br when:1d', 'pt-BR'), lang: 'pt', country: 'Brazil', weight: 1, google: true, assist: true, every: 5 },
+  { id: 'ovacion-gn', name: 'Ovación (El País Uruguay)', url: gnews('site:elpais.com.uy/ovacion when:1d', 'es-UY'), lang: 'es', country: 'Uruguay', weight: 1, google: true, assist: true, every: 8 },
+  { id: 'referi-gn', name: 'Referí (El Observador)', url: gnews('site:elobservador.com.uy deportes when:1d', 'es-UY'), lang: 'es', country: 'Uruguay', weight: 1, google: true, assist: true, mixed: true, every: 8 },
+  { id: 'nacion-cr', name: 'La Nación (Costa Rica)', url: 'https://www.nacion.com/arc/outboundfeeds/rss/category/puro-deporte/?outputType=xml', lang: 'es', country: 'Costa Rica', weight: 1, assist: true, every: 5 },
+  { id: 'lateja-cr', name: 'La Teja', url: 'https://www.lateja.cr/arc/outboundfeeds/rss/category/deportes/?outputType=xml', lang: 'es', country: 'Costa Rica', weight: 1, assist: true, every: 5 },
+  // Saudi Arabia · Ghana · Japan
+  { id: 'aljazirah-gn', name: 'Al Jazirah', url: gnews('site:al-jazirah.com when:1d', 'ar-SA'), lang: 'ar', country: 'Saudi Arabia', weight: 1, google: true, assist: true, mixed: true, every: 8 },
+  { id: 'ghanaweb', name: 'GhanaWeb', url: 'https://cdn.ghanaweb.com/feed/newsfeed.xml', lang: 'en', country: 'Ghana', weight: 1, assist: true, mixed: true, every: 5 },
+  { id: 'ghanasoccernet', name: 'Ghanasoccernet', url: 'https://ghanasoccernet.com/feed', lang: 'en', country: 'Ghana', weight: 1, sport: 'football', assist: true, every: 5 },
+  { id: 'nikkansports', name: 'Nikkan Sports', url: 'https://www.nikkansports.com/soccer/atom.xml', lang: 'ja', weight: 1, sport: 'football', assist: true, every: 5 },
+  { id: 'yahoo-jp-sports', name: 'Yahoo! Japan Sports', url: 'https://news.yahoo.co.jp/rss/categories/sports.xml', lang: 'ja', weight: 1, assist: true, every: 5 },
 ];
