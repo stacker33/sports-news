@@ -135,12 +135,13 @@
    "id": "p-football-dor-turgeman",
    "name": "Dor Turgeman",
    "aliases": [
-    "Dor Turgman"
+    "Dor Turgman",
+    "דור טורג'מן"
    ],
    "type": "player",
    "sport": "football",
    "category": "israeli-candidate",
-   "he": "דור טורג'מן",
+   "he": "דור תורג'מן",
    "kb365": 98770,
    "team": {
     "id": 1337,
@@ -257,11 +258,13 @@
   {
    "id": "p-football-roy-revivo",
    "name": "Roy Revivo",
-   "aliases": [],
+   "aliases": [
+    "רועי רביבו"
+   ],
    "type": "player",
    "sport": "football",
    "category": "israeli-candidate",
-   "he": "רועי רביבו",
+   "he": "רוי רביבו",
    "kb365": 101340,
    "team": {
     "id": 156,
