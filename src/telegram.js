@@ -91,15 +91,17 @@ function abroadLines(athletes, cards, gameInfo, now) {
     const home = l.home?.he || l.home?.name;
     const away = l.away?.he || l.away?.name;
     const score = l.score ? ` · ${home} ${l.score[0]}:${l.score[1]} ${away}` : '';
-    if (!l.played) {
+    // minutes on the clock count as played (a basketball bench player has no substitution event)
+    if (!l.played && !(g?.min > 0 && !g?.dnp)) {
       const why = g?.reason || '';
       lines.push(`▫️ ${esc(name)} — לא שיחק${why ? ` (${esc(why)})` : ''}${esc(score)}`);
       continue;
     }
     const bits = [];
-    if (g?.goals) bits.push(`⚽ ${g.goals}`);
-    if (g?.assists) bits.push(`🅰️ ${g.assists}`);
-    if (l.minutes) bits.push(`${l.minutes} דק'`);
+    if (g?.goals?.length) bits.push(`⚽ ${g.goals.length > 1 ? `×${g.goals.length}` : g.goals[0]}`);
+    if (g?.assists?.length) bits.push(`🅰️ ${g.assists.length > 1 ? `×${g.assists.length}` : g.assists[0]}`);
+    if (g?.box) bits.push(`${g.box.pts} נק' · ${g.box.reb} ריב' · ${g.box.ast} אס'`);
+    if (l.minutes || g?.min > 0) bits.push(`${l.minutes || g.min} דק'`);
     if (l.rating) bits.push(`ציון ${l.rating}`);
     lines.push(`${a.sport === 'basketball' ? '🏀' : '⚽'} <b>${esc(name)}</b> — ${esc(bits.join(' · ') || 'שיחק')}${esc(score)}`);
   }

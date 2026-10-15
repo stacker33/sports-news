@@ -3,6 +3,7 @@
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
 const API = 'https://webws.365scores.com/web';
 const DAY = 86400e3;
+const INFO_V = 2; // 2: minutes and the basketball box score
 
 async function get(path, params) {
   const qs = new URLSearchParams({ appTypeId: 5, langId: 1, timezoneName: 'UTC', userCountryId: 6, ...params });
@@ -14,7 +15,7 @@ async function get(path, params) {
 const nm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N} ]/gu, '').trim();
 
 // One player's part in one game (null if he isn't listed at all)
-function playerInGame(det, a, teamId) {
+export function playerInGame(det, a, teamId) {
   const names = [a.name, ...(a.alt || [])].filter((n) => n && n.includes(' ')).map(nm);
   const member = (det.members || []).find((m) => names.includes(nm(m.name)));
   if (!member) return null;
@@ -34,6 +35,13 @@ function playerInGame(det, a, teamId) {
   }
   if (lu.status !== 1 && lu.status !== 2) return null;
   const out = { s: lu.status === 1 ? 'start' : 'bench', goals: [], assists: [], yc: [], rc: [] };
+  // minutes and the box score: basketball has no substitution events, so a bench player who played 10 minutes looked
+  // like an unused sub (Danny Wolf, 2026-10-14). 365Scores gives "10:08" in basketball, "73" in football.
+  const stat = (name) => (lu.stats || []).find((x) => x.name === name)?.value;
+  const mins = parseInt(String(stat('Minutes') ?? stat('Minutes Played') ?? '').split(':')[0], 10);
+  if (Number.isFinite(mins)) out.min = mins;
+  if (lu.didNotPlayed) out.dnp = true;
+  if (stat('Points') != null) out.box = { pts: stat('Points'), reb: stat('Rebounds') ?? '0', ast: stat('Assists') ?? '0' };
   for (const e of det.events || []) {
     const mine = e.playerId === member.id, extra = (e.extraPlayers || []).includes(member.id);
     if (!mine && !extra) continue;
@@ -62,7 +70,7 @@ export async function loadGameInfo(athletes, teamCache, prev = {}, now = Date.no
   const recent = (cur.games || []).filter((g) => Math.abs(Date.parse(g.startTime) - now) < 2.5 * DAY);
   for (const g of recent) {
     const old = prev.games?.[g.id];
-    if (old?.final) { games[g.id] = old; continue; }
+    if (old?.final && old.v === INFO_V) { games[g.id] = old; continue; } // older finished games: fetched again once
     try {
       const det = (await get('game', { gameId: g.id })).game;
       const players = {};
@@ -74,7 +82,8 @@ export async function loadGameInfo(athletes, teamCache, prev = {}, now = Date.no
       }
       const hasLineup = [det.homeCompetitor, det.awayCompetitor].some((c) => c.lineups?.members?.length);
       games[g.id] = {
-        tv: (det.tvNetworks || []).map((t) => t.name).filter(Boolean).slice(0, 2),
+        v: INFO_V,
+        tv:(det.tvNetworks || []).map((t) => t.name).filter(Boolean).slice(0, 2),
         lineup: hasLineup,
         players,
         final: det.statusGroup === 4 && hasLineup, // keep finished games once their lineups are in

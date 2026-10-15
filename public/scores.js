@@ -66,11 +66,13 @@
   const TXT = {
     he: {
       starting: 'בהרכב', bench: 'על הספסל', unused: 'לא נכנס', cameOn: (m) => `נכנס ב-${m}`, off: (m) => `הוחלף ב-${m}`,
+      fromBench: 'עלה מהספסל', mins: (m) => `${m} דק׳`, box: (b) => `${b.pts} נק׳ · ${b.reb} ריב׳ · ${b.ast} אס׳`,
       injured: 'פצוע', suspended: 'מושעה', back: 'חזרה צפויה:', national: 'בנבחרת ישראל', nationalExpected: 'צפוי להיות בנבחרת ישראל', notInSquad: 'לא בסגל',
       reported: 'לפי הדיווחים: פצוע / לא זמין', best: 'הטוב בקבוצה', rating: 'ציון', missing: 'לא זמין',
     },
     en: {
       starting: 'starting', bench: 'on the bench', unused: 'unused sub', cameOn: (m) => `came on ${m}`, off: (m) => `subbed off ${m}`,
+      fromBench: 'off the bench', mins: (m) => `${m} min`, box: (b) => `${b.pts} pts · ${b.reb} reb · ${b.ast} ast`,
       injured: 'injured', suspended: 'suspended', back: 'expected back:', national: 'with Israel', nationalExpected: 'expected to be with Israel', notInSquad: 'not in squad',
       reported: 'reportedly injured / unavailable', best: 'best on his team', rating: 'rating', missing: 'unavailable',
     },
@@ -100,8 +102,12 @@
     const started = g.statusGroup === 3 || g.statusGroup === 4;
     if (x && (x.s === 'start' || x.s === 'bench')) {
       const parts = [];
+      // a bench player who played: a substitution event (football) or minutes on the clock (basketball has no events)
+      const playedOff = !x.sub && !x.dnp && x.min > 0;
       if (x.s === 'start') parts.push(x.sub ? `${L.starting}, ${L.off(x.sub)}` : L.starting);
-      else parts.push(x.sub ? L.cameOn(x.sub) : g.statusGroup === 4 ? L.unused : L.bench);
+      else parts.push(x.sub ? L.cameOn(x.sub) : playedOff ? L.fromBench : g.statusGroup === 4 || x.dnp ? L.unused : L.bench);
+      if (started && x.box && (x.s === 'start' || x.min > 0)) parts.push(L.box(x.box));
+      if (started && x.min > 0 && (x.box || playedOff)) parts.push(L.mins(x.min));
       for (const m of x.goals || []) parts.push(`⚽ ${m}`);
       for (const m of x.assists || []) parts.push(`🅰️ ${m}`);
       for (const m of x.yc || []) parts.push(`🟨 ${m}`);
