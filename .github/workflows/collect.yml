@@ -47,9 +47,10 @@ jobs:
         run: |
           mkdir -p public/data
           # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
-          curl -sfL "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json \
+          # --compressed: Pages sends gzip (state.json 78.7 MB -> 25.6 MB on the wire); curl unpacks it, same bytes on disk
+          curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json \
             || echo "No previous state (first run)"
-          curl -sfL "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json \
+          curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json \
             || echo "No topic knowledge base yet (built over the first runs)"
 
       - name: Collect
