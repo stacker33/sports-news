@@ -45,10 +45,9 @@ import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candi
 import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
-import { loadStateStrict, stateAgeNote, survivorDiagnostic, StateError } from './statecheck.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const DATA = process.env.RADAR_DATA_DIR || join(ROOT, 'public', 'data'); // the override is for tests
+const DATA = join(ROOT, 'public', 'data');
 const KEEP_ITEMS_H = 48; // raw items remembered between runs
 const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
@@ -94,12 +93,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   await mkdir(DATA, { recursive: true });
 
   const statePath = join(DATA, 'state.json');
-  // Required: a missing, cut-off or invalid state stops the run here, before any collection, notification, state
-  // write or publication (src/statecheck.js). It never silently becomes an empty state.
-  const state = await loadStateStrict(statePath);
-  const ageNote = stateAgeNote(state);
-  if (ageNote) log(ageNote);
-  const baseline = state.items.map((i) => ({ id: i.id, published: i.published })); // for the survivor diagnostic
+  const state = await readJson(statePath, { items: [] });
   const meta = state.meta || {}; // per-source { last, cooldownUntil, ok, count, error }
   const known = new Map(state.items.map((i) => [i.id, i]));
 
@@ -631,7 +625,6 @@ export async function collect({ log = console.log, force = false } = {}) {
   const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
-  log(survivorDiagnostic(baseline, items, now, KEEP_ITEMS_H * 3600000).text); // diagnostic only, never blocks
   await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
@@ -719,12 +712,8 @@ async function nationalSquad() {
 
 // CLI
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  collect({ force: process.argv.includes('--force') }).catch(async (e) => {
+  collect({ force: process.argv.includes('--force') }).catch((e) => {
     console.error(e);
-    // a state problem leaves a short sanitized code for the admin alert, outside the published directory
-    if (e instanceof StateError) {
-      await writeFile(process.env.STATE_ERROR_FILE || join(ROOT, '.state-error'), `state:${e.code}\n`).catch(() => {});
-    }
     process.exit(1);
   });
 }

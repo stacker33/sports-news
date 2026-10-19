@@ -48,25 +48,10 @@ jobs:
           mkdir -p public/data
           # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
           # --compressed: Pages sends gzip (state.json 78.7 MB -> 25.6 MB on the wire); curl unpacks it, same bytes on disk
-          # The state is required: download to a temporary file, check it (scripts/restore-state.mjs), then put it in
-          # place. A failed, cut-off or invalid download stops the run here, before collection and publishing; the
-          # site keeps its last good version. Never continues with an empty or unverified state.
-          rm -f public/data/state.json.download
-          if ! curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json.download; then
-            rm -f public/data/state.json.download
-            echo "state:download" > .state-error
-            echo "::error::Previous state could not be downloaded. Stopping before collection and publishing."
-            exit 1
-          fi
-          node scripts/restore-state.mjs public/data/state.json.download public/data/state.json .state-error
-          # The topic knowledge base is optional (src/entities.js rebuilds it when missing): only a complete file is used
-          if curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json.download \
-            && node -e "JSON.parse(require('fs').readFileSync('public/data/entities.json.download', 'utf8'))"; then
-            mv public/data/entities.json.download public/data/entities.json
-          else
-            rm -f public/data/entities.json.download
-            echo "No usable topic knowledge base (rebuilt over the next runs)"
-          fi
+          curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json \
+            || echo "No previous state (first run)"
+          curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json \
+            || echo "No topic knowledge base yet (built over the first runs)"
 
       - name: Collect
         run: node src/collect.js
@@ -88,13 +73,9 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
         run: |
-          # a state problem left a short sanitized code (e.g. "state:parse"); only [a-z:-] is passed on
-          REASON=""
-          if [ -f .state-error ]; then REASON=$(tr -cd 'a-z:-' < .state-error | head -c 40 || true); fi
-          if [ -n "$REASON" ]; then echo "Stopped: $REASON (the site keeps its last good version)" >> "$GITHUB_STEP_SUMMARY"; fi
           if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_ADMIN_CHAT" ]; then
             curl -s "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d chat_id="$TELEGRAM_ADMIN_CHAT" \
-              --data-urlencode text="⚠️ רדאר ספורט: ריצת האיסוף נכשלה${REASON:+ ($REASON)} — $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null
+              --data-urlencode text="⚠️ רדאר ספורט: ריצת האיסוף נכשלה — $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null
           fi
 
       - uses: actions/upload-pages-artifact@v3

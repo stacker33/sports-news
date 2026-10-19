@@ -2,5 +2,3 @@ node_modules/
 public/data/*.json
 private/
 .claude/
-.state-error
-public/data/*.download
