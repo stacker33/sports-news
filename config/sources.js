@@ -313,6 +313,10 @@ export const SOURCES = [
   { id: 'referi-gn', name: 'Referí (El Observador)', url: gnews('site:elobservador.com.uy deportes when:1d', 'es-UY'), lang: 'es', country: 'Uruguay', weight: 1, google: true, assist: true, mixed: true, every: 8 },
   { id: 'nacion-cr', name: 'La Nación (Costa Rica)', url: 'https://www.nacion.com/arc/outboundfeeds/rss/category/puro-deporte/?outputType=xml', lang: 'es', country: 'Costa Rica', weight: 1, assist: true, every: 5 },
   { id: 'lateja-cr', name: 'La Teja', url: 'https://www.lateja.cr/arc/outboundfeeds/rss/category/deportes/?outputType=xml', lang: 'es', country: 'Costa Rica', weight: 1, assist: true, every: 5 },
+  // Cyprus (2026-10-19, from the desk)
+  { id: 'protathlima-cy', name: 'Protathlima (Cyprus Times)', url: 'https://protathlima.cyprustimes.com/feed/', lang: 'el', country: 'Cyprus', weight: 1, assist: true, every: 3 },
+  { id: 'alphanews-cy', name: 'Alphanews', url: 'https://www.alphanews.live/category/sports/feed/', lang: 'el', country: 'Cyprus', weight: 1, assist: true, every: 3 },
+  { id: '24sports-gn', name: '24sports', url: gnews('site:24sports.com.cy when:1d', 'el-CY'), lang: 'el', country: 'Cyprus', weight: 1, google: true, assist: true, mixed: true, every: 5 }, // no feed of its own
   // Saudi Arabia · Ghana · Japan
   { id: 'aljazirah-gn', name: 'Al Jazirah', url: gnews('site:al-jazirah.com when:1d', 'ar-SA'), lang: 'ar', country: 'Saudi Arabia', weight: 1, google: true, assist: true, mixed: true, every: 8 },
   { id: 'ghanaweb', name: 'GhanaWeb', url: 'https://cdn.ghanaweb.com/feed/newsfeed.xml', lang: 'en', country: 'Ghana', weight: 1, assist: true, mixed: true, every: 5 },
