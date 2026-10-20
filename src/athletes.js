@@ -24,6 +24,7 @@ export const COUNTRIES = {
   austria: { locale: 'de', label: 'Austria' },
   switzerland: { locale: 'de', label: 'Switzerland' },
   japan: { locale: 'ja', label: 'Japan' },
+  cyprus: { locale: 'el', label: 'Cyprus' },
   other: { locale: 'en', label: 'Other' },
 };
 
@@ -59,6 +60,8 @@ export function normalizeAthlete(a) {
     sport: a.sport === 'basketball' ? 'basketball' : 'football',
     // US college (NCAA) players: found by name only — college team names ("Utah", "Tennessee") would match NBA/NFL news
     ...(a.college ? { college: true } : {}),
+    // a coach (not a player): searched and tagged like the players, but no player card / lineup status
+    ...(a.role === 'coach' ? { role: 'coach' } : {}),
     // the name in the club country's own script, from an official source (e.g. the J.League site for Japan)
     ...(Array.isArray(a.local) && a.local.length ? { local: a.local.map(str).filter(Boolean) } : {}),
     // a 365Scores team id, when searching by name finds the wrong team ("Utah" → Utah Jazz)

@@ -41,5 +41,6 @@
   {"name":"Mahmoud Jaber","name_he":"מחמוד ג'אבר","alt":["Mahmud Jaber","Jaber","ג'אבר"],"team":"Saint-Etienne","team_he":"סנט אטיין","team_alt":["Saint-Étienne","ASSE"],"country":"france","sport":"football"},
   {"name":"Lisav Eissat","name_he":"ליסב עיסאת","alt":["Eissat","עיסאת"],"team":"Bristol City","team_he":"בריסטול סיטי","team_alt":[],"country":"england","sport":"football"},
   {"name":"Ofri Arad","name_he":"עופרי ארד","alt":[],"team":"FCSB","team_he":"סטיאווה בוקרשט","team_alt":["Steaua Bucuresti","Steaua"],"country":"romania","sport":"football","team365":2041},
-  {"name":"Dia Saba","name_he":"דיא סבע","alt":["סבע"],"team":"Amed SK","team_he":"אמדספור","team_alt":["Amedspor","Amed Sportif"],"country":"turkey","sport":"football","team365":26968}
+  {"name":"Dia Saba","name_he":"דיא סבע","alt":["סבע"],"team":"Amed SK","team_he":"אמדספור","team_alt":["Amedspor","Amed Sportif"],"country":"turkey","sport":"football","team365":26968},
+  {"name":"Barak Yitzhaki","name_he":"ברק יצחקי","alt":["Barak Itzhaki","Barak Yitshaki","Yitzhaki","Itzhaki","יצחקי"],"team":"Anorthosis Famagusta","team_he":"אנורתוזיס פמגוסטה","team_alt":["Anorthosis","Ανόρθωση","אנורתוסיס"],"country":"cyprus","sport":"football","local":["Μπάρακ Ιτζάκι","Ιτζάκι"],"role":"coach"}
 ]

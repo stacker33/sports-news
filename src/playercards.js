@@ -77,7 +77,9 @@ export async function loadPlayerCards(athletes, teamCache, prevState = {}, now =
   const names = new Set(athletes.map((a) => a.name));
   for (const n of Object.keys(st.cards)) if (!names.has(n)) delete st.cards[n];
 
-  const due = athletes.filter((a) => !st.at[a.name] || now - st.at[a.name] > HOUR).slice(0, PER_RUN);
+  // coaches have no player record (minutes, appearances): no card, so nothing shows "didn't play" for them
+  for (const a of athletes) if (a.role === 'coach') delete st.cards[a.name];
+  const due = athletes.filter((a) => a.role !== 'coach' && (!st.at[a.name] || now - st.at[a.name] > HOUR)).slice(0, PER_RUN);
   for (const a of due) {
     try {
       if (!st.ids[a.name]) st.ids[a.name] = await findAthleteId(a);

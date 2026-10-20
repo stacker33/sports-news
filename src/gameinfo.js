@@ -61,6 +61,7 @@ export function playerInGame(det, a, teamId) {
 export async function loadGameInfo(athletes, teamCache, prev = {}, now = Date.now()) {
   const byTeam = new Map();
   for (const a of athletes) {
+    if (a.role === 'coach') continue; // not in a lineup: no "not in squad" status for a coach
     const id = teamCache[`${a.sport}|${a.team}`]?.id;
     if (id) (byTeam.get(id) || byTeam.set(id, []).get(id)).push(a);
   }
