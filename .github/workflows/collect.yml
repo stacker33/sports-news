@@ -81,6 +81,9 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
           TELEGRAM_ADMIN_CHAT: ${{ vars.TELEGRAM_ADMIN_CHAT }}
+          # ✉️ the radar's own Gmail for "send to web@sport5.co.il" (src/mailer.js); empty = the page opens the editor's mail program
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
 
       - name: Tell the admin if the collection failed
         if: failure()

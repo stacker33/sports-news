@@ -276,6 +276,15 @@ export async function adminHello(prevChat) {
   return admin;
 }
 
+// A plain private message to the admin (no-op without the bot token / admin chat)
+export async function adminSend(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const admin = process.env.TELEGRAM_ADMIN_CHAT;
+  if (!token || !admin) return false;
+  await send(token, admin, text, false);
+  return true;
+}
+
 // 📣 Editors' reports → the admin's private chat
 export async function adminReports(reports) {
   const token = process.env.TELEGRAM_BOT_TOKEN;

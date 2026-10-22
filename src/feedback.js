@@ -10,6 +10,8 @@ const KEEP_DAYS = 30;
 const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;
 const SEARCHES_PER_DEVICE_DAY = 40; // "my topics" renew their searches daily
+const MAILS_PER_DEVICE_DAY = 30; // ✉️ "send to web@sport5.co.il" (src/mailer.js)
+const SOURCES_PER_DEVICE_DAY = 5; // ➕ "add a source" requests (src/usersources.js; the admin approves each one)
 
 // structured reasons (a fixed list: no free text goes through the public channel)
 export const VOTE_REASONS = ['useful', 'irrelevant', 'covered', 'duplicate', 'identity'];
@@ -23,6 +25,8 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
   for (const [id, v] of Object.entries(st.votes)) if (now - v.t > KEEP_DAYS * 864e5) delete st.votes[id];
   const reports = [];
   const searches = []; // "follow this search in the radar" (🌐 from the web)
+  const mails = []; // ✉️ stories to send to web@sport5.co.il
+  const sourceReqs = []; // ➕ sites editors want in the radar
   try {
     const res = await fetch(`${TOPIC}/json?poll=1&since=${encodeURIComponent(st.since)}`, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -59,6 +63,14 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
         // topic: a saved "my topics" search, kept while the page renews it (daily, until the topic is deleted)
         searches.push({ q: str(j.q, 80), at: m.time * 1000, ...(j.topic ? { topic: true } : {}) });
+      } else if (j.type === 'mail' && str(j.text, 4000)) {
+        if ((st.perDevice[key] || 0) >= MAILS_PER_DEVICE_DAY) continue;
+        st.perDevice[key] = (st.perDevice[key] || 0) + 1;
+        mails.push({ title: str(j.title, 200).replace(/[\r\n]+/g, ' '), text: str(j.text, 4000), name: str(j.name, 30), at: m.time * 1000 });
+      } else if (j.type === 'source' && /^https?:\/\//i.test(str(j.url, 300))) {
+        if ((st.perDevice[key] || 0) >= SOURCES_PER_DEVICE_DAY) continue;
+        st.perDevice[key] = (st.perDevice[key] || 0) + 1;
+        sourceReqs.push({ url: str(j.url, 300), name: str(j.name, 60), by: str(j.by, 30), note: str(j.note, 200), at: m.time * 1000 });
       } else if (j.type === 'report' && str(j.text, 1000)) {
         if ((st.perDevice[key] || 0) >= REPORTS_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
@@ -68,7 +80,7 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
   } catch {
     // ntfy unreachable: try again next run
   }
-  return { feedback: st, reports, searches };
+  return { feedback: st, reports, searches, mails, sourceReqs };
 }
 
 // the public file: per story the vote counts and what the story was (no device ids)

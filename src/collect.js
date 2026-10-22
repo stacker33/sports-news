@@ -14,8 +14,10 @@ import { features, trainModel, predict, entitySport, decideSport, SURE } from '.
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap, attachDesk } from './ai.js';
 import { mergeSameEvent } from './merge.js';
-import { telegramPost, adminHealthAlerts, adminHello, adminReports, morningBrief } from './telegram.js';
+import { telegramPost, adminHealthAlerts, adminHello, adminReports, adminSend, morningBrief } from './telegram.js';
 import { loadFeedback, votesFile } from './feedback.js';
+import { mailEnabled, sendMails } from './mailer.js';
+import { processSourceRequests, userSources, builtinHosts, publicList } from './usersources.js';
 import { assignStoryIds } from './storyids.js';
 import { addHebrewNames } from './hebrew.js';
 import { sport5Coverage, sport5Probable } from './sport5.js';
@@ -146,7 +148,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
 
   const watchPlan = planQueries(watchCandidates, state.watchSched, { now, budget: WATCH_BUDGET });
-  const sources = [...SOURCES, ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch), ...watchSources(watchPlan.run)];
+  // userSources: sites editors added from the page and the admin approved (src/usersources.js)
+  const sources = [...SOURCES, ...userSources(state.userSources), ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch), ...watchSources(watchPlan.run)];
   const srcById = new Map(sources.map((s) => [s.id, s]));
   const due = sources.filter((s) => {
     const m = meta[s.id];
@@ -598,6 +601,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     ...(brief ? { brief } : {}),
     trends,
     wikiAthletes: wiki.athletes || {},
+    mail: mailEnabled(), // the page sends ✉️ through the radar's mailbox (otherwise it opens the editor's mail program)
     stories: stories.filter((s) => firstIds.has(s.id)).map(slim),
   });
   // For the app: athlete list (+ 365Scores team ids for the scoreboard)
@@ -613,12 +617,6 @@ export async function collect({ log = console.log, force = false } = {}) {
     const m = meta[s.id] || {};
     return { id: s.id, name: s.name, ok: m.ok !== false, last: m.last || null, lastOk: m.lastOk || (m.ok ? m.last : null), failStreak: m.failStreak || 0, count: m.count ?? 0, error: m.ok === false ? m.error : undefined };
   });
-  await writeJson(join(DATA, 'sources.json'), {
-    generatedAt: now,
-    tookMs: Date.now() - started,
-    ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0, model: ai.model || null },
-    health: sourceHealth,
-  });
   // Rejected items of the last 24h (filtered at intake + hidden later), newest first — diagnostics for misses
   for (const it of items) if (it.hidden && now - it.seen < 24 * 3600e3) rejected.set(it.link, { at: now, t: it.published, src: srcById.get(it.sourceId)?.name || it.publisher, title: it.title.slice(0, 200), link: it.link, why: it.hiddenWhy || 'hidden' });
   const rejectedList = [...rejected.values()].sort((a, b) => b.t - a.t).slice(0, 500);
@@ -627,12 +625,25 @@ export async function collect({ log = console.log, force = false } = {}) {
   const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
   const adminGreeted = await adminHello(state.adminGreeted).catch(() => state.adminGreeted || null);
   // Editors' feedback: 📣 reports → admin's Telegram; 👍/👎 votes → data/votes.json (the pilot's labelled set)
-  const { feedback, reports, searches } = await loadFeedback(state.feedback, now);
+  const { feedback, reports, searches, mails, sourceReqs } = await loadFeedback(state.feedback, now);
   const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
+  // ✉️ stories editors sent to web@sport5.co.il, from the radar's own mailbox (src/mailer.js)
+  const { mail, sent: mailsSent, newError: mailError } = await sendMails(state.mail, mails, now).catch((e) => ({ mail: { ...(state.mail || {}), error: String(e.message) }, sent: 0, newError: null }));
+  if (mailError) await adminSend(`✉️ <b>רדאר ספורט: שליחת מייל נכשלה</b>\n${mailError.replace(/[<>&]/g, '')}\nהידיעות ממתינות וינסו שוב בריצות הבאות. לא תקבל על זה הודעה נוספת היום.`).catch(() => {});
+  if (mailsSent) log(`[mail] sent ${mailsSent} to web@sport5.co.il`);
+  // ➕ sites editors asked to add: the admin approves each one in Telegram; approved ones are read from the next run
+  const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES) }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
+  await writeJson(join(DATA, 'sources.json'), {
+    generatedAt: now,
+    tookMs: Date.now() - started,
+    ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0, model: ai.model || null },
+    health: sourceHealth,
+    userSources: publicList(userSourcesSt),
+  });
   log(survivorDiagnostic(baseline, items, now, KEEP_ITEMS_H * 3600000).text); // diagnostic only, never blocks
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

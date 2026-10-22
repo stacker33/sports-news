@@ -98,7 +98,9 @@ const T = {
     reasons: { url: 'מדור האתר', section: 'מדור האתר', feed: 'מקור ייעודי לענף', names: 'שמות שחקנים/קבוצות', kw: 'מילות מפתח', 'kw-other': 'מילות מפתח של ענף אחר', 'kw-weak': 'מילות מפתח (חלש)', model: 'מודל למידה', 'model-weak': 'מודל למידה (ביטחון נמוך)', 'in-the-news': 'ההקשר החדשותי של הקבוצה', score: 'תוצאת המשחק', user: 'תיקון עורך', uncertain: 'אין ראיה ברורה', athlete: 'ישראלי בחו"ל', 'il-clubs': 'שמות מועדונים', tie: 'שוויון ראיות' },
     sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
     s5Filter: '🔴 רק בלי התאמה בספורט 5', s5FilterTip: 'ידיעות שלא נמצאה להן התאמה בספורט 5. התאמות אפשריות נשארות ומסומנות',
-    report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
+    addSrc: { open: '➕ להוסיף אתר לרדאר', title: '➕ הוספת אתר לרדאר', url: 'כתובת האתר', name: 'שם האתר (לא חובה)', note: 'למה כדאי? (לא חובה)', by: 'שם (לא חובה)', hint: 'מנהל המערכת מאשר כל אתר. אחרי האישור הידיעות שלו מופיעות אצל כל העורכים, תוך כמה דקות.', send: 'שליחה לאישור', cancel: 'ביטול', bad: 'כתבו כתובת אתר מלאה, למשל https://www.marca.com', sent: '➕ נשלח לאישור. אחרי האישור האתר ייכנס לרדאר אצל כולם', list: 'אתרים שעורכים ביקשו להוסיף', status: { pending: '⏳ ממתין לאישור', approved: '✅ ברדאר', rejected: '❌ נדחה', removed: '🗑️ הוסר', exists: '☑️ כבר ברדאר', failed: '⚠️ לא נמצאו באתר ידיעות לקריאה' } },
+    mailQueued: '✉️ נשלח ל-web@sport5.co.il, יגיע תוך כ-5 דקות', mailFail: 'השליחה לא הצליחה, פותח את תוכנת המייל', mailName: 'איך לחתום על המייל? (שם, לא חובה)',
+    report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי, רעיון או אתר חדש', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)`, whyQ: 'למה?', thanks: 'תודה, נרשם', reasons: { irrelevant: 'לא רלוונטי', covered: 'כבר סוקר', duplicate: 'כפילות', identity: 'זיהוי שגוי (אדם/קבוצה אחרים)' } },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     web: {
@@ -260,7 +262,9 @@ const T = {
     reasons: { url: 'site section', section: 'site section', feed: 'sport-specific source', names: 'player/team names', kw: 'keywords', 'kw-other': "another sport's keywords", 'kw-weak': 'keywords (weak)', model: 'learned model', 'model-weak': 'learned model (low confidence)', 'in-the-news': "the club's news context", score: 'the score', user: 'editor correction', uncertain: 'no clear evidence', athlete: 'Israeli abroad', 'il-clubs': 'club names', tie: 'tied evidence' },
     sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
     s5Filter: '🔴 No Sport5 match only', s5FilterTip: 'Stories with no Sport5 match found. Possible matches stay, marked',
-    report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
+    addSrc: { open: '➕ Add a site to the radar', title: '➕ Add a site to the radar', url: 'Site address', name: 'Site name (optional)', note: 'Why? (optional)', by: 'Name (optional)', hint: 'The admin approves every site. Once approved, its stories show for every editor within minutes.', send: 'Send for approval', cancel: 'Cancel', bad: 'Enter a full site address, e.g. https://www.marca.com', sent: '➕ Sent for approval. Once approved the site joins the radar for everyone', list: 'Sites editors asked to add', status: { pending: '⏳ waiting for approval', approved: '✅ in the radar', rejected: '❌ rejected', removed: '🗑️ removed', exists: '☑️ already in the radar', failed: '⚠️ no readable stories found' } },
+    mailQueued: '✉️ Sent to web@sport5.co.il, arrives within about 5 minutes', mailFail: "Couldn't send, opening your mail program", mailName: 'How to sign the mail? (name, optional)',
+    report: { btn: 'Report a missed story, a wrong label, an idea or a new site', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)`, whyQ: 'Why?', thanks: 'Thanks, noted', reasons: { irrelevant: 'Not relevant', covered: 'Already covered', duplicate: 'Duplicate', identity: 'Wrong person / team' } },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     web: {
@@ -1628,7 +1632,7 @@ $('list').addEventListener('click', (e) => {
   const x = web.items[Number(li.dataset.w)];
   if (!x) return;
   if (e.target.closest('.w-copy')) copyText(webText(x), t().web.copied);
-  else if (e.target.closest('.w-mail')) location.href = `mailto:web@sport5.co.il?subject=${encodeURIComponent(x.he || x.title)}&body=${encodeURIComponent(`${webText(x)}\n\n— ${t().mailFrom}`)}`;
+  else if (e.target.closest('.w-mail')) sendMail(x.he || x.title, webText(x));
   else if (e.target.closest('.w-share')) window.open(`https://wa.me/?text=${encodeURIComponent(`*${x.he || x.title}*\n${x.link}`)}`, '_blank', 'noopener');
 });
 
@@ -2327,6 +2331,7 @@ function openReport() {
   const L = t().report;
   $('reportForm').innerHTML = `
     <h3>${esc(L.title)}</h3>
+    <p><button type="button" class="small-btn" id="rpAddSrc">${esc(t().addSrc.open)}</button></p>
     <label class="fld"><span>${esc(L.text)}</span><textarea id="rpText" rows="4" placeholder="${esc(L.textPh)}" dir="auto"></textarea></label>
     <label class="fld"><span>${esc(L.link)}</span><input id="rpLink" type="url" dir="ltr" placeholder="https://"></label>
     <label class="fld"><span>${esc(L.name)}</span><input id="rpName" value="${esc(store.get('editorName', ''))}" dir="auto"></label>
@@ -2339,6 +2344,45 @@ function openReport() {
   $('rpText').focus();
 }
 $('reportBtn').addEventListener('click', openReport);
+// ➕ Add a site: the request goes to the admin's Telegram (✅ / ❌); approved sites are read for everyone (src/usersources.js)
+function openAddSource() {
+  const L = t().addSrc;
+  if ($('sysDialog').open) $('sysDialog').close();
+  $('reportForm').innerHTML = `
+    <h3>${esc(L.title)}</h3>
+    <p class="muted">${esc(L.hint)}</p>
+    <label class="fld"><span>${esc(L.url)}</span><input id="asUrl" type="url" dir="ltr" placeholder="https://"></label>
+    <label class="fld"><span>${esc(L.name)}</span><input id="asName" dir="auto"></label>
+    <label class="fld"><span>${esc(L.note)}</span><input id="asNote" dir="auto"></label>
+    <label class="fld"><span>${esc(L.by)}</span><input id="asBy" value="${esc(store.get('editorName', ''))}" dir="auto"></label>
+    <p class="warn" id="asMsg" hidden></p>
+    <div class="dlg-actions">
+      <button type="button" class="small-btn primary" id="asSend">${esc(L.send)}</button>
+      <button class="small-btn" value="cancel">${esc(L.cancel)}</button>
+    </div>`;
+  if (!$('reportDialog').open) $('reportDialog').showModal();
+  $('asUrl').focus();
+}
+$('reportForm').addEventListener('click', async (e) => {
+  if (e.target.id === 'rpAddSrc') return openAddSource();
+  if (e.target.id !== 'asSend') return;
+  let url = $('asUrl').value.trim();
+  if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
+  let ok = false;
+  try {
+    ok = /\./.test(new URL(url).hostname);
+  } catch {}
+  if (!ok) {
+    $('asMsg').textContent = t().addSrc.bad;
+    $('asMsg').hidden = false;
+    return;
+  }
+  const by = $('asBy').value.trim().slice(0, 30);
+  if (by) store.set('editorName', by);
+  await sendFeedback({ type: 'source', url: url.slice(0, 300), name: $('asName').value.trim().slice(0, 60), note: $('asNote').value.trim().slice(0, 200), by });
+  $('reportDialog').close();
+  toast(t().addSrc.sent);
+});
 $('reportForm').addEventListener('click', async (e) => {
   if (e.target.id !== 'rpSend') return;
   const text = $('rpText').value.trim();
@@ -2378,6 +2422,10 @@ async function openSystem() {
     <details open><summary><b>${esc(L.sources)}</b> — ${esc(L.sourcesOk(ok, h.health.length))}</summary>
       <table class="sys-table">${rows.map((x) => `<tr class="${x.ok ? (x.count ? '' : 'quiet') : 'bad'}"><td>${x.ok ? (x.count ? '✅' : '💤') : '⚠️'}</td><td>${esc(x.name)} <small class="muted">${esc(x.id)}</small></td><td>${x.ok ? (x.count ? `${x.count}` : esc(L.quiet)) : esc(x.error || '')}</td><td class="muted">${esc(L.lastOk)}: ${x.lastOk ? esc(ago(x.lastOk)) : esc(L.never)}</td></tr>`).join('')}</table>
     </details>
+    <details${(h.userSources || []).length ? ' open' : ''}><summary><b>${esc(t().addSrc.list)}</b> (${(h.userSources || []).length})</summary>
+      <p><button type="button" class="small-btn" id="sysAddSrc">${esc(t().addSrc.open)}</button></p>
+      <table class="sys-table">${[...(h.userSources || [])].sort((a, b) => b.at - a.at).map((x) => `<tr><td>${esc(t().addSrc.status[x.status] || x.status)}</td><td>${esc(x.name)} <small class="muted" dir="ltr">${esc(x.host)}</small></td><td class="muted">${esc(ago(x.decided || x.at))}</td></tr>`).join('')}</table>
+    </details>
     <details><summary><b>${esc(L.rejected)}</b> (${rejected.length})</summary>
       <ul class="sys-rejected">${rejected.slice(0, 250).map((r) => `<li><span class="badge">${esc(L.why[r.why] || r.why)}</span> <a href="${esc(r.link)}" target="_blank" rel="noopener" dir="auto">${esc(r.title)}</a> <small class="muted">${esc(r.src || '')}</small></li>`).join('')}</ul>
     </details>
@@ -2386,7 +2434,10 @@ async function openSystem() {
 }
 $('status').addEventListener('click', openSystem);
 $('status').setAttribute('role', 'button');
-$('sysBody').addEventListener('click', (e) => e.target.id === 'sysClose' && $('sysDialog').close());
+$('sysBody').addEventListener('click', (e) => {
+  if (e.target.id === 'sysClose') $('sysDialog').close();
+  if (e.target.id === 'sysAddSrc') openAddSource();
+});
 
 // ---------- 🙋 "I'm on it": which editor is writing which story ----------
 // Each claim / unclaim is a message on a public ntfy.sh topic; every browser reads the last 8 hours of it every
@@ -2509,8 +2560,29 @@ $('list').addEventListener('click', async (e) => {
     }
     return;
   }
-  location.href = `mailto:web@sport5.co.il?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n— ${t().mailFrom}`)}`;
+  sendMail(title, text);
 });
+// ✉️ Through the radar's own mailbox when it is set up (news.json "mail"): nothing opens on the editor's computer, the
+// collector sends it within ~5 minutes (src/mailer.js). Otherwise, or if posting fails: the editor's mail program.
+const mailto = (title, text) => { location.href = `mailto:web@sport5.co.il?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n— ${t().mailFrom}`)}`; };
+async function sendMail(title, text) {
+  if (!state.data?.mail) return mailto(title, text);
+  let name = store.get('editorName', '');
+  if (!name) {
+    name = (prompt(t().mailName) || '').trim().slice(0, 30);
+    if (name) store.set('editorName', name);
+  }
+  // ntfy turns messages over 4 KB into attachments: trim a very long text to fit
+  let body = text;
+  const size = (b) => new Blob([JSON.stringify({ v: 1, device: deviceId, type: 'mail', title, text: b, name })]).size;
+  while (body.length > 300 && size(body) > 3800) body = `${body.slice(0, Math.floor(body.length * 0.85))}…`;
+  const res = await sendFeedback({ type: 'mail', title: title.slice(0, 200), text: body, name });
+  if (res?.ok) toast(t().mailQueued);
+  else {
+    toast(t().mailFail);
+    mailto(title, text);
+  }
+}
 
 async function copyText(text, ok) {
   try {
