@@ -641,6 +641,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0, model: ai.model || null },
     health: sourceHealth,
     userSources: publicList(userSourcesSt),
+    // sites already read (built-in + approved): the page tells an editor at once that a site is already in the radar
+    knownHosts: [...new Set([...builtinHosts(SOURCES), ...(userSourcesSt.list || []).filter((e) => e.status === 'approved' || e.status === 'pending').map((e) => e.host)])].sort(),
   });
   log(survivorDiagnostic(baseline, items, now, KEEP_ITEMS_H * 3600000).text); // diagnostic only, never blocks
   await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
