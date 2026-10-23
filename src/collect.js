@@ -385,6 +385,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     if (it.video === 'highlights' && !srcById.get(it.sourceId)?.israel && !it.israel && !it.athletes?.length) [it.hidden, it.hiddenWhy] = [true, 'video'];
     if (it._fix?.israel != null) it.israel = it._fix.israel;
     if (it._fix?.hide) [it.hidden, it.hiddenWhy] = [true, 'user'];
+    // stream spam that arrived before the intake filter (src/classify.js isStreamSpam) is hidden too
+    if (!it.hidden && isStreamSpam(it.title)) [it.hidden, it.hiddenWhy] = [true, 'junk'];
     delete it._fix;
   }
   const liveIds = new Set(items.map((i) => i.id));
