@@ -30,11 +30,16 @@
     const TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
     const q = new URLSearchParams(location.hash.slice(1));
     const a = q.get('a'), id = q.get('id') || '', s = q.get('s') || '', host = q.get('h') || '';
-    const L = {
+    // k=p: a player / coach for the Israelis-abroad list (src/userathletes.js); otherwise a site
+    const L = (q.get('k') === 'p' ? {
+      ok: { title: 'להוסיף לרשימת הליגיונרים?', btn: '✅ לאשר', done: '✅ אושר. ייכנס למעקב אצל כל העורכים תוך כ-5 דקות.' },
+      no: { title: 'לדחות את ההצעה?', btn: '❌ לדחות', done: '❌ נדחה.' },
+      rm: { title: 'להסיר מרשימת הליגיונרים?', btn: '🗑️ להסיר', done: '🗑️ יוסר מהרשימה תוך כ-5 דקות.' },
+    } : {
       ok: { title: 'לאשר את האתר לרדאר?', btn: '✅ לאשר', done: '✅ אושר. האתר ייכנס לרדאר אצל כל העורכים תוך כ-5 דקות.' },
       no: { title: 'לדחות את הבקשה?', btn: '❌ לדחות', done: '❌ נדחה.' },
       rm: { title: 'להסיר את האתר מהרדאר?', btn: '🗑️ להסיר', done: '🗑️ יוסר מהרדאר תוך כ-5 דקות.' },
-    }[a];
+    })[a];
     const card = document.getElementById('card');
     const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
     const home = '<p><a href="./">לרדאר</a></p>';
@@ -42,7 +47,7 @@
       card.innerHTML = `<h1>הקישור לא תקין</h1><p>פתחו אותו שוב מההודעה בטלגרם.</p>${home}`;
     } else {
       // a confirm button, so opening the link alone (or a link preview) never decides anything
-      card.innerHTML = `<h1>${esc(L.title)}</h1><div class="host">${esc(host)}</div><button class="${a}" id="go">${esc(L.btn)}</button>`;
+      card.innerHTML = `<h1>${esc(L.title)}</h1><div class="host" dir="auto">${esc(host)}</div><button class="${a}" id="go">${esc(L.btn)}</button>`;
       document.getElementById('go').addEventListener('click', async (e) => {
         e.target.disabled = true;
         try {

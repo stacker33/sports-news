@@ -11,6 +11,7 @@ const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;
 const SEARCHES_PER_DEVICE_DAY = 40; // "my topics" renew their searches daily
 const MAILS_PER_DEVICE_DAY = 30; // ✉️ "send to web@sport5.co.il" (src/mailer.js)
+const ATHLETES_PER_DEVICE_DAY = 5; // ✈️ "suggest an Israeli abroad" (src/userathletes.js; the admin approves each one)
 const SOURCES_PER_DEVICE_DAY = 5; // ➕ "add a source" requests (src/usersources.js; the admin approves each one)
 
 // structured reasons (a fixed list: no free text goes through the public channel)
@@ -27,6 +28,7 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
   const searches = []; // "follow this search in the radar" (🌐 from the web)
   const mails = []; // ✉️ stories to send to web@sport5.co.il
   const sourceReqs = []; // ➕ sites editors want in the radar
+  const athleteReqs = []; // ✈️ players / coaches editors want tracked
   const decisions = []; // the admin's ✅ / ❌ / 🗑️ from the approve page (signed; checked in src/usersources.js)
   try {
     const res = await fetch(`${TOPIC}/json?poll=1&since=${encodeURIComponent(st.since)}`, { signal: AbortSignal.timeout(10000) });
@@ -72,6 +74,10 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
         if ((st.perDevice[key] || 0) >= SOURCES_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
         sourceReqs.push({ url: str(j.url, 300), name: str(j.name, 60), by: str(j.by, 30), note: str(j.note, 200), at: m.time * 1000 });
+      } else if (j.type === 'athlete' && str(j.name, 60) && str(j.team, 60)) {
+        if ((st.perDevice[key] || 0) >= ATHLETES_PER_DEVICE_DAY) continue;
+        st.perDevice[key] = (st.perDevice[key] || 0) + 1;
+        athleteReqs.push({ name: j.name, name_he: j.name_he, team: j.team, team_he: j.team_he, country: j.country, sport: j.sport, role: j.role, note: j.note, by: j.by, at: m.time * 1000 }); // cleaned in src/userathletes.js
       } else if (j.type === 'decide') {
         if (decisions.length < 50) decisions.push({ a: str(j.a, 2), id: str(j.id, 8), s: str(j.s, 24) });
       } else if (j.type === 'report' && str(j.text, 1000)) {
@@ -83,7 +89,7 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
   } catch {
     // ntfy unreachable: try again next run
   }
-  return { feedback: st, reports, searches, mails, sourceReqs, decisions };
+  return { feedback: st, reports, searches, mails, sourceReqs, athleteReqs, decisions };
 }
 
 // the public file: per story the vote counts and what the story was (no device ids)

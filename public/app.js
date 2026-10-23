@@ -167,7 +167,11 @@ const T = {
       football: 'כדורגל', basketball: 'כדורסל',
       add: '+ הוסף שחקן', save: 'שמור', cancel: 'ביטול', remove: 'הסר',
       saving: 'שומר ואוסף חדשות…', saved: 'נשמר ✔ החדשות על השחקנים מתעדכנות',
-      readOnly: 'בגרסת הענן אי אפשר לשמור מכאן. ערכו את הרשימה בגרסת המחשב (npm start) או בקובץ config/athletes.json.',
+      readOnly: 'מהאתר אי אפשר לערוך את הרשימה ישירות, אבל אפשר להציע שחקן או מאמן. המנהל מאשר, ואחרי האישור הוא במעקב אצל כל העורכים.',
+      propOpen: '➕ להציע שחקן או מאמן', propTitle: 'הצעה לרשימת הליגיונרים', role: 'תפקיד', player: 'שחקן', coach: 'מאמן', note: 'למה כדאי? (לא חובה)', by: 'שם המציע (לא חובה)',
+      propSend: 'שליחה לאישור', propSent: '✈️ נשלח לאישור. אחרי האישור הוא ייכנס למעקב אצל כולם', propBad: 'צריך שם מלא באנגלית (כמו שהעיתונות בחו"ל כותבת) וקבוצה',
+      propKnown: '☑️ כבר ברשימה', sugPropose: 'להציע', requests: 'הצעות של עורכים', byEditors: 'נוסף בהצעת עורכים',
+      reqStatus: { pending: '⏳ ממתין לאישור', approved: '✅ במעקב', rejected: '❌ נדחה', removed: '🗑️ הוסר', exists: '☑️ כבר ברשימה' },
       noTeam: 'לא נמצא בלוח התוצאות',
       error: 'השמירה נכשלה',
     },
@@ -331,7 +335,11 @@ const T = {
       football: 'Football', basketball: 'Basketball',
       add: '+ Add player', save: 'Save', cancel: 'Cancel', remove: 'Remove',
       saving: 'Saving and collecting news…', saved: 'Saved ✔ news for these players is updating',
-      readOnly: "The cloud version can't save from here. Edit the list in the PC version (npm start) or in config/athletes.json.",
+      readOnly: "The list can't be edited directly from the site, but you can suggest a player or coach. The admin approves, and then everyone tracks them.",
+      propOpen: '➕ Suggest a player or coach', propTitle: 'Suggest for the Israelis-abroad list', role: 'Role', player: 'Player', coach: 'Coach', note: 'Why? (optional)', by: 'Your name (optional)',
+      propSend: 'Send for approval', propSent: '✈️ Sent for approval. Once approved, everyone tracks them', propBad: 'A full name in English (as the foreign press writes it) and a team are needed',
+      propKnown: '☑️ already on the list', sugPropose: 'Suggest', requests: 'Suggestions by editors', byEditors: 'added from an editor suggestion',
+      reqStatus: { pending: '⏳ waiting for approval', approved: '✅ tracked', rejected: '❌ rejected', removed: '🗑️ removed', exists: '☑️ already on the list' },
       noTeam: 'not found on the scoreboard',
       error: 'Saving failed',
     },
@@ -2050,6 +2058,7 @@ const SPORTS = ['football', 'basketball'];
 let editor = { editable: false, rows: [] };
 
 async function openListEditor() {
+  if (!state.health) loadHealth().then(() => $('listDialog').open && !editor.editable && renderListEditor()); // editors' suggestions (sources.json)
   editor = { editable: false, rows: (state.athletes?.athletes || []).map((a) => ({ ...a })) };
   try {
     const res = await fetch('api/athletes', { cache: 'no-store' });
@@ -2060,6 +2069,46 @@ async function openListEditor() {
   } catch {}
   renderListEditor();
   $('listDialog').showModal();
+}
+
+// ✈️ On the live site: suggest a player / coach (the admin approves in Telegram, src/userathletes.js)
+const athKey = (n) => String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function athleteKnown(name) {
+  const k = athKey(name);
+  if (!k.includes(' ')) return false;
+  const pending = (state.health?.athleteRequests || []).filter((r) => r.status === 'pending' || r.status === 'approved');
+  return [...(state.athletes?.athletes || []), ...pending].some((a) => [a.name, a.name_he, ...(a.alt || [])].some((n) => athKey(n) === k));
+}
+function proposeBlock(countries, sugs) {
+  const L = t().list;
+  const p = editor.prop || {};
+  const reqs = [...(state.health?.athleteRequests || [])].sort((a, b) => b.at - a.at);
+  const newSugs = sugs.filter((g) => g.type === 'new');
+  const opt = (list, cur) => list.map(([v, label]) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(label)}</option>`).join('');
+  const form = editor.propOpen
+    ? `<fieldset class="ath-row" id="propForm">
+        <legend>${esc(L.propTitle)}</legend>
+        <label><span>${esc(L.name)} *</span><input data-p="name" value="${esc(p.name || '')}" dir="ltr"></label>
+        <label><span>${esc(L.name_he)}</span><input data-p="name_he" value="${esc(p.name_he || '')}" dir="auto"></label>
+        <label><span>${esc(L.team)} *</span><input data-p="team" value="${esc(p.team || '')}" dir="auto"></label>
+        <label><span>${esc(L.team_he)}</span><input data-p="team_he" value="${esc(p.team_he || '')}" dir="auto"></label>
+        <label><span>${esc(L.country)}</span><select data-p="country">${opt(Object.entries(countries), p.country || 'england')}</select></label>
+        <label><span>${esc(L.sport)}</span><select data-p="sport">${opt(SPORTS.map((x) => [x, L[x]]), p.sport || 'football')}</select></label>
+        <label><span>${esc(L.role)}</span><select data-p="role">${opt([['player', L.player], ['coach', L.coach]], p.role || 'player')}</select></label>
+        <label><span>${esc(L.note)}</span><input data-p="note" value="${esc(p.note || '')}" dir="auto"></label>
+        <label><span>${esc(L.by)}</span><input data-p="by" value="${esc(p.by ?? store.get('editorName', ''))}" dir="auto"></label>
+        <p class="muted" id="propKnown" ${athleteKnown(p.name) || athleteKnown(p.name_he) ? '' : 'hidden'}>${esc(L.propKnown)}</p>
+        <p class="warn" id="propMsg" hidden></p>
+        <div class="row-foot"><button type="button" class="small-btn primary" id="propSend">${esc(L.propSend)}</button></div>
+      </fieldset>`
+    : `<p><button type="button" class="small-btn primary" id="propOpen">${esc(L.propOpen)}</button></p>`;
+  const sugList = newSugs.length
+    ? `<div class="sug-box"><h4>${esc(L.sugTitle)}</h4><ul>${newSugs.map((g) => `<li><span dir="auto">${esc(L.sugNew(state.ui === 'he' && g.name_he ? g.name_he : g.name, g.team))}</span><span class="sug-btns"><button type="button" class="small-btn" data-sug-prop="${esc(g.key)}">${esc(L.sugPropose)}</button></span></li>`).join('')}</ul></div>`
+    : '';
+  const reqList = reqs.length
+    ? `<details ${reqs.some((r) => r.status === 'pending') ? 'open' : ''}><summary><b>${esc(L.requests)}</b> (${reqs.length})</summary><table class="sys-table">${reqs.map((r) => `<tr><td>${esc(L.reqStatus[r.status] || r.status)}</td><td dir="auto">${esc(state.ui === 'he' && r.name_he ? r.name_he : r.name)} · ${esc(r.team)}${r.role === 'coach' ? ` · ${esc(L.coach)}` : ''}</td><td class="muted">${esc(ago(r.decided || r.at))}</td></tr>`).join('')}</table></details>`
+    : '';
+  return form + sugList + reqList;
 }
 
 function renderListEditor(msg = '') {
@@ -2080,7 +2129,7 @@ function renderListEditor(msg = '') {
           .join('')}</select></label>
         <label><span>${esc(L.sport)}</span><select data-i="${i}" data-k="sport" ${dis}>${SPORTS.map((s) => `<option value="${s}" ${s === a.sport ? 'selected' : ''}>${esc(L[s])}</option>`).join('')}</select></label>
         ${field(i, 'alt', (a.alt || []).join(', '))}${field(i, 'team_alt', (a.team_alt || []).join(', '))}
-        <div class="row-foot">${noTeam}${editor.editable ? `<button type="button" class="small-btn danger" data-del="${i}">${esc(L.remove)}</button>` : ''}</div>
+        <div class="row-foot">${noTeam}${k?.user ? `<span class="muted">✈️ ${esc(L.byEditors)}</span>` : ''}${editor.editable ? `<button type="button" class="small-btn danger" data-del="${i}">${esc(L.remove)}</button>` : ''}</div>
       </fieldset>`;
     })
     .join('');
@@ -2101,7 +2150,7 @@ function renderListEditor(msg = '') {
   editor.sugs = sugs;
   $('listBody').innerHTML = `
     <h3>✈️ ${esc(L.title)}</h3>
-    ${editor.editable ? '' : `<p class="warn">${esc(L.readOnly)}</p>`}
+    ${editor.editable ? '' : `<p class="muted">${esc(L.readOnly)}</p>${proposeBlock(countries, sugs)}`}
     ${sugBlock}`;
   $('listBody').innerHTML += `
     <div class="ath-list">${rows}</div>
@@ -2115,6 +2164,12 @@ function renderListEditor(msg = '') {
 }
 
 $('listBody').addEventListener('input', (e) => {
+  const pk = e.target.dataset.p;
+  if (pk) {
+    (editor.prop ||= {})[pk] = e.target.value;
+    if (pk === 'name' || pk === 'name_he') $('propKnown').hidden = !(athleteKnown(editor.prop.name) || athleteKnown(editor.prop.name_he));
+    return;
+  }
   const i = e.target.dataset.i, k = e.target.dataset.k;
   if (i === undefined) return;
   const v = e.target.value;
@@ -2129,6 +2184,36 @@ $('listBody').addEventListener('click', async (e) => {
     editor.rows.unshift({ name: '', name_he: '', team: '', team_he: '', country: 'england', sport: 'football', alt: [], team_alt: [] });
     renderListEditor();
     $('listBody').querySelector('input')?.focus();
+  } else if (e.target.id === 'propOpen') {
+    editor.propOpen = true;
+    renderListEditor();
+    $('listBody').querySelector('[data-p="name"]')?.focus();
+  } else if (e.target.dataset.sugProp !== undefined) {
+    const g = (editor.sugs || []).find((x) => x.key === e.target.dataset.sugProp);
+    if (g) editor.prop = { ...(editor.prop || {}), name: g.name, name_he: g.name_he || '', team: g.team, team_he: g.team_he || '', country: g.country, sport: g.sport || 'football', role: 'player' };
+    editor.propOpen = true;
+    renderListEditor();
+    $('propForm')?.scrollIntoView({ block: 'nearest' });
+  } else if (e.target.id === 'propSend') {
+    const p = { country: 'england', sport: 'football', role: 'player', ...(editor.prop || {}) };
+    const name = (p.name || '').trim(), team = (p.team || '').trim();
+    if (!name.includes(' ') || !/[a-z]/i.test(name) || team.length < 2) {
+      $('propMsg').textContent = L.propBad;
+      $('propMsg').hidden = false;
+      return;
+    }
+    if (athleteKnown(name) || athleteKnown(p.name_he)) {
+      $('propKnown').hidden = false;
+      return;
+    }
+    const by = (p.by ?? store.get('editorName', '')).trim().slice(0, 30);
+    if (by) store.set('editorName', by);
+    e.target.disabled = true;
+    await sendFeedback({ type: 'athlete', name: name.slice(0, 60), name_he: (p.name_he || '').trim().slice(0, 60), team: team.slice(0, 60), team_he: (p.team_he || '').trim().slice(0, 60), country: p.country, sport: p.sport, role: p.role, note: (p.note || '').trim().slice(0, 200), by });
+    editor.prop = {};
+    editor.propOpen = false;
+    renderListEditor();
+    toast(L.propSent);
   } else if (e.target.id === 'closeList') {
     $('listDialog').close();
   } else if (e.target.id === 'saveList') {

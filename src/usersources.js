@@ -124,7 +124,7 @@ export async function discoverFeed(site, { fetchImpl = fetch, probe = fetchFeed 
   return null;
 }
 
-async function tgCall(method, body, { env = process.env } = {}) {
+export async function tgCall(method, body, { env = process.env } = {}) {
   const res = await fetch(`${API}${env.TELEGRAM_BOT_TOKEN}/${method}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -162,10 +162,11 @@ export function validDecision(token, a, id, sig) {
   const got = Buffer.from(sig);
   return got.length === want.length && timingSafeEqual(got, want);
 }
-const decisionLink = (env, a, e) => `${SITE}approve.html#a=${a}&id=${e.id}&h=${encodeURIComponent(e.host || '')}&s=${signDecision(env.TELEGRAM_BOT_TOKEN, a, e.id)}`;
-export function keyboardFor(e, env) {
-  if (e.status === 'pending') return { inline_keyboard: [[{ text: '✅ לאשר', url: decisionLink(env, 'ok', e) }, { text: '❌ לדחות', url: decisionLink(env, 'no', e) }]] };
-  if (e.status === 'approved') return { inline_keyboard: [[{ text: '🗑️ להסיר מהרדאר', url: decisionLink(env, 'rm', e) }]] };
+// k: what the page asks about (s = a site, p = a player / coach); display only, not part of the signature
+const decisionLink = (env, a, e, k) => `${SITE}approve.html#a=${a}&id=${e.id}&h=${encodeURIComponent(e.host || e.name || '')}${k === 'p' ? '&k=p' : ''}&s=${signDecision(env.TELEGRAM_BOT_TOKEN, a, e.id)}`;
+export function keyboardFor(e, env, k = 's') {
+  if (e.status === 'pending') return { inline_keyboard: [[{ text: '✅ לאשר', url: decisionLink(env, 'ok', e, k) }, { text: '❌ לדחות', url: decisionLink(env, 'no', e, k) }]] };
+  if (e.status === 'approved') return { inline_keyboard: [[{ text: '🗑️ להסיר מהרדאר', url: decisionLink(env, 'rm', e, k) }]] };
   return { inline_keyboard: [] };
 }
 const DONE = { approved: '✅ <b>אושר</b>: נקרא בכל ריצה, אצל כל העורכים', rejected: '❌ <b>נדחה</b>', removed: '🗑️ <b>הוסר מהרדאר</b>' };

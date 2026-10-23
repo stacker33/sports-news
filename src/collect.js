@@ -18,6 +18,7 @@ import { telegramPost, adminHealthAlerts, adminHello, adminReports, adminSend, m
 import { loadFeedback, votesFile } from './feedback.js';
 import { mailEnabled, sendMails } from './mailer.js';
 import { processSourceRequests, userSources, builtinHosts, publicList } from './usersources.js';
+import { processAthleteRequests, userAthletes, publicAthleteList } from './userathletes.js';
 import { assignStoryIds } from './storyids.js';
 import { addHebrewNames } from './hebrew.js';
 import { sport5Coverage, sport5Probable } from './sport5.js';
@@ -106,7 +107,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   const known = new Map(state.items.map((i) => [i.id, i]));
 
   // Israelis abroad
-  const athletes = await loadAthletes(ROOT);
+  const builtinAthletes = await loadAthletes(ROOT);
+  // + players / coaches editors suggested from the page and the admin approved (src/userathletes.js)
+  const athletes = [...builtinAthletes, ...userAthletes(state.userAthletes, builtinAthletes)];
   const teamCache = await resolveTeams(athletes, state.teamCache || {});
   const ctx = {
     matchers: buildMatchers(athletes, teamCache),
@@ -627,7 +630,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
   const adminGreeted = await adminHello(state.adminGreeted).catch(() => state.adminGreeted || null);
   // Editors' feedback: 📣 reports → admin's Telegram; 👍/👎 votes → data/votes.json (the pilot's labelled set)
-  const { feedback, reports, searches, mails, sourceReqs, decisions: srcDecisions } = await loadFeedback(state.feedback, now);
+  const { feedback, reports, searches, mails, sourceReqs, athleteReqs, decisions: srcDecisions } = await loadFeedback(state.feedback, now);
   const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
@@ -637,17 +640,20 @@ export async function collect({ log = console.log, force = false } = {}) {
   if (mailsSent) log(`[mail] sent ${mailsSent} to web@sport5.co.il`);
   // ➕ sites editors asked to add: the admin approves each one in Telegram; approved ones are read from the next run
   const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES), decisions: srcDecisions }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
+  // ✈️ Israelis abroad editors suggested: the admin approves each one; approved ones are tracked from the next run
+  const { userAthletes: userAthletesSt } = await processAthleteRequests(state.userAthletes, athleteReqs, { now, builtin: builtinAthletes, decisions: srcDecisions }).catch((e) => ({ userAthletes: { ...(state.userAthletes || {}), error: String(e.message) } }));
   await writeJson(join(DATA, 'sources.json'), {
     generatedAt: now,
     tookMs: Date.now() - started,
     ai: { ok: !ai.error, error: ai.error || null, used: ai.used || 0, cap: aiCap(), tokens: ai.tokens || 0, model: ai.model || null },
     health: sourceHealth,
     userSources: publicList(userSourcesSt),
+    athleteRequests: publicAthleteList(userAthletesSt),
     // sites already read (built-in + approved): the page tells an editor at once that a site is already in the radar
     knownHosts: [...new Set([...builtinHosts(SOURCES), ...(userSourcesSt.list || []).filter((e) => e.status === 'approved' || e.status === 'pending').map((e) => e.host)])].sort(),
   });
   log(survivorDiagnostic(baseline, items, now, KEEP_ITEMS_H * 3600000).text); // diagnostic only, never blocks
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, items: items.map(({ tr: _t, _tok, _key, _fix, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, items: items.map(({ tr: _t, _tok, _key, _fix, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
