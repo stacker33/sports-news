@@ -100,7 +100,7 @@ const T = {
     s5Filter: '🔴 רק בלי התאמה בספורט 5', s5FilterTip: 'ידיעות שלא נמצאה להן התאמה בספורט 5. התאמות אפשריות נשארות ומסומנות',
     addSrc: { open: '➕ להוסיף אתר לרדאר', title: '➕ הוספת אתר לרדאר', url: 'כתובת האתר', name: 'שם האתר (לא חובה)', note: 'למה כדאי? (לא חובה)', by: 'שם (לא חובה)', hint: 'מנהל המערכת מאשר כל אתר. אחרי האישור הידיעות שלו מופיעות אצל כל העורכים, תוך כמה דקות.', send: 'שליחה לאישור', cancel: 'ביטול', bad: 'כתבו כתובת אתר מלאה, למשל https://www.marca.com', sent: '➕ נשלח לאישור. אחרי האישור האתר ייכנס לרדאר אצל כולם', list: 'אתרים שעורכים ביקשו להוסיף', status: { pending: '⏳ ממתין לאישור', approved: '✅ ברדאר', rejected: '❌ נדחה', removed: '🗑️ הוסר', exists: '☑️ כבר ברדאר', failed: '⚠️ לא נמצאו באתר ידיעות לקריאה' } },
     mailQueued: '✉️ נשלח ל-web@sport5.co.il, יגיע תוך כ-5 דקות', mailFail: 'השליחה לא הצליחה, פותח את תוכנת המייל', mailName: 'איך לחתום על המייל? (שם, לא חובה)',
-    report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי, רעיון או אתר חדש', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
+    report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)`, whyQ: 'למה?', thanks: 'תודה, נרשם', reasons: { irrelevant: 'לא רלוונטי', covered: 'כבר סוקר', duplicate: 'כפילות', identity: 'זיהוי שגוי (אדם/קבוצה אחרים)' } },
     claim: 'אני על זה — סמנו לעורכים האחרים שאתם כותבים את הידיעה', claimMine: '🙋 אני על זה', claimBy: (n) => `🙋 ${n} על זה`, claimUndo: 'לחצו שוב לביטול', claimName: 'איך לקרוא לך? (השם יוצג לעורכים האחרים)',
     web: {
@@ -264,7 +264,7 @@ const T = {
     s5Filter: '🔴 No Sport5 match only', s5FilterTip: 'Stories with no Sport5 match found. Possible matches stay, marked',
     addSrc: { open: '➕ Add a site to the radar', title: '➕ Add a site to the radar', url: 'Site address', name: 'Site name (optional)', note: 'Why? (optional)', by: 'Name (optional)', hint: 'The admin approves every site. Once approved, its stories show for every editor within minutes.', send: 'Send for approval', cancel: 'Cancel', bad: 'Enter a full site address, e.g. https://www.marca.com', sent: '➕ Sent for approval. Once approved the site joins the radar for everyone', list: 'Sites editors asked to add', status: { pending: '⏳ waiting for approval', approved: '✅ in the radar', rejected: '❌ rejected', removed: '🗑️ removed', exists: '☑️ already in the radar', failed: '⚠️ no readable stories found' } },
     mailQueued: '✉️ Sent to web@sport5.co.il, arrives within about 5 minutes', mailFail: "Couldn't send, opening your mail program", mailName: 'How to sign the mail? (name, optional)',
-    report: { btn: 'Report a missed story, a wrong label, an idea or a new site', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
+    report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)`, whyQ: 'Why?', thanks: 'Thanks, noted', reasons: { irrelevant: 'Not relevant', covered: 'Already covered', duplicate: 'Duplicate', identity: 'Wrong person / team' } },
     claim: "I'm on it — tell the other editors you're writing this", claimMine: "🙋 I'm on it", claimBy: (n) => `🙋 ${n} is on it`, claimUndo: 'Click again to undo', claimName: 'Your name (shown to the other editors)?',
     web: {
@@ -1250,6 +1250,7 @@ function renderChromeV2() {
   const btn = (el, ic, label) => { if (el) el.innerHTML = `${icon(ic, 16)}<span class="hb-t">${esc(label)}</span>`; };
   $('tgBtn').innerHTML = `${icon('send', 16)}<span class="hb-t" id="tgLabel">${esc(he ? 'טלגרם' : 'Telegram')}</span>`;
   btn($('reportBtn'), 'flag', he ? 'דיווח' : 'Report');
+  btn($('addSrcBtn'), 'plus', he ? 'הוספת אתר' : 'Add site');
   btn($('watchLink'), 'radar', he ? 'מעקב' : 'Watchlist');
   btn($('bellBtn'), 'bell', he ? 'התראות' : 'Alerts');
   btn($('keysBtn'), 'kbd', he ? 'קיצורים' : 'Shortcuts');
@@ -1287,6 +1288,8 @@ function renderChrome() {
   if (V2) renderChromeV2();
   $('reportBtn').title = t().report.btn;
   $('reportBtn').setAttribute('aria-label', t().report.btn);
+  $('addSrcBtn').title = t().addSrc.title;
+  $('addSrcBtn').setAttribute('aria-label', t().addSrc.title);
   $('s5Filter').textContent = t().s5Filter;
   $('s5Filter').title = t().s5FilterTip;
   $('s5Filter').setAttribute('aria-pressed', String(state.notS5));
@@ -2331,7 +2334,6 @@ function openReport() {
   const L = t().report;
   $('reportForm').innerHTML = `
     <h3>${esc(L.title)}</h3>
-    <p><button type="button" class="small-btn" id="rpAddSrc">${esc(t().addSrc.open)}</button></p>
     <label class="fld"><span>${esc(L.text)}</span><textarea id="rpText" rows="4" placeholder="${esc(L.textPh)}" dir="auto"></textarea></label>
     <label class="fld"><span>${esc(L.link)}</span><input id="rpLink" type="url" dir="ltr" placeholder="https://"></label>
     <label class="fld"><span>${esc(L.name)}</span><input id="rpName" value="${esc(store.get('editorName', ''))}" dir="auto"></label>
@@ -2344,6 +2346,7 @@ function openReport() {
   $('rpText').focus();
 }
 $('reportBtn').addEventListener('click', openReport);
+$('addSrcBtn').addEventListener('click', () => openAddSource());
 // ➕ Add a site: the request goes to the admin's Telegram (✅ / ❌); approved sites are read for everyone (src/usersources.js)
 function openAddSource() {
   const L = t().addSrc;
@@ -2364,7 +2367,6 @@ function openAddSource() {
   $('asUrl').focus();
 }
 $('reportForm').addEventListener('click', async (e) => {
-  if (e.target.id === 'rpAddSrc') return openAddSource();
   if (e.target.id !== 'asSend') return;
   let url = $('asUrl').value.trim();
   if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;

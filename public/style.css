@@ -935,7 +935,7 @@ body.v2 .dlg input, body.v2 .dlg textarea, body.v2 .dlg select { border-radius: 
 body.v2 .acts .more-btn, body.v2 .cp-short { display: none; }
 @media (max-width: 700px) {
   body.v2 .brand { white-space: nowrap; }
-  body.v2 .bar .tg-btn, body.v2 .bar #reportBtn, body.v2 .bar #bellBtn { display: none; }
+  body.v2 .bar .tg-btn, body.v2 .bar #reportBtn, body.v2 .bar #addSrcBtn, body.v2 .bar #bellBtn { display: none; }
   body.v2 .bar .lang-btn { margin-inline-start: 92px; }
   body.v2 .filters-btn { inset-inline-end: 52px; }
   body.v2 .acts { grid-template-columns: 44px 44px minmax(0, 1fr) minmax(0, 1.2fr) 44px; }
