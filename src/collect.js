@@ -604,6 +604,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     mail: mailEnabled(), // the page sends ✉️ through the radar's mailbox (otherwise it opens the editor's mail program)
     stories: stories.filter((s) => firstIds.has(s.id)).map(slim),
   });
+  // the page checks this tiny file every 30 s and downloads the news files only when it changed
+  await writeJson(join(DATA, 'version.json'), { generatedAt: now });
   // For the app: athlete list (+ 365Scores team ids for the scoreboard)
   await writeJson(join(DATA, 'athletes.json'), {
     countries: Object.fromEntries(Object.entries(COUNTRIES).map(([k, v]) => [k, v.label])),

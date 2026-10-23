@@ -1822,10 +1822,23 @@ async function withMore(data, morePromise) {
   return data;
 }
 
-async function load({ initial = false } = {}) {
+async function load({ initial = false, force = false } = {}) {
   try {
+    // Every 30 s only the tiny version file is checked; the news files (~1.2 MB compressed) are downloaded only
+    // when a new run has published. (Before: both were downloaded on every check, ~140 MB an hour per open tab.)
+    if (!initial && !force && state.data) {
+      // switching back to the tab also checks: at most once every 15 s
+      if (Date.now() - (state.lastCheck || 0) < 15000) return;
+      state.lastCheck = Date.now();
+      const v = await fetchJson('data/version.json').catch(() => null);
+      if (v?.generatedAt && v.generatedAt === state.data.generatedAt) {
+        state.lastFetchOk = true;
+        return renderStatus();
+      }
+    }
     const first = await fetchJson('data/news.json');
-    const morePromise = first.more ? fetchJson('data/news-more.json') : Promise.resolve(null);
+    const startMore = () => (first.more ? fetchJson('data/news-more.json') : Promise.resolve(null));
+    const morePromise = initial || !state.data ? startMore() : null; // a refresh asks for the rest only when it changed
     first.stories = prepStories(first.stories);
     state.lastFetchOk = true;
 
@@ -1851,7 +1864,7 @@ async function load({ initial = false } = {}) {
       return;
     }
     if (first.generatedAt === state.data.generatedAt) return renderStatus();
-    const data = await withMore(first, morePromise);
+    const data = await withMore(first, startMore());
     data.stories = applyFixes(data.stories);
 
     const prevGen = state.data.generatedAt;
@@ -2151,7 +2164,7 @@ async function saveList() {
     });
     if (!res.ok) throw new Error();
     await loadAthletes();
-    await load();
+    await load({ force: true });
     editor.rows = state.athletes.athletes.map((a) => ({ ...a }));
     renderListEditor(L.saved);
     renderChrome();
