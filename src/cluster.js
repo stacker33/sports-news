@@ -101,7 +101,7 @@ export function clusterItems(items) {
     const en = it.lang === 'en' ? it.title : it.tr?.en;
     it._key = en ? 'x' : it.lang;
     it._tok = tokens(en || it.title);
-    it._fix = fixtureOf(it);
+    it._match = fixtureOf(it);
     const candidates = new Map();
     for (const t of it._tok) for (const c of index.get(t) || []) candidates.set(c, (candidates.get(c) || 0) + 1);
 
@@ -113,7 +113,7 @@ export function clusterItems(items) {
       // never mix football and basketball in one story (Hapoel Tel Aviv vs Real Madrid exists in both)
       if (cl.sport && it.sportSure && SPORTY.has(it.sport) && it.sport !== cl.sport) continue;
       // never two different matches in one story
-      if (cl.fixtures.some((f) => otherMatch(f, it._fix))) continue;
+      if (cl.fixtures.some((f) => otherMatch(f, it._match))) continue;
       // compare with the story's core (its first articles), not its newest member, so it can't drift
       // article by article into another story
       if (cl.items.slice(0, CORE).some((m) => similar(m._tok, it._tok))) {
@@ -128,7 +128,7 @@ export function clusterItems(items) {
     const cl = clusters[found];
     if (!cl.sport && it.sportSure && SPORTY.has(it.sport)) cl.sport = it.sport;
     cl.items.push(it);
-    if (it._fix && cl.fixtures.length < 6) cl.fixtures.push(it._fix);
+    if (it._match && cl.fixtures.length < 6) cl.fixtures.push(it._match);
     cl.last = Math.max(cl.last, it.published);
     for (const t of it._tok) {
       if (!index.has(t)) index.set(t, new Set());

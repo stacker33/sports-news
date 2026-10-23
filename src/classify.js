@@ -121,6 +121,18 @@ export const SITE_TITLE = /^[-–\s]*[a-z0-9.-]+\.(com|net|org|co\.il|co\.uk)\s*
 // betting / odds / live-score widgets / puzzles: not news (any language)
 export const JUNK_TITLE = /\b(odds(?!-on)|betting tips|bet365|predictions? (and|&) (picks|tips)|picks and predictions?|live scores?|related matches|match centre|melhores odds|apuestas|pron[oó]stico|cuotas|quote e pronostici|scommesse|wettquoten|cotes|bahis oranlar[ıi]|στοίχημα|kvote|ao vivo|en vivo|en directo|minuto a minuto|in diretta|liveticker|per 90|stats for .{2,40}?\d{4}\/\d{4}|fantasy|start.{0,4}sit|connections: sports edition|wordle|crossword|puzzle no\.?|hints and answers|live \d{1,2}-\d{1,2}-\d{2})\b/i;
 
+// "Free live stream" spam pages (they flood Google News searches for a match: "[!LIVESTREAMs!]Tv] Eagles vs Jaguars
+// 𝐋𝐈𝐕𝐄 Ｆｒｅｅ", "【LIVESTREAMS】FREE] Ipswich vs Forest Reddit Streams"; 476 visible on 2026-10-23). Real outlets'
+// "how to watch / live stream" guides and a German "Free-TV & Livestream" headline are not spam.
+const STYLED = /[\uFF01-\uFF5E]|[\u{1D400}-\u{1D7FF}]/u; // full-width or "bold / script" letters: never in a real headline
+export function isStreamSpam(title) {
+  const t = String(title || '');
+  if (STYLED.test(t) && /live|stream|free|\btv\b|channel|watch|ｌｉｖｅ|ｓｔｒｅａｍ|ｆｒｅｅ/iu.test(t)) return true;
+  // starts with symbols / brackets around "live", "stream", "sport tv", "watch"
+  if (/^[^\p{L}\p{N}]*[[【({]+[^\]】)}]{0,30}?(live|stream|sport\s*tv|watch|tv\b)/iu.test(t)) return true;
+  return /reddit\s*streams?|live\s*@\s*streams?|livesteram|\bcrackstreams?\b|\bstreameast\b|\bbuffstreams?\b|\bmethstreams?\b/i.test(t);
+}
+
 // Many sites put the sport in the URL path (/sport/rugby-league/…, /israeli-soccer/…, /nba/…) or a folder id
 function sectionFromUrl(link) {
   let u;

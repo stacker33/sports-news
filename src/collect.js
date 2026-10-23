@@ -8,7 +8,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
-import { classify, JUNK_TITLE, SITE_TITLE } from './classify.js';
+import { classify, JUNK_TITLE, SITE_TITLE, isStreamSpam } from './classify.js';
+import { trimLocal } from './trim.js';
 import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
@@ -173,6 +174,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const rejected = new Map((state.rejected || []).filter((r) => now - r.at < 24 * 3600e3).map((r) => [r.link, r]));
   const reject = (raw, src, why) => rejected.set(raw.link, { at: now, t: raw.published || now, src: src.name, sid: src.id, title: String(raw.title).slice(0, 200), link: raw.link, why });
   let fresh = 0;
+  const dropped = Object.fromEntries(Object.entries(state.dropped || {}).filter(([, until]) => until > now));
 
   results.forEach((r, idx) => {
     const src = due[idx];
@@ -188,11 +190,12 @@ export async function collect({ log = console.log, force = false } = {}) {
       // Skip navigation junk (e.g. 'News / EuroLeague / Leagues') and tiny titles
       if (raw.title.length < 12 || raw.title.split(' / ').length > 2) continue;
       // betting / odds / live-score widget pages (any language) are not news
-      if (JUNK_TITLE.test(raw.title)) { reject(raw, src, 'junk'); continue; }
+      if (JUNK_TITLE.test(raw.title) || isStreamSpam(raw.title)) { reject(raw, src, 'junk'); continue; }
       // a site's own name/homepage instead of a headline (Google sometimes returns "- sport5.co.il")
       if (SITE_TITLE.test(raw.title)) { reject(raw, src, 'site-title'); continue; }
 
       const id = itemId(raw.link, raw.title);
+      if (dropped[id] > now) continue; // trimmed from the memory earlier (src/trim.js)
       const prev = known.get(id);
       // Dates: trust the feed; if missing (or in the future) use the time we first saw it.
       // On the first read of a source we can't know when its existing articles appeared → "unknown".
@@ -530,7 +533,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   const trendSearch = nextTrendSearches(trends, state.trendSearch, now);
   // ☀️ the morning's list, pinned on the site until noon
   const brief = morningBrief(stories, state.brief, now);
+  const shownIds = new Set(); // articles in a published story (for the save-time trim)
   for (const s of stories) {
+    for (const m of s._members) shownIds.add(m.id);
     if (s.sum) Object.assign(s.sum, { he: sums[s.sum.id]?.he, en: sums[s.sum.id]?.en });
     delete s._members;
     delete s._names;
@@ -653,7 +658,13 @@ export async function collect({ log = console.log, force = false } = {}) {
     knownHosts: [...new Set([...builtinHosts(SOURCES), ...(userSourcesSt.list || []).filter((e) => e.status === 'approved' || e.status === 'pending').map((e) => e.host)])].sort(),
   });
   log(survivorDiagnostic(baseline, items, now, KEEP_ITEMS_H * 3600000).text); // diagnostic only, never blocks
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, items: items.map(({ tr: _t, _tok, _key, _fix, ...rest }) => rest) });
+  // Save-time trim (src/trim.js): local-source articles with nothing to show; their ids are remembered for 48 hours
+  // so the feed can't bring them back as new
+  const { keep: keepItems, trimmed } = trimLocal(items, { now, shownIds });
+  for (const it of trimmed) dropped[it.id] = now + KEEP_ITEMS_H * 3600e3;
+  for (const it of trimmed) delete tr[it.id];
+  if (trimmed.length) log(`[trim] ${trimmed.length} local-source articles with nothing to show dropped from the memory`);
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
