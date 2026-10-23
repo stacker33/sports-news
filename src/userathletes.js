@@ -1,7 +1,9 @@
-// ✈️ Israelis abroad suggested by editors from the page. Shared by everyone, like added sites (src/usersources.js):
+// ✈️ Israelis abroad: editors' suggestions from the page. Shared by everyone, like added sites (src/usersources.js):
 // the suggestion goes through the feedback channel, the admin gets a private Telegram message with signed ✅ / ❌
-// links (public/approve.html), and an approved player / coach is tracked from the next run on, for every editor.
-// Nothing joins the list without the admin's ✅. The built-in list (config/athletes.json) is unchanged.
+// links (public/approve.html), and an approved change applies from the next run on, for every editor.
+// Three kinds: add a player / coach, move someone to a new team, remove someone (back in Israel, retired…).
+// Nothing changes without the admin's ✅. The built-in list (config/athletes.json) is unchanged: approved moves and
+// removals are applied on top of it (applyEdits); 🗑️ on an approved change undoes it.
 
 import { randomBytes } from 'node:crypto';
 import { normalizeAthlete, COUNTRIES } from './athletes.js';
@@ -17,7 +19,9 @@ const key = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-�
 
 // the fields an editor can send (everything else is ignored)
 export function cleanRequest(r = {}) {
+  const kind = r.kind === 'move' || r.kind === 'remove' ? r.kind : 'add';
   const a = {
+    kind,
     name: str(r.name, 60),
     name_he: str(r.name_he, 60),
     team: str(r.team, 60),
@@ -26,13 +30,19 @@ export function cleanRequest(r = {}) {
     sport: r.sport === 'basketball' ? 'basketball' : 'football',
     role: r.role === 'coach' ? 'coach' : 'player',
   };
-  // a name in Latin letters (as the foreign press writes it) and a team are needed to find the news
-  if (a.name.length < 4 || !/\p{Script=Latin}/u.test(a.name) || !a.name.includes(' ') || a.team.length < 2) return null;
+  if (a.name.length < 4) return null;
+  // a new person: a name in Latin letters (as the foreign press writes it) and a team are needed to find the news
+  if (kind === 'add' && (!/\p{Script=Latin}/u.test(a.name) || !a.name.includes(' ') || a.team.length < 2)) return null;
+  if (kind === 'move' && a.team.length < 2) return null;
   return { ...a, note: str(r.note, 200), by: str(r.by, 30), at: r.at };
 }
 
-// all the ways a person is written (for "already on the list")
+// all the ways a person is written (for "already on the list" / "who is this about")
 const namesOf = (a) => [a.name, a.name_he, ...(a.alt || [])].map(key).filter((n) => n.includes(' '));
+const samePerson = (a, b) => {
+  const x = new Set(namesOf(a));
+  return namesOf(b).some((n) => x.has(n));
+};
 
 // the athlete record: surnames as extra spellings (a surname alone counts only with the club named, src/athletes.js)
 export function toAthlete(e) {
@@ -42,22 +52,30 @@ export function toAthlete(e) {
 }
 
 function requestText(e) {
-  const role = e.role === 'coach' ? 'מאמן' : 'שחקן';
-  const sport = e.sport === 'basketball' ? 'כדורסל' : 'כדורגל';
-  const lines = [
-    `✈️ <b>הצעה להוסיף ${role} לליגיונרים</b>${e.by ? ` מ${esc(e.by)}` : ''}`,
-    `<b>${esc(e.name)}</b>${e.name_he ? ` (${esc(e.name_he)})` : ''}`,
-    `${esc(e.team)}${e.team_he ? ` (${esc(e.team_he)})` : ''} · ${sport} · ${esc(COUNTRIES[e.country]?.label || e.country)}`,
-  ];
-  if (e.note) lines.push(`הערה: ${esc(e.note)}`);
+  const who = `<b>${esc(e.name)}</b>${e.name_he ? ` (${esc(e.name_he)})` : ''}`;
+  const from = e.by ? ` מ${esc(e.by)}` : '';
+  let lines;
+  if (e.kind === 'move') lines = [`🔁 <b>הצעה לעדכן קבוצה ברשימת הליגיונרים</b>${from}`, who, `${e.fromTeam ? `מ${esc(e.fromTeam)} ` : ''}ל<b>${esc(e.team)}</b>${e.team_he ? ` (${esc(e.team_he)})` : ''} · ${esc(COUNTRIES[e.country]?.label || e.country)}`];
+  else if (e.kind === 'remove') lines = [`➖ <b>הצעה להסיר מרשימת הליגיונרים</b>${from}`, `${who}${e.fromTeam ? ` · ${esc(e.fromTeam)}` : ''}`];
+  else {
+    const role = e.role === 'coach' ? 'מאמן' : 'שחקן';
+    const sport = e.sport === 'basketball' ? 'כדורסל' : 'כדורגל';
+    lines = [`✈️ <b>הצעה להוסיף ${role} לליגיונרים</b>${from}`, who, `${esc(e.team)}${e.team_he ? ` (${esc(e.team_he)})` : ''} · ${sport} · ${esc(COUNTRIES[e.country]?.label || e.country)}`];
+  }
+  if (e.note) lines.push(`${e.kind === 'remove' ? 'סיבה' : 'הערה'}: ${esc(e.note)}`);
   return lines.join('\n');
 }
-const DONE = { approved: '✅ <b>אושר</b>: במעקב בכל ריצה, אצל כל העורכים', rejected: '❌ <b>נדחה</b>', removed: '🗑️ <b>הוסר מהרשימה</b>' };
+const DONE = {
+  add: { approved: '✅ <b>אושר</b>: במעקב בכל ריצה, אצל כל העורכים', rejected: '❌ <b>נדחה</b>', removed: '🗑️ <b>הוסר מהרשימה</b>' },
+  move: { approved: '✅ <b>אושר</b>: הקבוצה עודכנה אצל כל העורכים', rejected: '❌ <b>נדחה</b>', removed: '↩️ <b>בוטל</b>: חזר לקבוצה הקודמת' },
+  remove: { approved: '✅ <b>אושר</b>: הוסר מהרשימה אצל כל העורכים', rejected: '❌ <b>נדחה</b>', removed: '↩️ <b>בוטל</b>: חזר לרשימה' },
+};
 
 // prev = { list: [entry], queue: [request] }; decisions = [{ a, id, s }] from the approve page
-// entry = { id, name, name_he, team, team_he, country, sport, role, status, at, decided?, msg? }
-// status: pending | approved | rejected | removed | exists (already on the list)
-export async function processAthleteRequests(prev = {}, requests = [], { now = Date.now(), builtin = [], env = process.env, tg = tgCall, decisions = [] } = {}) {
+// entry = { id, kind, name, name_he, team, team_he, country, sport, role, fromTeam?, status, at, decided?, msg? }
+// status: pending | approved | rejected | removed (undone) | exists (already on the list / already asked)
+// onList: the current list (built-in + approved changes): what "already on the list" and "who is this" check against
+export async function processAthleteRequests(prev = {}, requests = [], { now = Date.now(), onList = [], env = process.env, tg = tgCall, decisions = [] } = {}) {
   const st = {
     list: (prev.list || []).filter((e) => e.status === 'approved' || now - (e.decided || e.at) < KEEP_DAYS * 864e5),
     queue: [...(prev.queue || []), ...requests].filter((r) => now - r.at < QUEUE_HOURS * 3600e3),
@@ -77,11 +95,11 @@ export async function processAthleteRequests(prev = {}, requests = [], { now = D
     e.status = next;
     e.decided = now;
     changed++;
-    if (e.msg) await call('editMessageText', { chat_id: admin, message_id: e.msg, text: `${requestText(e)}\n\n${DONE[e.status]}`, parse_mode: 'HTML', reply_markup: keyboardFor(e, env, 'p') }).catch(() => {});
+    if (e.msg) await call('editMessageText', { chat_id: admin, message_id: e.msg, text: `${requestText(e)}\n\n${DONE[e.kind || 'add'][e.status]}`, parse_mode: 'HTML', reply_markup: keyboardFor(e, env, 'p') }).catch(() => {});
   }
 
-  // 2. new suggestions: already on the list → noted; otherwise ask the admin
-  const onList = new Set([...builtin, ...st.list.filter((e) => ['pending', 'approved'].includes(e.status))].flatMap(namesOf));
+  // 2. new suggestions
+  const open = () => st.list.filter((e) => e.status === 'pending' || (e.status === 'approved' && (e.kind || 'add') === 'add'));
   const later = [];
   let done = 0;
   for (const raw of st.queue) {
@@ -92,18 +110,31 @@ export async function processAthleteRequests(prev = {}, requests = [], { now = D
     const r = cleanRequest(raw);
     if (!r) continue;
     done++;
-    const base = { id: randomBytes(4).toString('hex'), name: r.name, name_he: r.name_he, team: r.team, team_he: r.team_he, country: r.country, sport: r.sport, role: r.role, at: now };
-    if (namesOf(r).some((n) => onList.has(n))) {
-      st.list.push({ ...base, status: 'exists' });
-      changed++;
-      continue;
+    const base = { id: randomBytes(4).toString('hex'), kind: r.kind, name: r.name, name_he: r.name_he, team: r.team, team_he: r.team_he, country: r.country, sport: r.sport, role: r.role, at: now };
+    let e;
+    if (r.kind === 'add') {
+      // already on the list, or already suggested
+      if ([...onList, ...open().filter((x) => (x.kind || 'add') === 'add')].some((a) => samePerson(a, r))) {
+        st.list.push({ ...base, status: 'exists' });
+        changed++;
+        continue;
+      }
+      e = { ...base, status: 'pending' };
+    } else {
+      // a move / removal is about someone on the list (by any of his names); one open change per person at a time
+      const who = onList.find((a) => samePerson(a, r));
+      if (!who) continue;
+      if (st.list.some((x) => x.status === 'pending' && x.kind !== 'add' && samePerson(x, who))) {
+        st.list.push({ ...base, status: 'exists' });
+        changed++;
+        continue;
+      }
+      e = { ...base, name: who.name, name_he: who.name_he, sport: who.sport, fromTeam: who.team, ...(r.kind === 'remove' ? { team: '', team_he: '' } : {}), status: 'pending' };
     }
-    const e = { ...base, status: 'pending' };
     try {
       const msg = await call('sendMessage', { chat_id: admin, text: requestText({ ...e, by: r.by, note: r.note }), parse_mode: 'HTML', reply_markup: keyboardFor(e, env, 'p') });
       e.msg = msg?.message_id;
       st.list.push(e);
-      for (const n of namesOf(e)) onList.add(n);
       changed++;
     } catch (err) {
       st.error = String(err.message || err).slice(0, 200);
@@ -114,11 +145,27 @@ export async function processAthleteRequests(prev = {}, requests = [], { now = D
   return { userAthletes: st, changed };
 }
 
-// approved people, as athlete records (skipping anyone the built-in list already has)
+// approved new people, as athlete records (skipping anyone the built-in list already has)
 export function userAthletes(st = {}, builtin = []) {
-  const have = new Set(builtin.flatMap(namesOf));
-  return (st.list || []).filter((e) => e.status === 'approved' && !namesOf(e).some((n) => have.has(n))).map(toAthlete);
+  return (st.list || []).filter((e) => e.status === 'approved' && (e.kind || 'add') === 'add' && !builtin.some((a) => samePerson(a, e))).map(toAthlete);
+}
+
+// approved moves and removals, applied to the list in the order they were approved
+export function applyEdits(athletes, st = {}) {
+  let out = [...athletes];
+  const edits = (st.list || []).filter((e) => e.status === 'approved' && (e.kind === 'move' || e.kind === 'remove')).sort((a, b) => a.decided - b.decided);
+  for (const e of edits) {
+    if (e.kind === 'remove') out = out.filter((a) => !samePerson(a, e));
+    else
+      out = out.map((a) => {
+        if (!samePerson(a, e)) return a;
+        // a new team: its own 365Scores id is looked up again; a pinned id or a second team belonged to the old one
+        const { team365: _a, team2: _b, team2_alt: _c, team2_365: _d, ...rest } = a;
+        return { ...rest, team: e.team, team_he: e.team_he, team_alt: [], country: e.country, moved: true };
+      });
+  }
+  return out;
 }
 
 // for the page: what was suggested and what happened (no editor names)
-export const publicAthleteList = (st = {}) => (st.list || []).map((e) => ({ name: e.name, name_he: e.name_he, team: e.team, role: e.role, status: e.status, at: e.at, decided: e.decided || null }));
+export const publicAthleteList = (st = {}) => (st.list || []).map((e) => ({ kind: e.kind || 'add', name: e.name, name_he: e.name_he, team: e.team, fromTeam: e.fromTeam || null, role: e.role, status: e.status, at: e.at, decided: e.decided || null }));

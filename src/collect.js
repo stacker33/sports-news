@@ -19,7 +19,7 @@ import { telegramPost, adminHealthAlerts, adminHello, adminReports, adminSend, m
 import { loadFeedback, votesFile } from './feedback.js';
 import { mailEnabled, sendMails } from './mailer.js';
 import { processSourceRequests, userSources, builtinHosts, publicList } from './usersources.js';
-import { processAthleteRequests, userAthletes, publicAthleteList } from './userathletes.js';
+import { processAthleteRequests, userAthletes, applyEdits, publicAthleteList } from './userathletes.js';
 import { assignStoryIds } from './storyids.js';
 import { addHebrewNames } from './hebrew.js';
 import { sport5Coverage, sport5Probable } from './sport5.js';
@@ -109,8 +109,9 @@ export async function collect({ log = console.log, force = false } = {}) {
 
   // Israelis abroad
   const builtinAthletes = await loadAthletes(ROOT);
-  // + players / coaches editors suggested from the page and the admin approved (src/userathletes.js)
-  const athletes = [...builtinAthletes, ...userAthletes(state.userAthletes, builtinAthletes)];
+  // + players / coaches editors suggested from the page and the admin approved, and approved team changes / removals
+  // (src/userathletes.js)
+  const athletes = applyEdits([...builtinAthletes, ...userAthletes(state.userAthletes, builtinAthletes)], state.userAthletes);
   const teamCache = await resolveTeams(athletes, state.teamCache || {});
   const ctx = {
     matchers: buildMatchers(athletes, teamCache),
@@ -646,7 +647,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   // ➕ sites editors asked to add: the admin approves each one in Telegram; approved ones are read from the next run
   const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES), decisions: srcDecisions }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
   // ✈️ Israelis abroad editors suggested: the admin approves each one; approved ones are tracked from the next run
-  const { userAthletes: userAthletesSt } = await processAthleteRequests(state.userAthletes, athleteReqs, { now, builtin: builtinAthletes, decisions: srcDecisions }).catch((e) => ({ userAthletes: { ...(state.userAthletes || {}), error: String(e.message) } }));
+  const { userAthletes: userAthletesSt } = await processAthleteRequests(state.userAthletes, athleteReqs, { now, onList: athletes, decisions: srcDecisions }).catch((e) => ({ userAthletes: { ...(state.userAthletes || {}), error: String(e.message) } }));
   await writeJson(join(DATA, 'sources.json'), {
     generatedAt: now,
     tookMs: Date.now() - started,

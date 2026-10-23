@@ -74,10 +74,10 @@ export async function loadFeedback(prev = {}, now = Date.now()) {
         if ((st.perDevice[key] || 0) >= SOURCES_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
         sourceReqs.push({ url: str(j.url, 300), name: str(j.name, 60), by: str(j.by, 30), note: str(j.note, 200), at: m.time * 1000 });
-      } else if (j.type === 'athlete' && str(j.name, 60) && str(j.team, 60)) {
+      } else if (j.type === 'athlete' && str(j.name, 60) && (str(j.team, 60) || j.kind === 'remove')) {
         if ((st.perDevice[key] || 0) >= ATHLETES_PER_DEVICE_DAY) continue;
         st.perDevice[key] = (st.perDevice[key] || 0) + 1;
-        athleteReqs.push({ name: j.name, name_he: j.name_he, team: j.team, team_he: j.team_he, country: j.country, sport: j.sport, role: j.role, note: j.note, by: j.by, at: m.time * 1000 }); // cleaned in src/userathletes.js
+        athleteReqs.push({ kind: j.kind, name: j.name, name_he: j.name_he, team: j.team, team_he: j.team_he, country: j.country, sport: j.sport, role: j.role, note: j.note, by: j.by, at: m.time * 1000 }); // cleaned in src/userathletes.js
       } else if (j.type === 'decide') {
         if (decisions.length < 50) decisions.push({ a: str(j.a, 2), id: str(j.id, 8), s: str(j.s, 24) });
       } else if (j.type === 'report' && str(j.text, 1000)) {

@@ -170,6 +170,7 @@ const T = {
       readOnly: 'מהאתר אי אפשר לערוך את הרשימה ישירות, אבל אפשר להציע שחקן או מאמן. המנהל מאשר, ואחרי האישור הוא במעקב אצל כל העורכים.',
       propOpen: '➕ להציע שחקן או מאמן', propTitle: 'הצעה לרשימת הליגיונרים', role: 'תפקיד', player: 'שחקן', coach: 'מאמן', note: 'למה כדאי? (לא חובה)', by: 'שם המציע (לא חובה)',
       propSend: 'שליחה לאישור', propSent: '✈️ נשלח לאישור. אחרי האישור הוא ייכנס למעקב אצל כולם', propBad: 'צריך שם מלא באנגלית (כמו שהעיתונות בחו"ל כותבת) וקבוצה',
+      editMove: '🔁 עדכון קבוצה', editRemove: '➖ הסרה', moveTitle: (n) => `עדכון קבוצה: ${n}`, removeTitle: (n) => `הסרה מהרשימה: ${n}`, newTeam: 'הקבוצה החדשה', newTeamHe: 'הקבוצה החדשה (עברית)', reason: 'סיבה (למשל: חזר לישראל, פרש)', editCancel: 'ביטול', moveBad: 'כתבו את הקבוצה החדשה', editSent: '📨 נשלח לאישור. אחרי האישור זה יעודכן אצל כולם', movedMark: 'הקבוצה עודכנה בהצעת עורכים', kindIcon: { add: '✈️', move: '🔁', remove: '➖' },
       propKnown: '☑️ כבר ברשימה', propLimit: (n) => `הגעת למגבלה של ${n} הצעות ביום מהמחשב הזה. אפשר להמשיך מחר.`, sugPropose: 'להציע', requests: 'הצעות של עורכים', byEditors: 'נוסף בהצעת עורכים',
       reqStatus: { pending: '⏳ ממתין לאישור', approved: '✅ במעקב', rejected: '❌ נדחה', removed: '🗑️ הוסר', exists: '☑️ כבר ברשימה' },
       noTeam: 'לא נמצא בלוח התוצאות',
@@ -338,6 +339,7 @@ const T = {
       readOnly: "The list can't be edited directly from the site, but you can suggest a player or coach. The admin approves, and then everyone tracks them.",
       propOpen: '➕ Suggest a player or coach', propTitle: 'Suggest for the Israelis-abroad list', role: 'Role', player: 'Player', coach: 'Coach', note: 'Why? (optional)', by: 'Your name (optional)',
       propSend: 'Send for approval', propSent: '✈️ Sent for approval. Once approved, everyone tracks them', propBad: 'A full name in English (as the foreign press writes it) and a team are needed',
+      editMove: '🔁 Change team', editRemove: '➖ Remove', moveTitle: (n) => `Change team: ${n}`, removeTitle: (n) => `Remove from the list: ${n}`, newTeam: 'New team', newTeamHe: 'New team (Hebrew)', reason: 'Reason (e.g. back in Israel, retired)', editCancel: 'Cancel', moveBad: 'Enter the new team', editSent: '📨 Sent for approval. Once approved, it changes for everyone', movedMark: 'team changed from an editor suggestion', kindIcon: { add: '✈️', move: '🔁', remove: '➖' },
       propKnown: '☑️ already on the list', propLimit: (n) => `You've reached the limit of ${n} suggestions a day from this device. You can continue tomorrow.`, sugPropose: 'Suggest', requests: 'Suggestions by editors', byEditors: 'added from an editor suggestion',
       reqStatus: { pending: '⏳ waiting for approval', approved: '✅ tracked', rejected: '❌ rejected', removed: '🗑️ removed', exists: '☑️ already on the list' },
       noTeam: 'not found on the scoreboard',
@@ -2090,9 +2092,24 @@ function proposeBlock(countries, sugs) {
   const L = t().list;
   const p = editor.prop || {};
   const reqs = [...(state.health?.athleteRequests || [])].sort((a, b) => b.at - a.at);
-  const newSugs = sugs.filter((g) => g.type === 'new');
+  const newSugs = sugs.filter((g) => ['new', 'moved', 'returned'].includes(g.type));
   const opt = (list, cur) => list.map(([v, label]) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(label)}</option>`).join('');
-  const form = editor.propOpen
+  const ed = editor.edit;
+  const editForm = ed
+    ? `<fieldset class="ath-row" id="editForm">
+        <legend>${esc(ed.kind === 'move' ? L.moveTitle(state.ui === 'he' && ed.name_he ? ed.name_he : ed.name) : L.removeTitle(state.ui === 'he' && ed.name_he ? ed.name_he : ed.name))}</legend>
+        ${ed.kind === 'move'
+          ? `<label><span>${esc(L.newTeam)} *</span><input data-e="team" value="${esc(ed.team || '')}" dir="auto"></label>
+             <label><span>${esc(L.newTeamHe)}</span><input data-e="team_he" value="${esc(ed.team_he || '')}" dir="auto"></label>
+             <label><span>${esc(L.country)}</span><select data-e="country">${opt(Object.entries(countries), ed.country || 'other')}</select></label>
+             <label><span>${esc(L.note)}</span><input data-e="note" value="${esc(ed.note || '')}" dir="auto"></label>`
+          : `<label><span>${esc(L.reason)}</span><input data-e="note" value="${esc(ed.note || '')}" dir="auto"></label>`}
+        <label><span>${esc(L.by)}</span><input data-e="by" value="${esc(ed.by ?? store.get('editorName', ''))}" dir="auto"></label>
+        <p class="warn" id="editMsg" hidden></p>
+        <div class="row-foot"><button type="button" class="small-btn" id="editCancel">${esc(L.editCancel)}</button><button type="button" class="small-btn primary" id="editSend">${esc(L.propSend)}</button></div>
+      </fieldset>`
+    : '';
+  const form = ed ? editForm : editor.propOpen
     ? `<fieldset class="ath-row" id="propForm">
         <legend>${esc(L.propTitle)}</legend>
         <label><span>${esc(L.name)} *</span><input data-p="name" value="${esc(p.name || '')}" dir="ltr"></label>
@@ -2110,10 +2127,10 @@ function proposeBlock(countries, sugs) {
       </fieldset>`
     : `<p><button type="button" class="small-btn primary" id="propOpen">${esc(L.propOpen)}</button></p>`;
   const sugList = newSugs.length
-    ? `<div class="sug-box"><h4>${esc(L.sugTitle)}</h4><ul>${newSugs.map((g) => `<li><span dir="auto">${esc(L.sugNew(state.ui === 'he' && g.name_he ? g.name_he : g.name, g.team))}</span><span class="sug-btns"><button type="button" class="small-btn" data-sug-prop="${esc(g.key)}">${esc(L.sugPropose)}</button></span></li>`).join('')}</ul></div>`
+    ? `<div class="sug-box"><h4>${esc(L.sugTitle)}</h4><ul>${newSugs.map((g) => `<li><span dir="auto">${esc((g.type === 'moved' ? L.sugMoved(state.ui === 'he' && g.name_he ? g.name_he : g.name, g.from_he && state.ui === 'he' ? g.from_he : g.from, g.team) : g.type === 'returned' ? L.sugReturned(state.ui === 'he' && g.name_he ? g.name_he : g.name, g.team) : L.sugNew(state.ui === 'he' && g.name_he ? g.name_he : g.name, g.team)))}</span><span class="sug-btns"><button type="button" class="small-btn" data-sug-prop="${esc(g.key)}">${esc(L.sugPropose)}</button></span></li>`).join('')}</ul></div>`
     : '';
   const reqList = reqs.length
-    ? `<details ${reqs.some((r) => r.status === 'pending') ? 'open' : ''}><summary><b>${esc(L.requests)}</b> (${reqs.length})</summary><table class="sys-table">${reqs.map((r) => `<tr><td>${esc(L.reqStatus[r.status] || r.status)}</td><td dir="auto">${esc(state.ui === 'he' && r.name_he ? r.name_he : r.name)} · ${esc(r.team)}${r.role === 'coach' ? ` · ${esc(L.coach)}` : ''}</td><td class="muted">${esc(ago(r.decided || r.at))}</td></tr>`).join('')}</table></details>`
+    ? `<details ${reqs.some((r) => r.status === 'pending') ? 'open' : ''}><summary><b>${esc(L.requests)}</b> (${reqs.length})</summary><table class="sys-table">${reqs.map((r) => `<tr><td>${esc(L.reqStatus[r.status] || r.status)}</td><td dir="auto">${L.kindIcon[r.kind || 'add'] || ''} ${esc(state.ui === 'he' && r.name_he ? r.name_he : r.name)}${r.kind === 'remove' ? '' : ` · ${r.kind === 'move' && r.fromTeam ? `${esc(r.fromTeam)} → ` : ''}${esc(r.team)}`}${r.role === 'coach' ? ` · ${esc(L.coach)}` : ''}</td><td class="muted">${esc(ago(r.decided || r.at))}</td></tr>`).join('')}</table></details>`
     : '';
   return form + sugList + reqList;
 }
@@ -2136,7 +2153,7 @@ function renderListEditor(msg = '') {
           .join('')}</select></label>
         <label><span>${esc(L.sport)}</span><select data-i="${i}" data-k="sport" ${dis}>${SPORTS.map((s) => `<option value="${s}" ${s === a.sport ? 'selected' : ''}>${esc(L[s])}</option>`).join('')}</select></label>
         ${field(i, 'alt', (a.alt || []).join(', '))}${field(i, 'team_alt', (a.team_alt || []).join(', '))}
-        <div class="row-foot">${noTeam}${k?.user ? `<span class="muted">✈️ ${esc(L.byEditors)}</span>` : ''}${editor.editable ? `<button type="button" class="small-btn danger" data-del="${i}">${esc(L.remove)}</button>` : ''}</div>
+        <div class="row-foot">${noTeam}${k?.user ? `<span class="muted">✈️ ${esc(L.byEditors)}</span>` : ''}${k?.moved ? `<span class="muted">🔁 ${esc(L.movedMark)}</span>` : ''}${editor.editable ? '' : `<button type="button" class="small-btn" data-ed-move="${i}">${esc(L.editMove)}</button><button type="button" class="small-btn" data-ed-remove="${i}">${esc(L.editRemove)}</button>`}${editor.editable ? `<button type="button" class="small-btn danger" data-del="${i}">${esc(L.remove)}</button>` : ''}</div>
       </fieldset>`;
     })
     .join('');
@@ -2171,6 +2188,10 @@ function renderListEditor(msg = '') {
 }
 
 $('listBody').addEventListener('input', (e) => {
+  if (e.target.dataset.e) {
+    editor.edit[e.target.dataset.e] = e.target.value;
+    return;
+  }
   const pk = e.target.dataset.p;
   if (pk) {
     (editor.prop ||= {})[pk] = e.target.value;
@@ -2192,11 +2213,51 @@ $('listBody').addEventListener('click', async (e) => {
     renderListEditor();
     $('listBody').querySelector('input')?.focus();
   } else if (e.target.id === 'propOpen') {
+    editor.edit = null;
     editor.propOpen = true;
     renderListEditor();
     $('listBody').querySelector('[data-p="name"]')?.focus();
+  } else if (e.target.dataset.edMove !== undefined || e.target.dataset.edRemove !== undefined) {
+    const a = editor.rows[Number(e.target.dataset.edMove ?? e.target.dataset.edRemove)];
+    if (!a) return;
+    editor.edit = { kind: e.target.dataset.edMove !== undefined ? 'move' : 'remove', name: a.name, name_he: a.name_he, country: a.country };
+    editor.propOpen = false;
+    renderListEditor();
+    $('editForm')?.scrollIntoView({ block: 'nearest' });
+    $('listBody').querySelector('[data-e]')?.focus();
+  } else if (e.target.id === 'editCancel') {
+    editor.edit = null;
+    renderListEditor();
+  } else if (e.target.id === 'editSend') {
+    const ed = editor.edit;
+    if (ed.kind === 'move' && !(ed.team || '').trim()) {
+      $('editMsg').textContent = L.moveBad;
+      $('editMsg').hidden = false;
+      return;
+    }
+    if (overLimit('athlete')) {
+      $('editMsg').textContent = L.propLimit(DAILY_LIMIT.athlete);
+      $('editMsg').hidden = false;
+      return;
+    }
+    const by = (ed.by ?? store.get('editorName', '')).trim().slice(0, 30);
+    if (by) store.set('editorName', by);
+    e.target.disabled = true;
+    countSent('athlete');
+    await sendFeedback({ type: 'athlete', kind: ed.kind, name: ed.name, name_he: ed.name_he || '', team: (ed.team || '').trim().slice(0, 60), team_he: (ed.team_he || '').trim().slice(0, 60), country: ed.country, note: (ed.note || '').trim().slice(0, 200), by });
+    editor.edit = null;
+    renderListEditor();
+    toast(L.editSent);
   } else if (e.target.dataset.sugProp !== undefined) {
     const g = (editor.sugs || []).find((x) => x.key === e.target.dataset.sugProp);
+    if (g && g.type !== 'new') {
+      const a = (state.athletes?.athletes || []).find((x) => [x.name, x.name_he, ...(x.alt || [])].some((n) => n && (n === g.name || n === g.name_he))) || { name: g.name, name_he: g.name_he };
+      editor.edit = g.type === 'moved' ? { kind: 'move', name: a.name, name_he: a.name_he, team: g.team, team_he: g.team_he || '', country: g.country !== 'other' ? g.country : a.country } : { kind: 'remove', name: a.name, name_he: a.name_he, note: L.sugReturned(a.name_he || a.name, g.team) };
+      editor.propOpen = false;
+      renderListEditor();
+      $('editForm')?.scrollIntoView({ block: 'nearest' });
+      return;
+    }
     if (g) editor.prop = { ...(editor.prop || {}), name: g.name, name_he: g.name_he || '', team: g.team, team_he: g.team_he || '', country: g.country, sport: g.sport || 'football', role: 'player' };
     editor.propOpen = true;
     renderListEditor();

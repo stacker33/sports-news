@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cleanRequest, toAthlete, processAthleteRequests, userAthletes, publicAthleteList } from '../src/userathletes.js';
+import { cleanRequest, toAthlete, processAthleteRequests, userAthletes, applyEdits, publicAthleteList } from '../src/userathletes.js';
 import { normalizeAthlete, buildMatchers } from '../src/athletes.js';
 import { loadFeedback } from '../src/feedback.js';
 
@@ -39,7 +39,7 @@ test('an approved suggestion becomes an athlete found in Hebrew and English head
 
 test('suggest → the admin gets ✅ / ❌ links → a signed ✅ adds the person for everyone; 🗑️ removes', async () => {
   const t1 = fakeTg();
-  const r1 = await processAthleteRequests({}, [req()], { now, builtin, env, tg: t1.tg });
+  const r1 = await processAthleteRequests({}, [req()], { now, onList: builtin, env, tg: t1.tg });
   const ask = t1.calls.find((c) => c.method === 'sendMessage');
   assert.match(ask.body.text, /Dor Peretz/);
   assert.match(ask.body.text, /דני/);
@@ -48,22 +48,22 @@ test('suggest → the admin gets ✅ / ❌ links → a signed ✅ adds the perso
   assert.deepEqual(userAthletes(r1.userAthletes, builtin), []); // nothing before the ✅
   assert.equal(JSON.stringify(r1.userAthletes.list).includes('דני'), false); // the editor's name isn't kept
 
-  const forged = await processAthleteRequests(r1.userAthletes, [], { now, builtin, env, tg: fakeTg().tg, decisions: [{ ...fromLink(ok.url), s: '0'.repeat(24) }] });
+  const forged = await processAthleteRequests(r1.userAthletes, [], { now, onList: builtin, env, tg: fakeTg().tg, decisions: [{ ...fromLink(ok.url), s: '0'.repeat(24) }] });
   assert.equal(forged.userAthletes.list[0].status, 'pending');
   const t2 = fakeTg();
-  const r2 = await processAthleteRequests(r1.userAthletes, [], { now, builtin, env, tg: t2.tg, decisions: [fromLink(ok.url)] });
+  const r2 = await processAthleteRequests(r1.userAthletes, [], { now, onList: builtin, env, tg: t2.tg, decisions: [fromLink(ok.url)] });
   assert.equal(r2.userAthletes.list[0].status, 'approved');
   const [added] = userAthletes(r2.userAthletes, builtin);
   assert.equal(added.name, 'Dor Peretz');
   assert.equal(publicAthleteList(r2.userAthletes)[0].status, 'approved');
   const rm = t2.calls.find((c) => c.method === 'editMessageText').body.reply_markup.inline_keyboard[0][0].url;
-  const r3 = await processAthleteRequests(r2.userAthletes, [], { now, builtin, env, tg: fakeTg().tg, decisions: [fromLink(rm)] });
+  const r3 = await processAthleteRequests(r2.userAthletes, [], { now, onList: builtin, env, tg: fakeTg().tg, decisions: [fromLink(rm)] });
   assert.deepEqual(userAthletes(r3.userAthletes, builtin), []);
 });
 
 test('someone already on the list (built-in or suggested) is noted, not asked again', async () => {
   const t = fakeTg();
-  const r = await processAthleteRequests({}, [req({ name: 'Oscar Gloukh', name_he: '', team: 'Ajax' }), req(), req({ name_he: '' })], { now, builtin, env, tg: t.tg });
+  const r = await processAthleteRequests({}, [req({ name: 'Oscar Gloukh', name_he: '', team: 'Ajax' }), req(), req({ name_he: '' })], { now, onList: builtin, env, tg: t.tg });
   assert.deepEqual(r.userAthletes.list.map((e) => [e.name, e.status]), [['Oscar Gloukh', 'exists'], ['Dor Peretz', 'pending'], ['Dor Peretz', 'exists']]);
   assert.equal(t.calls.filter((c) => c.method === 'sendMessage').length, 1);
 });
@@ -79,4 +79,44 @@ test('the feedback channel carries suggestions (20 a day per device)', async () 
   } finally {
     globalThis.fetch = before;
   }
+});
+
+test('a team change: asked about someone on the list, applied on top of the built-in list after ✅, undone by 🗑️', async () => {
+  const goren = builtin.find((a) => a.name === 'Orian Goren');
+  const t1 = fakeTg();
+  // the page sends the person's names; the team is the new one
+  const r1 = await processAthleteRequests({}, [{ kind: 'move', name: 'Orian Goren', name_he: 'אוריין גורן', team: 'Girona', team_he: 'ג׳ירונה', country: 'spain', by: 'דני', note: 'הושאל', at: now }], { now, onList: builtin, env, tg: t1.tg });
+  const ask = t1.calls.find((c) => c.method === 'sendMessage');
+  assert.match(ask.body.text, /לעדכן קבוצה/);
+  assert.match(ask.body.text, /FC Barcelona Atlètic/); // from
+  assert.match(ask.body.text, /Girona/); // to
+  assert.equal(applyEdits(builtin, r1.userAthletes).find((a) => a.name === 'Orian Goren').team, goren.team); // nothing before ✅
+  const ok = fromLink(ask.body.reply_markup.inline_keyboard[0][0].url);
+  const t2 = fakeTg();
+  const r2 = await processAthleteRequests(r1.userAthletes, [], { now: now + 1, onList: builtin, env, tg: t2.tg, decisions: [ok] });
+  const moved = applyEdits(builtin, r2.userAthletes).find((a) => a.name === 'Orian Goren');
+  assert.deepEqual([moved.team, moved.team_he, moved.country, moved.moved], ['Girona', 'ג׳ירונה', 'spain', true]);
+  assert.equal(moved.team365, undefined); // the pinned id was the old team's
+  assert.equal(moved.team2, undefined);
+  assert.equal(applyEdits(builtin, r2.userAthletes).length, builtin.length);
+  const undo = fromLink(t2.calls.find((c) => c.method === 'editMessageText').body.reply_markup.inline_keyboard[0][0].url);
+  const r3 = await processAthleteRequests(r2.userAthletes, [], { now: now + 2, onList: builtin, env, tg: fakeTg().tg, decisions: [undo] });
+  assert.equal(applyEdits(builtin, r3.userAthletes).find((a) => a.name === 'Orian Goren').team, goren.team);
+});
+
+test('a removal: by any of the person’s names; someone not on the list is ignored; one open change per person', async () => {
+  const t = fakeTg();
+  const r1 = await processAthleteRequests({}, [
+    { kind: 'remove', name: 'Oscar Gloukh', name_he: 'אוסקר גלוך', note: 'חזר לישראל', at: now },
+    { kind: 'remove', name: 'Nobody Known', at: now }, // not on the list
+    { kind: 'move', name: 'Oscar Gloukh', team: 'Ajax II', at: now }, // already a change waiting for him
+  ], { now, onList: builtin, env, tg: t.tg });
+  assert.deepEqual(r1.userAthletes.list.map((e) => [e.kind, e.name, e.status]), [['remove', 'Oscar Gloukh', 'pending'], ['move', 'Oscar Gloukh', 'exists']]);
+  assert.match(t.calls[0].body.text, /להסיר[\s\S]*Ajax[\s\S]*סיבה: חזר לישראל/);
+  const ok = fromLink(t.calls[0].body.reply_markup.inline_keyboard[0][0].url);
+  const r2 = await processAthleteRequests(r1.userAthletes, [], { now: now + 1, onList: builtin, env, tg: fakeTg().tg, decisions: [ok] });
+  const after = applyEdits(builtin, r2.userAthletes);
+  assert.equal(after.length, builtin.length - 1);
+  assert.ok(!after.some((a) => a.name === 'Oscar Gloukh'));
+  assert.equal(publicAthleteList(r2.userAthletes)[0].kind, 'remove');
 });
