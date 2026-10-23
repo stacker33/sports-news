@@ -110,6 +110,16 @@ jobs:
             fi
           fi
 
+      # The previous publish's news files, so the collector can write what changed (data/delta.json, src/delta.js).
+      # Optional: without them the page simply downloads the full files.
+      - name: Restore the previous publish
+        run: |
+          for f in news.json news-more.json; do
+            for d in .state-cache .state-backup; do
+              if [ -f "$d/$f" ] && node -e "JSON.parse(require('fs').readFileSync('$d/$f', 'utf8'))"; then cp "$d/$f" "public/data/$f"; break; fi
+            done
+          done
+
       - name: Collect
         run: node src/collect.js
         env:
@@ -134,6 +144,8 @@ jobs:
           mkdir -p .state-cache
           cp public/data/state.json .state-cache/state.json
           if [ -f public/data/entities.json ]; then cp public/data/entities.json .state-cache/entities.json; fi
+          # this publish's news files: the next run writes data/delta.json (what changed) against them
+          for f in news.json news-more.json; do if [ -f "public/data/$f" ]; then cp "public/data/$f" ".state-cache/$f"; fi; done
 
       - name: Save the new state in the Actions cache
         continue-on-error: true

@@ -2,7 +2,7 @@
 // Each source has its own interval (`every` minutes); sources not due keep their items from last run.
 // Run once:  node src/collect.js
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -10,6 +10,7 @@ import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify, JUNK_TITLE, SITE_TITLE, isStreamSpam } from './classify.js';
 import { trimLocal } from './trim.js';
+import { makeDelta } from './delta.js';
 import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
 import { loadCorrections } from './corrections.js';
@@ -603,8 +604,12 @@ export async function collect({ log = console.log, force = false } = {}) {
     hits: stories.filter((s) => s.watch).length,
     quality: { ...quality, queries: undefined },
   });
-  await writeJson(join(DATA, 'news-more.json'), { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) });
-  await writeJson(join(DATA, 'news.json'), {
+  // the previous publish (restored from the Actions cache by the workflow), for the "what changed" file below
+  const prevFirst = await readJson(join(DATA, 'news.json'), null);
+  const prevMore = await readJson(join(DATA, 'news-more.json'), null);
+  const moreOut = { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) };
+  await writeJson(join(DATA, 'news-more.json'), moreOut);
+  const firstOut = {
     ...head,
     more: stories.length - firstIds.size, // how many stories news-more.json holds
     rivals: rivals.games,
@@ -614,7 +619,14 @@ export async function collect({ log = console.log, force = false } = {}) {
     wikiAthletes: wiki.athletes || {},
     mail: mailEnabled(), // the page sends ✉️ through the radar's mailbox (otherwise it opens the editor's mail program)
     stories: stories.filter((s) => firstIds.has(s.id)).map(slim),
-  });
+  };
+  await writeJson(join(DATA, 'news.json'), firstOut);
+  // What changed since the previous publish (src/delta.js): an open tab downloads this (~130 KB) instead of the full
+  // files (~1.2 MB); a tab that doesn't have exactly the previous publish downloads the full files as before
+  const asJson = (o) => JSON.parse(JSON.stringify(o));
+  const delta = makeDelta(prevFirst, prevMore, asJson(firstOut), asJson(moreOut));
+  if (delta && delta.from !== delta.to) await writeJson(join(DATA, 'delta.json'), delta);
+  else await rm(join(DATA, 'delta.json'), { force: true });
   // the page checks this tiny file every 30 s and downloads the news files only when it changed
   await writeJson(join(DATA, 'version.json'), { generatedAt: now });
   // For the app: athlete list (+ 365Scores team ids for the scoreboard)

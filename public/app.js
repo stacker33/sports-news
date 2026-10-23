@@ -1836,18 +1836,39 @@ async function load({ initial = false, force = false } = {}) {
   try {
     // Every 30 s only the tiny version file is checked; the news files (~1.2 MB compressed) are downloaded only
     // when a new run has published. (Before: both were downloaded on every check, ~140 MB an hour per open tab.)
+    let v = null;
     if (!initial && !force && state.data) {
       // switching back to the tab also checks: at most once every 15 s
       if (Date.now() - (state.lastCheck || 0) < 15000) return;
       state.lastCheck = Date.now();
-      const v = await fetchJson('data/version.json').catch(() => null);
+      v = await fetchJson('data/version.json').catch(() => null);
       if (v?.generatedAt && v.generatedAt === state.data.generatedAt) {
         state.lastFetchOk = true;
         return renderStatus();
       }
     }
-    const first = await fetchJson('data/news.json');
-    const startMore = () => (first.more ? fetchJson('data/news-more.json') : Promise.resolve(null));
+    // A new publish: first "what changed" since the copy this tab has (data/delta.json, ~130 KB, public/delta.js);
+    // if it doesn't fit exactly (a missed update), the full files (~1.2 MB) as before. state.raw keeps the files as
+    // published (untouched), so the next change applies to exactly them.
+    let next = null;
+    if (v?.generatedAt && state.raw && window.RadarDelta) {
+      const d = await fetchJson('data/delta.json').catch(() => null);
+      if (d && d.to === v.generatedAt) next = window.RadarDelta.applyDelta(state.raw, d);
+    }
+    const rawFirst = next ? next.first : await fetchJson('data/news.json');
+    const first = structuredClone(rawFirst);
+    let rawMore = next ? Promise.resolve(next.more) : null;
+    const startMore = () => {
+      if (!rawFirst.more) {
+        state.raw = { first: rawFirst, more: null };
+        return Promise.resolve(null);
+      }
+      rawMore ||= fetchJson('data/news-more.json');
+      return rawMore.then((m) => {
+        state.raw = { first: rawFirst, more: m };
+        return m ? structuredClone(m) : null;
+      });
+    };
     const morePromise = initial || !state.data ? startMore() : null; // a refresh asks for the rest only when it changed
     first.stories = prepStories(first.stories);
     state.lastFetchOk = true;
