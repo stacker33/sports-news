@@ -70,3 +70,28 @@ test('a story older than 3 hours is not posted even in the top; switching to the
   assert.equal(sw.tg.rule, 'main-top');
   assert.equal((await run([fresh], sw.tg)).posted, 0); // marked: not posted later either
 });
+
+test('at night (01:00–06:00 in Israel) stories still go out, silently; by day with a sound', async () => {
+  const bodies = [];
+  const before = globalThis.fetch;
+  const env = { ...process.env };
+  process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+  process.env.TELEGRAM_CHAT = '@test';
+  globalThis.fetch = async (url, opts) => {
+    if (String(url).includes('/sendMessage')) bodies.push(JSON.parse(opts.body));
+    return { ok: true, json: async () => ({ ok: true, result: {} }) };
+  };
+  try {
+    const night = Date.parse('2026-10-24T00:30:00Z'); // 03:30 in Israel
+    const s1 = { ...story('גול בדקה האחרונה בלילה', { ed: 90, age: 10 }), first: night - 20 * min, latest: night - 20 * min, langs: ['he'] };
+    await telegramPost([s1], { athletes: [], cards: {}, gameInfo: {}, siteUrl: 'https://x.test/' }, ready, night);
+    assert.equal(bodies.length, 1);
+    assert.equal(bodies[0].disable_notification, true);
+    const s2 = story('הודעה רשמית בצהריים', { ed: 90, age: 20 });
+    await telegramPost([s2], { athletes: [], cards: {}, gameInfo: {}, siteUrl: 'https://x.test/' }, ready, now);
+    assert.equal(bodies[1].disable_notification, undefined);
+  } finally {
+    globalThis.fetch = before;
+    process.env = env;
+  }
+});

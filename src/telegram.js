@@ -4,7 +4,7 @@
 //
 // - ☀️ Morning briefing once a day after 06:00 Israel time: the night's top stories (world first) + how the Israelis
 //   abroad did. The same list is pinned on the site until noon (morningBrief → news.json "brief").
-// - 🔔 Alerts (not 01:00–06:00): the stories at the top of the site's main page — a story is posted the first time it
+// - 🔔 Alerts (01:00–06:00 silently, without a sound): the stories at the top of the site's main page — a story is posted the first time it
 //   is in the main page's top 10 (same order as the page), and reporters' scoops (🔴) at once. At most 4 per run,
 //   15 per hour, 120 per day; every story / event once.
 
@@ -14,7 +14,7 @@ const API = 'https://api.telegram.org/bot';
 const PER_RUN = 4;
 const PER_HOUR = 15;
 const PER_DAY = 120;
-const QUIET = [1, 6]; // no alerts from 01:00 to 05:59 Israel time
+const QUIET = [1, 6]; // 01:00–05:59 Israel time: alerts still go out, but silently (no sound / vibration)
 // competitions the editors follow (tag ids from src/entities.js)
 const BRIEF_HOUR = 6; // the morning editor starts at 6
 
@@ -158,11 +158,11 @@ function briefingText(top, athletes, cards, gameInfo, now, siteUrl) {
   return `☀️ <b>בוקר טוב — מה קרה בלילה בעולם</b>\n\n${lines.join('\n')}${abroad.length ? `\n\n✈️ <b>הליגיונרים</b>\n${abroad.join('\n')}` : ''}\n\n<a href="${esc(siteUrl)}">לכל החדשות ברדאר ספורט</a>`;
 }
 
-async function send(token, chat, text, preview) {
+async function send(token, chat, text, preview, silent = false) {
   const res = await fetch(`${API}${token}/sendMessage`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ chat_id: chat, text, parse_mode: 'HTML', link_preview_options: { is_disabled: !preview } }),
+    body: JSON.stringify({ chat_id: chat, text, parse_mode: 'HTML', link_preview_options: { is_disabled: !preview }, ...(silent ? { disable_notification: true } : {}) }),
     signal: AbortSignal.timeout(15000),
   });
   const j = await res.json().catch(() => ({}));
@@ -231,7 +231,8 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     const switching = prev.rule !== 'main-top';
     st.rule = 'main-top';
     if (firstRun || switching) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now)); // first run / the switch to the main-page rule: no flood
-    else if (il.hour < QUIET[0] || il.hour >= QUIET[1]) {
+    else {
+      const silent = il.hour >= QUIET[0] && il.hour < QUIET[1]; // at night: posted without a sound
       const room = Math.min(PER_RUN, PER_HOUR - st.hour.length, PER_DAY - st.dayCount);
       let left = Math.max(0, room);
       for (const s of fresh.filter((x) => !needsVerdict(x, now))) {
@@ -241,7 +242,7 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
           st.sent[keyOf.get(s)] = now; // already posted from another outlet: never post it
           continue;
         }
-        await send(token, chat, alertText(s, siteUrl, new Map((athletes || []).map((a) => [a.name, a.name_he || a.name]))), true);
+        await send(token, chat, alertText(s, siteUrl, new Map((athletes || []).map((a) => [a.name, a.name_he || a.name]))), true, silent);
         st.sent[keyOf.get(s)] = now;
         st.recent.push({ ...fp, at: now });
         st.hour.push(now);
