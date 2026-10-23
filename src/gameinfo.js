@@ -62,8 +62,11 @@ export async function loadGameInfo(athletes, teamCache, prev = {}, now = Date.no
   const byTeam = new Map();
   for (const a of athletes) {
     if (a.role === 'coach') continue; // not in a lineup: no "not in squad" status for a coach
-    const id = teamCache[`${a.sport}|${a.team}`]?.id;
-    if (id) (byTeam.get(id) || byTeam.set(id, []).get(id)).push(a);
+    // his team, and a second team whose games he can also be in (src/athletes.js team2)
+    for (const t of [a.team, a.team2].filter(Boolean)) {
+      const id = teamCache[`${a.sport}|${t}`]?.id;
+      if (id && !(byTeam.get(id) || []).includes(a)) (byTeam.get(id) || byTeam.set(id, []).get(id)).push(a);
+    }
   }
   if (!byTeam.size) return { at: now, games: {} };
   const cur = await get('games/current', { competitors: [...byTeam.keys()].join(',') });

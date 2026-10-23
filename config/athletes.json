@@ -42,5 +42,6 @@
   {"name":"Lisav Eissat","name_he":"ליסב עיסאת","alt":["Eissat","עיסאת"],"team":"Bristol City","team_he":"בריסטול סיטי","team_alt":[],"country":"england","sport":"football"},
   {"name":"Ofri Arad","name_he":"עופרי ארד","alt":[],"team":"FCSB","team_he":"סטיאווה בוקרשט","team_alt":["Steaua Bucuresti","Steaua"],"country":"romania","sport":"football","team365":2041},
   {"name":"Dia Saba","name_he":"דיא סבע","alt":["סבע"],"team":"Amed SK","team_he":"אמדספור","team_alt":["Amedspor","Amed Sportif"],"country":"turkey","sport":"football","team365":26968},
-  {"name":"Barak Yitzhaki","name_he":"ברק יצחקי","alt":["Barak Itzhaki","Barak Yitshaki","Yitzhaki","Itzhaki","יצחקי"],"team":"Anorthosis Famagusta","team_he":"אנורתוזיס פמגוסטה","team_alt":["Anorthosis","Ανόρθωση","אנורתוסיס"],"country":"cyprus","sport":"football","local":["Μπάρακ Ιτζάκι","Ιτζάκι"],"role":"coach"}
+  {"name":"Barak Yitzhaki","name_he":"ברק יצחקי","alt":["Barak Itzhaki","Barak Yitshaki","Yitzhaki","Itzhaki","יצחקי"],"team":"Anorthosis Famagusta","team_he":"אנורתוזיס פמגוסטה","team_alt":["Anorthosis","Ανόρθωση","אנורתוסיס"],"country":"cyprus","sport":"football","local":["Μπάρακ Ιτζάκι","Ιτζάκι"],"role":"coach"},
+  {"name":"Orian Goren","name_he":"אוריין גורן","alt":["Goren","גורן"],"team":"FC Barcelona Atlètic","team_he":"ברצלונה אתלטיק","team_alt":["Barça Atlètic","Barca Atletic","Barcelona Atletic","Barcelona B"],"country":"spain","sport":"football","team365":7613,"team2":"Barcelona","team2_365":132,"team2_alt":["FC Barcelona","Barça","Barca","ברצלונה","ברסה","בארסה"]}
 ]

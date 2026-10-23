@@ -1939,7 +1939,7 @@ const scoresVisible = () => isDesktop() || (state.view === 'panel' && state.pane
 
 async function loadScores() {
   clearTimeout(scoresTimer);
-  const teamIds = [...new Set((state.athletes?.athletes || []).map((a) => a.teamId).filter(Boolean))];
+  const teamIds = [...new Set((state.athletes?.athletes || []).flatMap((a) => [a.teamId, a.teamId2]).filter(Boolean))];
   const wanted = scoresVisible() || (state.notif.enabled && state.notif.scores);
   if (wanted) {
     try {
@@ -1998,7 +1998,7 @@ function notifyStories(data, freshIds, prevGen) {
 
 function notifyScores(prev, next) {
   if (!state.notif.enabled || !state.notif.scores || !prev || !next) return;
-  const teamIds = new Set((state.athletes?.athletes || []).map((a) => a.teamId).filter(Boolean));
+  const teamIds = new Set((state.athletes?.athletes || []).map((a) => a.teamId).filter(Boolean)); // his own team only (not a second team)
   const before = new Map(prev.games.map((g) => [g.id, g]));
   for (const g of next.games) {
     const h = g.homeCompetitor, a = g.awayCompetitor;

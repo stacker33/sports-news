@@ -66,6 +66,10 @@ export function normalizeAthlete(a) {
     ...(Array.isArray(a.local) && a.local.length ? { local: a.local.map(str).filter(Boolean) } : {}),
     // a 365Scores team id, when searching by name finds the wrong team ("Utah" → Utah Jazz)
     ...(Number(a.team365) > 0 ? { team365: Number(a.team365) } : {}),
+    // a second team whose games he can also be in (a reserves player who trains / plays with the first team):
+    // its games are watched for his lineup status, and its names count as his club next to his surname. It is not
+    // one of "his teams" for tagging (every Barcelona story would otherwise be an Israelis-abroad story).
+    ...(str(a.team2) ? { team2: str(a.team2), team2_alt: (Array.isArray(a.team2_alt) ? a.team2_alt : []).map(str).filter(Boolean), ...(Number(a.team2_365) > 0 ? { team2_365: Number(a.team2_365) } : {}) } : {}),
   };
 }
 
@@ -97,6 +101,7 @@ async function resolveTeam(team, sport) {
 export async function resolveTeams(athletes, cache = {}) {
   const out = { ...cache };
   const byKey = new Map(athletes.filter((a) => a.team).map((a) => [`${a.sport}|${a.team}`, a]));
+  for (const a of athletes) if (a.team2 && !byKey.has(`${a.sport}|${a.team2}`)) byKey.set(`${a.sport}|${a.team2}`, { sport: a.sport, team: a.team2, team_alt: a.team2_alt || [], ...(a.team2_365 ? { team365: a.team2_365 } : {}) });
   for (const [key, a] of byKey) {
     if (a.team365) {
       if (out[key]?.id !== a.team365) out[key] = { id: a.team365, name: a.team.replace(/ (Utes|Volunteers)$/, ''), imageVersion: 1 };
@@ -207,7 +212,8 @@ export function buildMatchers(athletes, teamCache) {
   const players = athletes.map((a) => {
     const terms = [a.name, a.name_he, ...a.alt, ...(a.local || [])].filter(Boolean);
     const full = teamCache?.[`${a.sport}|${a.team}`]?.name;
-    const context = [a.team, a.team_he, full, ...(a.team_alt || []), ...ISRAEL_CTX].filter(Boolean).map(matcher);
+    const full2 = a.team2 ? teamCache?.[`${a.sport}|${a.team2}`]?.name : null;
+    const context = [a.team, a.team_he, full, ...(a.team_alt || []), a.team2, full2, ...(a.team2_alt || []), ...ISRAEL_CTX].filter(Boolean).map(matcher);
     return {
       name: a.name,
       test: terms.map((x) => (/\s/.test(x.trim()) ? matcher(x) : surnameMatcher(x, context))),

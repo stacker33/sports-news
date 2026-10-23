@@ -615,7 +615,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     nationalSquad: ilSquad.names,
     cards: cards.cards,
     suggestions: athleteSuggestions(athletes, teamCache, edb, await readJson(join(ROOT, 'private', 'ignored.json'), [])),
-    athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null })),
+    athletes: athletes.map((a) => ({ ...a, teamId: teamCache[`${a.sport}|${a.team}`]?.id ?? null, teamFull: teamCache[`${a.sport}|${a.team}`]?.name ?? null, ...(a.team2 ? { teamId2: teamCache[`${a.sport}|${a.team2}`]?.id ?? null } : {}) })),
   });
   // Source health for the "system" panel: last check, last success, consecutive failures; quiet ≠ failed
   const sourceHealth = sources.filter((s) => !s.trend && !s.watch).map((s) => {

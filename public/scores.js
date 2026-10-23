@@ -183,8 +183,15 @@
       return;
     }
     const playersByTeam = {};
-    for (const p of players) if (p.teamId) (playersByTeam[p.teamId] ||= []).push(p);
-    const mine = (g) => [...(playersByTeam[g.homeCompetitor.id] || []), ...(playersByTeam[g.awayCompetitor.id] || [])];
+    // his team, and a second one whose games he can also be in (teamId2: a reserves player with the first team). A
+    // second-team game is his only when he is listed in it (squad / bench / injured), not "not in squad" every week.
+    const secondByTeam = {};
+    for (const p of players) {
+      if (p.teamId) (playersByTeam[p.teamId] ||= []).push(p);
+      if (p.teamId2 && p.teamId2 !== p.teamId) (secondByTeam[p.teamId2] ||= []).push(p);
+    }
+    const listed = (g, p) => !!ctx.gameInfo?.[g.id]?.players?.[p.name];
+    const mine = (g) => [g.homeCompetitor.id, g.awayCompetitor.id].flatMap((id) => [...(playersByTeam[id] || []), ...(secondByTeam[id] || []).filter((p) => listed(g, p))]);
     const starsOf = (g) =>
       mine(g).map((p) => ({
         name: lang === 'he' && p.name_he ? p.name_he : p.name,
