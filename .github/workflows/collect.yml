@@ -1,5 +1,5 @@
 # Runs the collector on GitHub's servers every ~5 minutes and publishes the app to GitHub Pages.
-# Free for public repositories. The previous run's state is downloaded from the live site,
+# Free for public repositories. The previous run's state comes from the Actions cache (fallback: the live site),
 # so nothing is committed to the repo on each run.
 name: Collect news
 
@@ -43,24 +43,43 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
 
-      - name: Restore previous state from the live site
+      # The radar's memory (state.json, entities.json) is kept in GitHub's Actions cache: free, and not counted
+      # against GitHub Pages' ~100 GB/month bandwidth (downloading it from the site every run was ~220 GB a month).
+      # The newest saved copy is restored here; the site download below is the fallback.
+      - name: Restore previous state from the Actions cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .state-cache
+          key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: radar-state-
+
+      - name: Restore previous state (cache, else the live site)
         run: |
           mkdir -p public/data
-          # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
-          # --compressed: Pages sends gzip (state.json 78.7 MB -> 25.6 MB on the wire); curl unpacks it, same bytes on disk
-          # The state is required: download to a temporary file, check it (scripts/restore-state.mjs), then put it in
-          # place. A failed, cut-off or invalid download stops the run here, before collection and publishing; the
-          # site keeps its last good version. Never continues with an empty or unverified state.
-          rm -f public/data/state.json.download
-          if ! curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json.download; then
+          # 1. The cached copy, when it is valid and at least as new as the site's latest publish (scripts/pick-state.mjs)
+          curl -sfL "${{ steps.pages.outputs.base_url }}/data/version.json?t=$(date +%s)" -o .site-version.json || rm -f .site-version.json
+          if node scripts/pick-state.mjs .state-cache/state.json .site-version.json public/data/state.json; then
+            echo "Memory from the Actions cache (no download from the site)"
+          else
+            # 2. Fallback: the live site, as before.
+            # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
+            # --compressed: Pages sends gzip (state.json 78.7 MB -> 25.6 MB on the wire); curl unpacks it, same bytes on disk
+            # The state is required: download to a temporary file, check it (scripts/restore-state.mjs), then put it in
+            # place. A failed, cut-off or invalid download stops the run here, before collection and publishing; the
+            # site keeps its last good version. Never continues with an empty or unverified state.
             rm -f public/data/state.json.download
-            echo "state:download" > .state-error
-            echo "::error::Previous state could not be downloaded. Stopping before collection and publishing."
-            exit 1
+            if ! curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json.download; then
+              rm -f public/data/state.json.download
+              echo "state:download" > .state-error
+              echo "::error::Previous state could not be downloaded. Stopping before collection and publishing."
+              exit 1
+            fi
+            node scripts/restore-state.mjs public/data/state.json.download public/data/state.json .state-error
           fi
-          node scripts/restore-state.mjs public/data/state.json.download public/data/state.json .state-error
           # The topic knowledge base is optional (src/entities.js rebuilds it when missing): only a complete file is used
-          if curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json.download \
+          if [ -f .state-cache/entities.json ] && node -e "JSON.parse(require('fs').readFileSync('.state-cache/entities.json', 'utf8'))"; then
+            cp .state-cache/entities.json public/data/entities.json
+          elif curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json.download \
             && node -e "JSON.parse(require('fs').readFileSync('public/data/entities.json.download', 'utf8'))"; then
             mv public/data/entities.json.download public/data/entities.json
           else
@@ -84,6 +103,31 @@ jobs:
           # ✉️ the radar's own Gmail for "send to web@sport5.co.il" (src/mailer.js); empty = the page opens the editor's mail program
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+
+      # Keep this run's memory for the next run (see "Restore previous state from the Actions cache")
+      - name: Copy the new state for the Actions cache
+        continue-on-error: true # a cache problem never blocks publishing: the next run falls back to the site
+        run: |
+          mkdir -p .state-cache
+          cp public/data/state.json .state-cache/state.json
+          if [ -f public/data/entities.json ]; then cp public/data/entities.json .state-cache/entities.json; fi
+
+      - name: Save the new state in the Actions cache
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: .state-cache
+          key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
+
+      # Each run saves a new copy (cache entries can't be overwritten): keep the newest 5, delete the rest, so the
+      # 10 GB cache never fills up and GitHub never has to evict anything itself.
+      - name: Delete older state copies from the Actions cache
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache list --repo "${{ github.repository }}" --key radar-state- --sort created_at --order desc --limit 100 --json id --jq '.[5:][].id' \
+            | xargs -r -n1 gh cache delete --repo "${{ github.repository }}"
 
       - name: Tell the admin if the collection failed
         if: failure()
