@@ -68,14 +68,14 @@ test('someone already on the list (built-in or suggested) is noted, not asked ag
   assert.equal(t.calls.filter((c) => c.method === 'sendMessage').length, 1);
 });
 
-test('the feedback channel carries suggestions, 5 a day per device', async () => {
+test('the feedback channel carries suggestions (20 a day per device)', async () => {
   const lines = [];
   for (let i = 0; i < 7; i++) lines.push(JSON.stringify({ id: `m${i}`, event: 'message', time: now / 1000, message: JSON.stringify({ v: 1, device: 'dev1', type: 'athlete', name: `Player Number${i}`, team: 'Ajax' }) }));
   const before = globalThis.fetch;
   globalThis.fetch = async () => ({ ok: true, text: async () => lines.join('\n') });
   try {
     const { athleteReqs } = await loadFeedback({}, now);
-    assert.equal(athleteReqs.length, 5);
+    assert.equal(athleteReqs.length, 7); // under the 20-a-day limit
   } finally {
     globalThis.fetch = before;
   }

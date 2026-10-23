@@ -11,8 +11,8 @@ const VOTES_PER_DEVICE_DAY = 200;
 const REPORTS_PER_DEVICE_DAY = 20;
 const SEARCHES_PER_DEVICE_DAY = 40; // "my topics" renew their searches daily
 const MAILS_PER_DEVICE_DAY = 30; // ✉️ "send to web@sport5.co.il" (src/mailer.js)
-const ATHLETES_PER_DEVICE_DAY = 5; // ✈️ "suggest an Israeli abroad" (src/userathletes.js; the admin approves each one)
-const SOURCES_PER_DEVICE_DAY = 5; // ➕ "add a source" requests (src/usersources.js; the admin approves each one)
+const ATHLETES_PER_DEVICE_DAY = 20; // keep in step with DAILY_LIMIT in public/app.js // ✈️ "suggest an Israeli abroad" (src/userathletes.js; the admin approves each one)
+const SOURCES_PER_DEVICE_DAY = 5; // keep in step with DAILY_LIMIT in public/app.js; // ➕ "add a source" requests (src/usersources.js; the admin approves each one)
 
 // structured reasons (a fixed list: no free text goes through the public channel)
 export const VOTE_REASONS = ['useful', 'irrelevant', 'covered', 'duplicate', 'identity'];
