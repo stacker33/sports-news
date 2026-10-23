@@ -56,7 +56,7 @@ export function cleanUrl(raw) {
 }
 
 // the country ending of the address when the page doesn't say (some sites block the page fetch)
-const TLD_LANG = { il: 'he', de: 'de', at: 'de', it: 'it', es: 'es', ar: 'es', mx: 'es', uy: 'es', fr: 'fr', pt: 'pt', br: 'pt', gr: 'el', cy: 'el', nl: 'nl', be: 'nl', tr: 'tr', pl: 'pl', ro: 'ro', rs: 'sr', hr: 'hr', cz: 'cs', sk: 'sk', si: 'sl', bg: 'bg', hu: 'hu', se: 'sv', no: 'no', dk: 'da', jp: 'ja', ua: 'uk', sa: 'ar' };
+const TLD_LANG = { il: 'he', de: 'de', at: 'de', it: 'it', es: 'es', ar: 'es', mx: 'es', uy: 'es', fr: 'fr', pt: 'pt', br: 'pt', gr: 'el', cy: 'el', nl: 'nl', be: 'nl', tr: 'tr', pl: 'pl', ro: 'ro', rs: 'sr', hr: 'hr', cz: 'cs', sk: 'sk', si: 'sl', bg: 'bg', hu: 'hu', se: 'sv', no: 'no', dk: 'da', jp: 'ja', ua: 'uk', sa: 'ar', is: 'is', fi: 'fi' };
 function guessLang(htmlLang, titles, host = '') {
   if (htmlLang && /^[a-z]{2}$/.test(htmlLang)) return htmlLang;
   const t = titles.join(' ');
@@ -168,6 +168,8 @@ export async function processSourceRequests(prev = {}, requests = [], { now = Da
   // 1. the admin's button presses
   try {
     const updates = await call('getUpdates', { offset: st.offset || undefined, timeout: 0, limit: 100, allowed_updates: ['callback_query'] });
+    // diagnostics (no ids, no text): when Telegram was asked, how many updates came back, of which kinds
+    st.poll = { at: now, got: (updates || []).length, kinds: [...new Set((updates || []).map((u) => Object.keys(u).find((k) => k !== 'update_id')))].slice(0, 5) };
     for (const u of updates || []) {
       st.offset = Math.max(st.offset, u.update_id + 1);
       const cq = u.callback_query;
