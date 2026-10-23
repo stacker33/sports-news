@@ -4,11 +4,11 @@
 //
 // - ☀️ Morning briefing once a day after 06:00 Israel time: the night's top stories (world first) + how the Israelis
 //   abroad did. The same list is pinned on the site until noon (morningBrief → news.json "brief").
-// - 🔔 Alerts (not 01:00–06:00), world news first: reporters' scoops (🔴), stories spreading across countries /
-//   trending, the big leagues / Champions League / NBA / EuroLeague, important Israeli and Israelis-abroad news; the biggest
-//   world stories. At most 3 per run, 8 per hour, 40 per day; every story once.
+// - 🔔 Alerts (not 01:00–06:00): the stories at the top of the site's main page — a story is posted the first time it
+//   is in the main page's top 10 (same order as the page), and reporters' scoops (🔴) at once. At most 4 per run,
+//   15 per hour, 120 per day; every story / event once.
 
-import { isScoop, major } from './editorial.js';
+import { isScoop } from './editorial.js';
 
 const API = 'https://api.telegram.org/bot';
 const PER_RUN = 4;
@@ -27,8 +27,6 @@ export const ilParts = (ts) => {
 const icon = (s, hot = true) => `${hot && isScoop(s) ? '🔴 ' : ''}${s.israel ? '🇮🇱' : s.abroad ? '✈️' : '🌍'}${s.sport === 'football' ? '⚽' : s.sport === 'basketball' ? '🏀' : '🏅'}${hot && s.big ? '🔥' : ''}`;
 // Hebrew headline: the model's, else a Hebrew article's, else the machine translation, else this run's translation
 let heMap = new Map();
-// how much an editor wants this right now (world stories are first-class)
-const urgency = (s) => s.score + (!s.s5 || s.s5.probable || s.s5.where === 'channel' ? 2 : 0) + (s.s5?.newer >= 2 ? 1 : 0) + (isScoop(s) ? 6 : 0) + (s.trending || s.reddit || s.wikipedia ? 3 : 0) + (s.langs?.length >= 3 ? 2 : 0) + (major(s) ? 1.5 : 0);
 const titleHe = (s) => (s.lang === 'he' ? s.title : s.ai?.he?.title || s.t?.he?.title || heMap.get(s)) || s.title;
 
 // The same event from another outlet / language is not a new post (Coventry 4-1 Newcastle went out 7 times on
@@ -108,15 +106,32 @@ function abroadLines(athletes, cards, gameInfo, now) {
   return lines;
 }
 
+// ---------- the main page ("ראשי") ----------
+// The channel follows the site: a story is posted when it first reaches the top of the main page. Same rules as the
+// page (public/app.js: inTab 'top', foreignOnly, the off-beat filter, rankMix at the default slider 50): stories
+// with a foreign report (Israeli-only ones are in "Israeli monitoring", not on the main page), football / basketball
+// or a big other-sport story, not local / minor / low; ordered by half the editorial rank, half newness.
+export const MAIN_TOP = 10;
+const onMainPage = (s) => {
+  const src = s.sources || [];
+  if (src.some((x) => x.o === 'il') && !src.some((x) => x.o !== 'il')) return false; // Israeli sites only
+  if (src.some((x) => x.o === 'il') && !s.fv) return false;
+  return (s.sport !== 'other' || s.big) && !s.local && !s.low && !s.minor;
+};
+export const mainScore = (s, now) => 0.5 * ((s.ed?.score ?? 0) / 100) + 0.5 * Math.exp(-(now - s.first) / (6 * 3600e3));
+export function mainPage(stories, now) {
+  return stories.filter(onMainPage).sort((a, b) => mainScore(b, now) - mainScore(a, now));
+}
+
 // The night's 10 biggest stories (since ~21:00): world first — at most 3 Israeli ones
 export function briefingTop(stories, now) {
-  const rank = (s) => (s.pop ?? s.score) + (s.langs?.length >= 3 ? 2 : 0) + (s.big ? 1 : 0);
+  const rank = (s) => s.ed?.score ?? 0; // the main page's editorial rank (src/rank.js)
   let il = 0;
   // one place per event (2026-10-13: Coventry - Newcastle took 3 of the 10: the preview, a live update, the result),
   // the result rather than the preview; no live-score updates or "watch the stream" items
   const picked = [];
   for (const s of stories
-    .filter((s) => !s.dateUnknown && !s.local && !s.low && !s.minor && now - s.first < 10 * 3600e3 && (s.sport !== 'other' || s.big))
+    .filter((s) => onMainPage(s) && !s.dateUnknown && now - s.first < 10 * 3600e3)
     .filter((s) => !LIVE_ITEM.test(titleHe(s) || '') && !LIVE_ITEM.test(s.title || ''))
     .sort((a, b) => rank(b) - rank(a))) {
     const fp = fingerprint(s);
@@ -158,7 +173,7 @@ async function send(token, chat, text, preview) {
 export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl, translate }, prev = {}, now = Date.now()) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chat = process.env.TELEGRAM_CHAT;
-  const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, error: null };
+  const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, rule: prev.rule, error: null };
   for (const [k, t] of Object.entries(st.sent)) if (now - t > 3 * 864e5) delete st.sent[k];
   st.recent = (prev.recent || []).filter((r) => now - r.at < RECENT_H * 3600e3); // what was posted: fingerprints
   if (!token || !chat) return { tg: { ...st, error: 'no TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT' }, posted: 0 };
@@ -186,19 +201,20 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
   let posted = 0;
   try {
     const wantBrief = il.hour >= BRIEF_HOUR && il.hour < 12 && st.briefDay !== il.day;
-    const top = wantBrief ? briefingTop(stories, now) : [];
+    const brief = wantBrief ? briefingTop(stories, now) : [];
     const keyOf = new Map(stories.map((s) => [s, storyKey(s)]));
     const firstRun = !prev.sent; // don't flood the channel with everything that's already there
-    const worth = (s) =>
-      isScoop(s) || // reporters' scoops, at once
-      (s.sport !== 'other' && (s.big || s.trending || s.langs?.length >= 3 || (major(s) && s.sourceCount >= 3))) || // world: spreading / big leagues
-      (s.sport === 'other' && s.big && s.sourceCount >= 6) || // other sports: only the biggest
-      (s.abroad && (s.sourceCount >= 2 || s.social?.length)) ||
-      (s.israel && (s.big || s.sourceCount >= 4 || (s.breaking && s.sourceCount >= 2)));
-    const fresh = stories.filter((s) => !st.sent[keyOf.get(s)] && !s.dateUnknown && !s.local && !s.low && !s.minor && now - s.first < 90 * 60000 && worth(s));
+    // What goes out: a story the first time it is in the main page's top MAIN_TOP (up to 3 hours old), and a reporter's
+    // scoop at once (up to 90 minutes old) even before it climbs. In the order of the main page, scoops first.
+    const page = mainPage(stories, now);
+    const pos = new Map(page.map((s, i) => [s, i]));
+    const top = new Set(page.slice(0, MAIN_TOP));
+    const fresh = stories
+      .filter((s) => !st.sent[keyOf.get(s)] && !s.dateUnknown && pos.has(s) && ((top.has(s) && now - s.first < 3 * 3600e3) || (isScoop(s) && now - s.first < 90 * 60000)))
+      .sort((a, b) => (isScoop(b) ? 1 : 0) - (isScoop(a) ? 1 : 0) || pos.get(a) - pos.get(b));
     // Hebrew for headlines that only exist in English (one batch per run)
     heMap = new Map();
-    const needHe = [...new Set([...top, ...fresh.slice(0, PER_RUN * 2)])].filter((s) => !isHe(titleHe(s)));
+    const needHe = [...new Set([...brief, ...fresh.slice(0, PER_RUN * 2)])].filter((s) => !isHe(titleHe(s)));
     if (translate && needHe.length) {
       try {
         const out = await translate(needHe.map((s) => s.title));
@@ -207,16 +223,18 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     }
     // ☀️ morning briefing
     if (wantBrief) {
-      await send(token, chat, briefingText(top, athletes, cards, gameInfo, now, siteUrl), false);
+      await send(token, chat, briefingText(brief, athletes, cards, gameInfo, now, siteUrl), false);
       st.briefDay = il.day;
       posted++;
     }
     // 🔔 alerts
-    if (firstRun) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now));
+    const switching = prev.rule !== 'main-top';
+    st.rule = 'main-top';
+    if (firstRun || switching) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now)); // first run / the switch to the main-page rule: no flood
     else if (il.hour < QUIET[0] || il.hour >= QUIET[1]) {
       const room = Math.min(PER_RUN, PER_HOUR - st.hour.length, PER_DAY - st.dayCount);
       let left = Math.max(0, room);
-      for (const s of fresh.filter((x) => !needsVerdict(x, now)).sort((a, b) => urgency(b) - urgency(a))) {
+      for (const s of fresh.filter((x) => !needsVerdict(x, now))) {
         if (!left) break;
         const fp = fingerprint(s);
         if (st.recent.some((r) => sameEvent(fp, r))) {
