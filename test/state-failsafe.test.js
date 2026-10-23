@@ -77,7 +77,7 @@ test('workflow: a failed restore cannot be swallowed — no fallbacks, and uploa
   const yml = readFileSync(join(ROOT, '.github', 'workflows', 'collect.yml'), 'utf8').replace(/\r\n/g, '\n');
   const steps = yml.split(/\n {6}- /).slice(1);
   const find = (re) => steps.find((s) => re.test(s));
-  const restore = find(/name: Restore previous state \(cache, else the live site\)/);
+  const restore = find(/name: Restore previous state \(backup, else stop\)/);
   assert.ok(restore, 'restore step');
   assert.match(restore, /state\.json\.download/); // downloads to a temporary file
   assert.match(restore, /exit 1/); // a failed download stops the step

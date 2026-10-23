@@ -1,5 +1,5 @@
 # Runs the collector on GitHub's servers every ~5 minutes and publishes the app to GitHub Pages.
-# Free for public repositories. The previous run's state comes from the Actions cache (fallback: the live site),
+# Free for public repositories. The previous run's state comes from the Actions cache (fallback: a daily backup there),
 # so nothing is committed to the repo on each run.
 name: Collect news
 
@@ -43,9 +43,9 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
 
-      # The radar's memory (state.json, entities.json) is kept in GitHub's Actions cache: free, and not counted
-      # against GitHub Pages' ~100 GB/month bandwidth (downloading it from the site every run was ~220 GB a month).
-      # The newest saved copy is restored here; the site download below is the fallback.
+      # The radar's memory (state.json, entities.json) lives in GitHub's Actions cache: free, not counted against
+      # GitHub Pages' ~100 GB/month bandwidth, and not public (the site no longer publishes state.json).
+      # Order: the newest saved copy → the daily backup copy → stop. Never an empty or unverified state.
       - name: Restore previous state from the Actions cache
         uses: actions/cache/restore@v4
         with:
@@ -53,38 +53,61 @@ jobs:
           key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: radar-state-
 
-      - name: Restore previous state (cache, else the live site)
+      - name: Use the cached state
+        id: main
         run: |
           mkdir -p public/data
-          # 1. The cached copy, when it is valid and at least as new as the site's latest publish (scripts/pick-state.mjs)
+          # the site's latest publish time (data/version.json): logged when the cached copy is older
           curl -sfL "${{ steps.pages.outputs.base_url }}/data/version.json?t=$(date +%s)" -o .site-version.json || rm -f .site-version.json
-          if node scripts/pick-state.mjs .state-cache/state.json .site-version.json public/data/state.json; then
-            echo "Memory from the Actions cache (no download from the site)"
+          if node scripts/pick-state.mjs .state-cache/state.json .site-version.json public/data/state.json --allow-older; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "STATE_FROM=cache" >> "$GITHUB_ENV"
           else
-            # 2. Fallback: the live site, as before.
-            # ?t= skips the Pages CDN cache (~10 min), so a run never starts from an older run's state
-            # --compressed: Pages sends gzip (state.json 78.7 MB -> 25.6 MB on the wire); curl unpacks it, same bytes on disk
-            # The state is required: download to a temporary file, check it (scripts/restore-state.mjs), then put it in
-            # place. A failed, cut-off or invalid download stops the run here, before collection and publishing; the
-            # site keeps its last good version. Never continues with an empty or unverified state.
-            rm -f public/data/state.json.download
-            if ! curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json.download; then
-              rm -f public/data/state.json.download
-              echo "state:download" > .state-error
-              echo "::error::Previous state could not be downloaded. Stopping before collection and publishing."
-              exit 1
-            fi
-            node scripts/restore-state.mjs public/data/state.json.download public/data/state.json .state-error
+            echo "ok=false" >> "$GITHUB_OUTPUT"
           fi
-          # The topic knowledge base is optional (src/entities.js rebuilds it when missing): only a complete file is used
-          if [ -f .state-cache/entities.json ] && node -e "JSON.parse(require('fs').readFileSync('.state-cache/entities.json', 'utf8'))"; then
-            cp .state-cache/entities.json public/data/entities.json
-          elif curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json.download \
-            && node -e "JSON.parse(require('fs').readFileSync('public/data/entities.json.download', 'utf8'))"; then
-            mv public/data/entities.json.download public/data/entities.json
-          else
-            rm -f public/data/entities.json.download
-            echo "No usable topic knowledge base (rebuilt over the next runs)"
+
+      - name: Restore the daily backup from the Actions cache
+        if: steps.main.outputs.ok != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .state-backup
+          key: radar-backup-none
+          restore-keys: radar-backup-
+
+      - name: Restore previous state (backup, else stop)
+        if: steps.main.outputs.ok != 'true'
+        run: |
+          # 2. The daily backup (up to a day old: some recent articles are collected again; nothing else is lost)
+          if node scripts/pick-state.mjs .state-backup/state.json .site-version.json public/data/state.json --allow-older; then
+            echo "::warning::The newest state copy was missing or invalid: started from the daily backup."
+            echo "STATE_FROM=backup" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          # 3. Last resort while the site still publishes a copy (removed from the site on 2026-10-24): validated, else stop
+          rm -f public/data/state.json.download
+          if ! curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/state.json?t=$(date +%s)" -o public/data/state.json.download; then
+            rm -f public/data/state.json.download
+            echo "state:missing" > .state-error
+            echo "::error::No usable state (cache, backup or site). Stopping before collection and publishing; the site keeps its last version."
+            exit 1
+          fi
+          node scripts/restore-state.mjs public/data/state.json.download public/data/state.json .state-error
+          echo "STATE_FROM=site" >> "$GITHUB_ENV"
+
+      - name: Restore the topic knowledge base
+        run: |
+          # Optional (src/entities.js rebuilds it when missing): only a complete file is used
+          for f in .state-cache/entities.json .state-backup/entities.json; do
+            if [ -f "$f" ] && node -e "JSON.parse(require('fs').readFileSync('$f', 'utf8'))"; then cp "$f" public/data/entities.json; break; fi
+          done
+          if [ ! -f public/data/entities.json ]; then
+            if curl -sfL --compressed "${{ steps.pages.outputs.base_url }}/data/entities.json?t=$(date +%s)" -o public/data/entities.json.download \
+              && node -e "JSON.parse(require('fs').readFileSync('public/data/entities.json.download', 'utf8'))"; then
+              mv public/data/entities.json.download public/data/entities.json
+            else
+              rm -f public/data/entities.json.download
+              echo "No usable topic knowledge base (rebuilt over the next runs)"
+            fi
           fi
 
       - name: Collect
@@ -119,6 +142,19 @@ jobs:
           path: .state-cache
           key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
 
+      # Once a day the same copy is also kept as a backup (the first run of each UTC day saves it; later runs find the
+      # key taken and skip). Kept separately from the copies the cleanup below deletes.
+      - name: Day key for the backup
+        id: day
+        run: echo "key=radar-backup-$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Save the daily backup in the Actions cache
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: .state-cache
+          key: ${{ steps.day.outputs.key }}
+
       # Each run saves a new copy (cache entries can't be overwritten): keep the newest 5, delete the rest, so the
       # 10 GB cache never fills up and GitHub never has to evict anything itself.
       - name: Delete older state copies from the Actions cache
@@ -128,6 +164,8 @@ jobs:
         run: |
           gh cache list --repo "${{ github.repository }}" --key radar-state- --sort created_at --order desc --limit 100 --json id --jq '.[5:][].id' \
             | xargs -r -n1 gh cache delete --repo "${{ github.repository }}"
+          # daily backups: the newest 3
+          gh cache list --repo "${{ github.repository }}" --key radar-backup- --sort created_at --order desc --limit 50 --json id --jq '.[3:][].id' \n            | xargs -r -n1 gh cache delete --repo "${{ github.repository }}"
 
       - name: Tell the admin if the collection failed
         if: failure()
@@ -143,6 +181,10 @@ jobs:
             curl -s "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d chat_id="$TELEGRAM_ADMIN_CHAT" \
               --data-urlencode text="⚠️ רדאר ספורט: ריצת האיסוף נכשלה${REASON:+ ($REASON)} — $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > /dev/null
           fi
+
+      # The memory is not published: it stays in the Actions cache (it held the admin's Telegram id and editors' data)
+      - name: Keep the memory off the public site
+        run: rm -f public/data/state.json public/data/*.download
 
       - uses: actions/upload-pages-artifact@v3
         with:

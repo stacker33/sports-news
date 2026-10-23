@@ -664,6 +664,19 @@ export async function collect({ log = console.log, force = false } = {}) {
   for (const it of trimmed) dropped[it.id] = now + KEEP_ITEMS_H * 3600e3;
   for (const it of trimmed) delete tr[it.id];
   if (trimmed.length) log(`[trim] ${trimmed.length} local-source articles with nothing to show dropped from the memory`);
+  // A small public status file (the memory itself is no longer published): what a check from outside needs, with no
+  // ids, names or texts
+  const count = (l, st) => (l || []).filter((e) => e.status === st).length;
+  await writeJson(join(DATA, 'status.json'), {
+    generatedAt: now,
+    stateFrom: process.env.STATE_FROM || null, // cache | backup | site (set by the workflow)
+    articles: keepItems.length,
+    trimmed: trimmed.length,
+    mail: { enabled: mailEnabled(), day: mail.day || null, sent: mail.count || 0, waiting: (mail.queue || []).length, error: mail.error || null },
+    sites: { waiting: count(userSourcesSt.list, 'pending'), approved: count(userSourcesSt.list, 'approved'), queue: (userSourcesSt.queue || []).length, error: userSourcesSt.error || null },
+    athletes: { waiting: count(userAthletesSt.list, 'pending'), approved: count(userAthletesSt.list, 'approved'), queue: (userAthletesSt.queue || []).length, error: userAthletesSt.error || null },
+    votes: Object.keys(feedback.votes || {}).length,
+  });
   await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
 
   log(
