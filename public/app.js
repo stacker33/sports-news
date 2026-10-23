@@ -98,7 +98,7 @@ const T = {
     reasons: { url: 'מדור האתר', section: 'מדור האתר', feed: 'מקור ייעודי לענף', names: 'שמות שחקנים/קבוצות', kw: 'מילות מפתח', 'kw-other': 'מילות מפתח של ענף אחר', 'kw-weak': 'מילות מפתח (חלש)', model: 'מודל למידה', 'model-weak': 'מודל למידה (ביטחון נמוך)', 'in-the-news': 'ההקשר החדשותי של הקבוצה', score: 'תוצאת המשחק', user: 'תיקון עורך', uncertain: 'אין ראיה ברורה', athlete: 'ישראלי בחו"ל', 'il-clubs': 'שמות מועדונים', tie: 'שוויון ראיות' },
     sys: { btn: 'מצב המערכת', title: '🛠️ מצב המערכת', sourcesOk: (ok, all) => `${ok}/${all} מקורות תקינים`, failing: (n) => `⚠️ ${n} מקורות לא עובדים`, ai: 'סיכומי AI', aiOk: (u, cap) => `פעיל · ${u}/${cap} בקשות היום`, aiOff: (e) => `לא פעיל — ${e}. האתר ממשיך עם תרגום רגיל.`, sources: 'מקורות', quiet: 'שקט (אין פריטים)', lastOk: 'הצלחה אחרונה', never: 'מעולם', rejected: 'פריטים שסוננו (24 שעות)', why: { junk: 'כותרת זבל / הימורים / לייב', 'site-title': 'שם אתר במקום כותרת', 'general-feed': 'פיד כללי — לא ספורט', section: 'מדור שאינו ספורט', 'no-sport': 'אין ראיה לספורט', rival: 'עיתונות יריבה לא קשורה למשחק', user: 'הוסתר על ידי עורך', video: 'תקציר וידאו בלי זווית ישראלית', hidden: 'מוסתר' }, close: 'סגירה', updated: (t) => `עודכן ${t}`, took: (s) => `ריצה אחרונה: ${s} שנ׳` }, s5Tip: 'פורסם בספורט 5 — לחצו לכתבה', s5Probable: '☑️ כנראה בספורט 5', s5ProbTip: 'בספורט 5 יש כתבה מאותו יום על אותו נושא (בניסוח אחר) — לחצו לבדיקה',
     s5Filter: '🔴 רק בלי התאמה בספורט 5', s5FilterTip: 'ידיעות שלא נמצאה להן התאמה בספורט 5. התאמות אפשריות נשארות ומסומנות',
-    addSrc: { open: '➕ להוסיף אתר לרדאר', title: '➕ הוספת אתר לרדאר', url: 'כתובת האתר', name: 'שם האתר (לא חובה)', note: 'למה כדאי? (לא חובה)', by: 'שם (לא חובה)', hint: 'מנהל המערכת מאשר כל אתר. אחרי האישור הידיעות שלו מופיעות אצל כל העורכים, תוך כמה דקות.', send: 'שליחה לאישור', cancel: 'ביטול', bad: 'כתבו כתובת אתר מלאה, למשל https://www.marca.com', sent: '➕ נשלח לאישור. אחרי האישור האתר ייכנס לרדאר אצל כולם', known: 'האתר הזה כבר ברדאר (או ממתין לאישור), אין צורך להוסיף אותו', list: 'אתרים שעורכים ביקשו להוסיף', status: { pending: '⏳ ממתין לאישור', approved: '✅ ברדאר', rejected: '❌ נדחה', removed: '🗑️ הוסר', exists: '☑️ כבר ברדאר', failed: '⚠️ לא נמצאו באתר ידיעות לקריאה' } },
+    addSrc: { open: '➕ להוסיף אתר לרדאר', title: '➕ הוספת אתר לרדאר', url: 'כתובת האתר', name: 'שם האתר (לא חובה)', note: 'למה כדאי? (לא חובה)', by: 'שם (לא חובה)', hint: 'מנהל המערכת מאשר כל אתר. אחרי האישור הידיעות שלו מופיעות אצל כל העורכים, תוך כמה דקות.', send: 'שליחה לאישור', cancel: 'ביטול', bad: 'כתבו כתובת אתר מלאה, למשל https://www.marca.com', sent: '➕ נשלח לאישור. אחרי האישור האתר ייכנס לרדאר אצל כולם', known: '☑️ האתר כבר ברשימה', list: 'אתרים שעורכים ביקשו להוסיף', status: { pending: '⏳ ממתין לאישור', approved: '✅ ברדאר', rejected: '❌ נדחה', removed: '🗑️ הוסר', exists: '☑️ כבר ברדאר', failed: '⚠️ לא נמצאו באתר ידיעות לקריאה' } },
     mailQueued: '✉️ נשלח ל-web@sport5.co.il, יגיע תוך כ-5 דקות', mailFail: 'השליחה לא הצליחה, פותח את תוכנת המייל', mailName: 'איך לחתום על המייל? (שם, לא חובה)',
     report: { btn: 'דיווח: ידיעה שפוספסה, סיווג שגוי או רעיון', title: '📣 דיווח למנהל המערכת', text: 'מה קרה?', textPh: 'למשל: הידיעה על החתימה של X לא הופיעה / ידיעה בכדורגל נכנסה לכדורסל / הייתי רוצה ש…', link: 'קישור (לא חובה)', name: 'שם (לא חובה)', send: 'שליחה', cancel: 'ביטול', sent: '📣 הדיווח נשלח — תודה!', empty: 'כתבו מה קרה' },
     vote: { up: 'שווה סיקור', down: 'לא רלוונטי לנו', count: (u, d) => `👍 ${u} · 👎 ${d} (עורכים)`, whyQ: 'למה?', thanks: 'תודה, נרשם', reasons: { irrelevant: 'לא רלוונטי', covered: 'כבר סוקר', duplicate: 'כפילות', identity: 'זיהוי שגוי (אדם/קבוצה אחרים)' } },
@@ -262,7 +262,7 @@ const T = {
     reasons: { url: 'site section', section: 'site section', feed: 'sport-specific source', names: 'player/team names', kw: 'keywords', 'kw-other': "another sport's keywords", 'kw-weak': 'keywords (weak)', model: 'learned model', 'model-weak': 'learned model (low confidence)', 'in-the-news': "the club's news context", score: 'the score', user: 'editor correction', uncertain: 'no clear evidence', athlete: 'Israeli abroad', 'il-clubs': 'club names', tie: 'tied evidence' },
     sys: { btn: 'System status', title: '🛠️ System status', sourcesOk: (ok, all) => `${ok}/${all} sources OK`, failing: (n) => `⚠️ ${n} sources failing`, ai: 'AI summaries', aiOk: (u, cap) => `on · ${u}/${cap} requests today`, aiOff: (e) => `off — ${e}. The site carries on with plain translation.`, sources: 'Sources', quiet: 'quiet (no items)', lastOk: 'last success', never: 'never', rejected: 'Filtered items (24 hours)', why: { junk: 'junk / betting / live title', 'site-title': 'site name instead of a headline', 'general-feed': 'general feed — not sport', section: 'non-sport section', 'no-sport': 'no sport evidence', rival: 'opponent press unrelated to the match', user: 'hidden by an editor', video: 'video highlights without an Israeli angle', hidden: 'hidden' }, close: 'Close', updated: (t) => `updated ${t}`, took: (s) => `last run: ${s}s` }, s5Tip: 'Published on Sport5 — click for the article', s5Probable: '☑️ Probably on Sport5', s5ProbTip: 'Sport5 has a same-day article on this (worded differently) — click to check',
     s5Filter: '🔴 No Sport5 match only', s5FilterTip: 'Stories with no Sport5 match found. Possible matches stay, marked',
-    addSrc: { open: '➕ Add a site to the radar', title: '➕ Add a site to the radar', url: 'Site address', name: 'Site name (optional)', note: 'Why? (optional)', by: 'Name (optional)', hint: 'The admin approves every site. Once approved, its stories show for every editor within minutes.', send: 'Send for approval', cancel: 'Cancel', bad: 'Enter a full site address, e.g. https://www.marca.com', sent: '➕ Sent for approval. Once approved the site joins the radar for everyone', known: 'This site is already in the radar (or waiting for approval), no need to add it', list: 'Sites editors asked to add', status: { pending: '⏳ waiting for approval', approved: '✅ in the radar', rejected: '❌ rejected', removed: '🗑️ removed', exists: '☑️ already in the radar', failed: '⚠️ no readable stories found' } },
+    addSrc: { open: '➕ Add a site to the radar', title: '➕ Add a site to the radar', url: 'Site address', name: 'Site name (optional)', note: 'Why? (optional)', by: 'Name (optional)', hint: 'The admin approves every site. Once approved, its stories show for every editor within minutes.', send: 'Send for approval', cancel: 'Cancel', bad: 'Enter a full site address, e.g. https://www.marca.com', sent: '➕ Sent for approval. Once approved the site joins the radar for everyone', known: '☑️ This site is already on the list', list: 'Sites editors asked to add', status: { pending: '⏳ waiting for approval', approved: '✅ in the radar', rejected: '❌ rejected', removed: '🗑️ removed', exists: '☑️ already in the radar', failed: '⚠️ no readable stories found' } },
     mailQueued: '✉️ Sent to web@sport5.co.il, arrives within about 5 minutes', mailFail: "Couldn't send, opening your mail program", mailName: 'How to sign the mail? (name, optional)',
     report: { btn: 'Report a missed story, a wrong label or an idea', title: '📣 Report to the admin', text: 'What happened?', textPh: "e.g. the X signing story didn't show up / a football story landed in basketball / I'd like…", link: 'Link (optional)', name: 'Name (optional)', send: 'Send', cancel: 'Cancel', sent: '📣 Report sent — thank you!', empty: 'Please describe what happened' },
     vote: { up: 'Worth covering', down: 'Not relevant to us', count: (u, d) => `👍 ${u} · 👎 ${d} (editors)`, whyQ: 'Why?', thanks: 'Thanks, noted', reasons: { irrelevant: 'Not relevant', covered: 'Already covered', duplicate: 'Duplicate', identity: 'Wrong person / team' } },
@@ -2355,6 +2355,7 @@ function openAddSource() {
     <h3>${esc(L.title)}</h3>
     <p class="muted">${esc(L.hint)}</p>
     <label class="fld"><span>${esc(L.url)}</span><input id="asUrl" type="url" dir="ltr" placeholder="https://"></label>
+    <p class="muted" id="asKnown" hidden>${esc(L.known)}</p>
     <label class="fld"><span>${esc(L.name)}</span><input id="asName" dir="auto"></label>
     <label class="fld"><span>${esc(L.note)}</span><input id="asNote" dir="auto"></label>
     <label class="fld"><span>${esc(L.by)}</span><input id="asBy" value="${esc(store.get('editorName', ''))}" dir="auto"></label>
@@ -2365,7 +2366,24 @@ function openAddSource() {
     </div>`;
   if (!$('reportDialog').open) $('reportDialog').showModal();
   $('asUrl').focus();
+  if (!state.health) loadHealth(); // the list of sites already read (sources.json "knownHosts")
 }
+// the site's host if it is already read or waiting for approval, otherwise null
+function knownSite(raw) {
+  let url = String(raw || '').trim();
+  if (!url) return null;
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    return (state.health?.knownHosts || []).includes(host) ? host : null;
+  } catch {
+    return null;
+  }
+}
+// while the editor types: a small note when the site is already on the list
+$('reportForm').addEventListener('input', (e) => {
+  if (e.target.id === 'asUrl') $('asKnown').hidden = !knownSite(e.target.value);
+});
 $('reportForm').addEventListener('click', async (e) => {
   if (e.target.id !== 'asSend') return;
   let url = $('asUrl').value.trim();
@@ -2380,11 +2398,9 @@ $('reportForm').addEventListener('click', async (e) => {
     return;
   }
   // already read (or waiting for approval): say so now instead of a silent request
-  const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
   if (!state.health) await loadHealth();
-  if ((state.health?.knownHosts || []).includes(host)) {
-    $('asMsg').textContent = t().addSrc.known;
-    $('asMsg').hidden = false;
+  if (knownSite(url)) {
+    $('asKnown').hidden = false;
     return;
   }
   const by = $('asBy').value.trim().slice(0, 30);
