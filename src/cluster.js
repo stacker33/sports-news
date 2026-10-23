@@ -45,6 +45,48 @@ function similar(a, b) {
   return (shared >= 3 && ratio >= 0.5) || (shared >= 2 && ratio >= 0.75);
 }
 
+// ---------- one match per story ----------
+// Template pages share their wording across matches ("X - Y: typy, kursy, absencje", "Torino-Monza: orario e dove
+// vederla", "X vs Y Prediction … Today's NBA Picks"), so word overlap alone put several matches in one story
+// (2026-10-23: 217 groups, 6,650 articles). An article that names a match must not join a story about another match.
+// The match comes from the article's team tags (exactly two teams) or, for clubs we don't tag, from the headline shape.
+
+// "X vs Y", "X v Y", "X - Y" (short sides), "Torino-Monza": the two sides as token sets (no digits)
+const SIDE_CUT = /\s*(?:[:|,(]|\s[-–—]\s|\d).*$/;
+// club-name words many clubs share (FC Volendam / FC Emmen, Ipswich Town / Shrewsbury Town): not evidence of the same match
+const GENERIC = new Set('fc cf ac as sc afc cd ud sd sv vfb vfl fk nk sk bk if ik bc kk club town city county rovers athletic atletico real sporting racing dynamo dinamo ii iii u19 u21 u23 women'.split(' '));
+function sideTokens(s) {
+  return [...tokens(s.replace(SIDE_CUT, ''))].filter((t) => !/^\d+$/.test(t) && !GENERIC.has(t)).slice(0, 3);
+}
+export function headlineFixture(title) {
+  const t = String(title || '');
+  let m = t.match(/^(.{2,60}?)\s+(?:vs\.?|v\.?|versus|contra|contro|gegen|против)\s+(.{2,80})$/i);
+  if (!m) m = t.match(/^([^:|,\-–—]{2,40}?)\s+[-–—]\s+([^:|,\-–—]{2,40}?)(?:\s*[:|,]|\s[-–—]\s|$)/);
+  if (!m) m = t.match(/^(\p{Lu}[\p{L}.]+)-(\p{Lu}[\p{L}.]+(?: \p{Lu}[\p{L}.]+)?)(?=[\s:,]|$)/u);
+  if (!m) return null;
+  const a = sideTokens(m[1]), b = sideTokens(m[2]);
+  // a dash in a sentence ("Yitzhaki - the new coach of …") is not a match: short sides only
+  if (!a.length || !b.length || m[1].split(/\s+/).length > 3 || m[2].replace(SIDE_CUT, '').split(/\s+/).length > 4) return null;
+  return [a, b];
+}
+// the match an article names: { ents: 't1+t2' } from its two team tags, or { sides } from the headline
+export function fixtureOf(it) {
+  const teams = [...new Set((it.ents || []).filter((e) => e[0] === 't'))];
+  if (teams.length === 2) return { ents: teams.sort().join('+') };
+  const sides = headlineFixture(it.lang === 'en' ? it.title : it.tr?.en || it.title);
+  return sides ? { sides } : null;
+}
+// two different matches (unknown = no conflict): different team pairs, or headline sides with nothing in common
+export function otherMatch(a, b) {
+  if (!a || !b) return false;
+  if (a.ents && b.ents) return a.ents !== b.ents;
+  if (a.sides && b.sides) {
+    const x = new Set(a.sides.flat());
+    return !b.sides.flat().some((t) => x.has(t));
+  }
+  return false;
+}
+
 const WINDOW = 20 * 3600 * 1000; // same story must appear within 20h
 const CORE = 8; // a new article must match one of the story's first 8 articles
 const SPORTY = new Set(['football', 'basketball']);
@@ -59,6 +101,7 @@ export function clusterItems(items) {
     const en = it.lang === 'en' ? it.title : it.tr?.en;
     it._key = en ? 'x' : it.lang;
     it._tok = tokens(en || it.title);
+    it._fix = fixtureOf(it);
     const candidates = new Map();
     for (const t of it._tok) for (const c of index.get(t) || []) candidates.set(c, (candidates.get(c) || 0) + 1);
 
@@ -69,6 +112,8 @@ export function clusterItems(items) {
       if (cl.key !== it._key || it.published - cl.last > WINDOW) continue;
       // never mix football and basketball in one story (Hapoel Tel Aviv vs Real Madrid exists in both)
       if (cl.sport && it.sportSure && SPORTY.has(it.sport) && it.sport !== cl.sport) continue;
+      // never two different matches in one story
+      if (cl.fixtures.some((f) => otherMatch(f, it._fix))) continue;
       // compare with the story's core (its first articles), not its newest member, so it can't drift
       // article by article into another story
       if (cl.items.slice(0, CORE).some((m) => similar(m._tok, it._tok))) {
@@ -78,18 +123,57 @@ export function clusterItems(items) {
     }
     if (found === -1) {
       found = clusters.length;
-      clusters.push({ key: it._key, items: [], last: it.published, sport: null });
+      clusters.push({ key: it._key, items: [], last: it.published, sport: null, fixtures: [] });
     }
     const cl = clusters[found];
     if (!cl.sport && it.sportSure && SPORTY.has(it.sport)) cl.sport = it.sport;
     cl.items.push(it);
+    if (it._fix && cl.fixtures.length < 6) cl.fixtures.push(it._fix);
     cl.last = Math.max(cl.last, it.published);
     for (const t of it._tok) {
       if (!index.has(t)) index.set(t, new Set());
       index.get(t).add(found);
     }
   }
-  return clusters.map((c) => c.items);
+  return joinSameMatch(clusters).map((c) => c.items);
+}
+
+// One story per match: groups of the same language that are mostly about the same match (its two team tags) join,
+// so the preview, the live updates and the result stay one story even when their wording differs.
+function joinSameMatch(clusters) {
+  const matchOf = (cl) => {
+    const n = new Map();
+    let named = 0;
+    for (const f of cl.fixtures) if (f.ents) { named++; n.set(f.ents, (n.get(f.ents) || 0) + 1); }
+    const top = [...n].sort((a, b) => b[1] - a[1])[0];
+    return top && top[1] >= named * 0.6 ? top[0] : null;
+  };
+  const byMatch = new Map();
+  const out = [];
+  for (const cl of clusters) {
+    const m = matchOf(cl);
+    if (!m) {
+      out.push(cl);
+      continue;
+    }
+    const k = `${cl.key}|${m}`;
+    (byMatch.get(k) || byMatch.set(k, []).get(k)).push(cl);
+  }
+  for (const group of byMatch.values()) {
+    group.sort((a, b) => a.items[0].published - b.items[0].published);
+    let cur = group[0];
+    for (const cl of group.slice(1)) {
+      if (cl.items[0].published - cur.last <= WINDOW) {
+        cur.items = [...cur.items, ...cl.items].sort((a, b) => a.published - b.published);
+        cur.last = Math.max(cur.last, cl.last);
+      } else {
+        out.push(cur);
+        cur = cl;
+      }
+    }
+    out.push(cur);
+  }
+  return out;
 }
 
 const pubKey = (p) => p.toLowerCase().replace(/^the\s+/, '').replace(/[^\p{L}\p{N}]/gu, '').replace(/(com|couk|coil)$/, '');

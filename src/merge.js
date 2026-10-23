@@ -17,6 +17,18 @@ const words = (t) => [...new Set(String(t || '').replace(/[^\p{L}\d\s]/gu, ' ').
 // the earliest article: the same key src/ai.js keeps the card under
 export const clusterKey = (members) => [...members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
 
+// the matches a group's articles name (two team tags each)
+function matchesOf(members) {
+  const out = new Set();
+  for (const m of members) {
+    const t = [...new Set((m.ents || []).filter((e) => e[0] === 't'))];
+    if (t.length === 2) out.add(t.sort().join('+'));
+  }
+  return out;
+}
+// both groups name matches, and none in common: different events
+const otherMatches = (a, b) => a.size > 0 && b.size > 0 && ![...a].some((x) => b.has(x));
+
 function sportOf(members) {
   const n = {};
   for (const m of members) n[m.sport] = (n[m.sport] || 0) + 1;
@@ -53,7 +65,7 @@ export function mergeSameEvent(clusters, cards = {}) {
   const info = clusters.map((members) => {
     const card = cards[clusterKey(members)];
     const times = members.map((m) => m.published).filter(Boolean);
-    return card?.title_he ? { fp: eventPrint(members, card), sport: sportOf(members), first: Math.min(...times) } : null;
+    return card?.title_he ? { fp: eventPrint(members, card), sport: sportOf(members), matches: matchesOf(members), first: Math.min(...times) } : null;
   });
   // words / subject words that appear in many of the carded headlines are not evidence of the same event
   const df = new Map();
@@ -67,7 +79,7 @@ export function mergeSameEvent(clusters, cards = {}) {
   const out = [];
   for (const i of order) {
     const me = info[i];
-    const g = me && groups.find((x) => x.seed.sport === me.sport && Math.abs(x.seed.first - me.first) <= RECENT_MS && sameEventStrict(x.seed.fp, me.fp, rare));
+    const g = me && groups.find((x) => x.seed.sport === me.sport && Math.abs(x.seed.first - me.first) <= RECENT_MS && !otherMatches(x.seed.matches, me.matches) && sameEventStrict(x.seed.fp, me.fp, rare));
     if (g) g.members.push(...clusters[i]);
     else if (me) groups.push({ seed: me, members: [...clusters[i]] });
     else out.push(clusters[i]);

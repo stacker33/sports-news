@@ -647,7 +647,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     knownHosts: [...new Set([...builtinHosts(SOURCES), ...(userSourcesSt.list || []).filter((e) => e.status === 'approved' || e.status === 'pending').map((e) => e.host)])].sort(),
   });
   log(survivorDiagnostic(baseline, items, now, KEEP_ITEMS_H * 3600000).text); // diagnostic only, never blocks
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, items: items.map(({ tr: _t, _tok, _key, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, items: items.map(({ tr: _t, _tok, _key, _fix, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
