@@ -627,7 +627,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   const healthAlerts = await adminHealthAlerts(sourceHealth, state.healthAlerts || {}, now).catch(() => state.healthAlerts || {});
   const adminGreeted = await adminHello(state.adminGreeted).catch(() => state.adminGreeted || null);
   // Editors' feedback: 📣 reports → admin's Telegram; 👍/👎 votes → data/votes.json (the pilot's labelled set)
-  const { feedback, reports, searches, mails, sourceReqs } = await loadFeedback(state.feedback, now);
+  const { feedback, reports, searches, mails, sourceReqs, decisions: srcDecisions } = await loadFeedback(state.feedback, now);
   const userSearch = nextUserSearches(state.userSearch, searches, now); // fetched from the next run on
   const reportsSent = await adminReports(reports).catch(() => 0);
   await writeJson(join(DATA, 'votes.json'), votesFile(feedback, now));
@@ -636,7 +636,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   if (mailError) await adminSend(`✉️ <b>רדאר ספורט: שליחת מייל נכשלה</b>\n${mailError.replace(/[<>&]/g, '')}\nהידיעות ממתינות וינסו שוב בריצות הבאות. לא תקבל על זה הודעה נוספת היום.`).catch(() => {});
   if (mailsSent) log(`[mail] sent ${mailsSent} to web@sport5.co.il`);
   // ➕ sites editors asked to add: the admin approves each one in Telegram; approved ones are read from the next run
-  const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES) }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
+  const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES), decisions: srcDecisions }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
   await writeJson(join(DATA, 'sources.json'), {
     generatedAt: now,
     tookMs: Date.now() - started,

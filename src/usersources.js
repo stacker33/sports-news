@@ -6,10 +6,11 @@
 //   Google News for that site (the same way many built-in sources are read).
 // - Added sources are cautious: weight 1, "mixed" unless the address says sport (non-sport items are dropped), and foreign-language sites only show
 //   stories with a known team / player or an Israeli angle ("assist"), like the desk's foreign sites.
-// - The admin's button presses are read with Telegram's getUpdates every run (the bot has no webhook). Only presses
-//   by TELEGRAM_ADMIN_CHAT count. An approved source keeps a 🗑️ button in that message to remove it later.
+// - The buttons are signed links to the site's approve page (public/approve.html), which posts the decision to the
+//   feedback channel; the next run checks the signature and applies it. Only the radar can make a valid link.
+//   An approved source keeps a 🗑️ link in that message to remove it later.
 
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { fetchFeed, decodeEntities } from './feeds.js';
 import { gnews, GN_LOCALES } from '../config/sources.js';
 
@@ -148,14 +149,32 @@ function requestText(e) {
   if (e.sample?.length) lines.push('', 'כותרות לדוגמה:', ...e.sample.map((t) => `• ${esc(t)}`));
   return lines.join('\n');
 }
+// ✅ / ❌ / 🗑️ are links to the site's approve page, signed so only the radar can make them: the signature is an HMAC of
+// the decision and the request id, keyed by a hash of the bot token (already a secret; no new one to create).
+export const SITE = 'https://stacker33.github.io/sports-news/';
+export function signDecision(token, a, id) {
+  const key = createHash('sha256').update(`sports-radar-approve:${token}`).digest();
+  return createHmac('sha256', key).update(`${a}:${id}`).digest('hex').slice(0, 24);
+}
+export function validDecision(token, a, id, sig) {
+  if (!token || typeof sig !== 'string' || sig.length !== 24) return false;
+  const want = Buffer.from(signDecision(token, a, id));
+  const got = Buffer.from(sig);
+  return got.length === want.length && timingSafeEqual(got, want);
+}
+const decisionLink = (env, a, e) => `${SITE}approve.html#a=${a}&id=${e.id}&h=${encodeURIComponent(e.host || '')}&s=${signDecision(env.TELEGRAM_BOT_TOKEN, a, e.id)}`;
+export function keyboardFor(e, env) {
+  if (e.status === 'pending') return { inline_keyboard: [[{ text: '✅ לאשר', url: decisionLink(env, 'ok', e) }, { text: '❌ לדחות', url: decisionLink(env, 'no', e) }]] };
+  if (e.status === 'approved') return { inline_keyboard: [[{ text: '🗑️ להסיר מהרדאר', url: decisionLink(env, 'rm', e) }]] };
+  return { inline_keyboard: [] };
+}
 const DONE = { approved: '✅ <b>אושר</b>: נקרא בכל ריצה, אצל כל העורכים', rejected: '❌ <b>נדחה</b>', removed: '🗑️ <b>הוסר מהרדאר</b>' };
 
-// prev = { offset, list: [entry], queue: [request], error }
+// prev = { list: [entry], queue: [request], error }; decisions = [{ a, id, s }] from the approve page
 // entry = { id, site, host, name, url, google, lang, sample, status, at, decided?, msg? }
 // status: pending (waiting for the admin) | approved | rejected | removed | exists (already in the radar) | failed (no feed found)
-export async function processSourceRequests(prev = {}, requests = [], { now = Date.now(), known = new Set(), env = process.env, discover = discoverFeed, tg = tgCall } = {}) {
+export async function processSourceRequests(prev = {}, requests = [], { now = Date.now(), known = new Set(), env = process.env, discover = discoverFeed, tg = tgCall, decisions = [] } = {}) {
   const st = {
-    offset: prev.offset || 0,
     list: (prev.list || []).filter((e) => e.status === 'approved' || now - (e.decided || e.at) < KEEP_DAYS * 864e5),
     queue: [...(prev.queue || []), ...requests].filter((r) => now - r.at < QUEUE_HOURS * 3600e3),
     error: null,
@@ -165,41 +184,27 @@ export async function processSourceRequests(prev = {}, requests = [], { now = Da
   const call = (m, b) => tg(m, b, { env });
   let changed = 0;
 
-  // 1. the admin's button presses
-  try {
-    const updates = await call('getUpdates', { offset: st.offset || undefined, timeout: 0, limit: 100, allowed_updates: ['callback_query'] });
-    // diagnostics (no ids, no text): when Telegram was asked, how many updates came back, of which kinds
-    st.poll = { at: now, got: (updates || []).length, kinds: [...new Set((updates || []).map((u) => Object.keys(u).find((k) => k !== 'update_id')))].slice(0, 5) };
-    for (const u of updates || []) {
-      st.offset = Math.max(st.offset, u.update_id + 1);
-      const cq = u.callback_query;
-      const m = /^us:(ok|no|rm):([a-f0-9]{8})$/.exec(cq?.data || '');
-      if (!m) continue;
-      const answer = (text) => call('answerCallbackQuery', { callback_query_id: cq.id, text }).catch(() => {}); // too late after ~15 min: fine
-      if (String(cq.from?.id) !== String(admin)) {
-        await answer('רק המנהל יכול לאשר מקורות');
-        continue;
-      }
-      const e = st.list.find((x) => x.id === m[2]);
-      if (!e) {
-        await answer('הבקשה לא נמצאה (אולי פגה)');
-        continue;
-      }
-      const next = m[1] === 'ok' ? 'approved' : m[1] === 'no' ? 'rejected' : 'removed';
-      const allowed = next === 'removed' ? e.status === 'approved' : e.status === 'pending';
-      if (allowed) {
-        e.status = next;
-        e.decided = now;
-        changed++;
-      }
-      await answer(allowed ? (next === 'approved' ? 'אושר' : next === 'rejected' ? 'נדחה' : 'הוסר') : 'כבר טופל');
-      if (e.msg) {
-        const keyboard = e.status === 'approved' ? { inline_keyboard: [[{ text: '🗑️ להסיר מהרדאר', callback_data: `us:rm:${e.id}` }]] } : { inline_keyboard: [] };
-        await call('editMessageText', { chat_id: admin, message_id: e.msg, text: `${requestText(e)}\n\n${DONE[e.status] || ''}`, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: keyboard }).catch(() => {});
-      }
-    }
-  } catch (err) {
-    st.error = String(err.message || err).slice(0, 200); // e.g. a webhook set on the bot (409): presses wait
+  // 1. the admin's decisions. The buttons are links to the site's approve page (Telegram never passed button presses
+  // back to the radar, 2026-10-23); the page posts the signed decision to the feedback channel.
+  const decide = async (e, a) => {
+    const next = a === 'ok' ? 'approved' : a === 'no' ? 'rejected' : 'removed';
+    const allowed = next === 'removed' ? e.status === 'approved' : e.status === 'pending';
+    if (!allowed) return false;
+    e.status = next;
+    e.decided = now;
+    e.links = true;
+    changed++;
+    if (e.msg) await call('editMessageText', { chat_id: admin, message_id: e.msg, text: `${requestText(e)}\n\n${DONE[e.status] || ''}`, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: keyboardFor(e, env) }).catch(() => {});
+    return true;
+  };
+  for (const d of decisions.slice(0, 50)) {
+    const e = st.list.find((x) => x.id === d.id);
+    if (e && ['ok', 'no', 'rm'].includes(d.a) && validDecision(env.TELEGRAM_BOT_TOKEN, d.a, d.id, d.s)) await decide(e, d.a);
+  }
+  // messages sent with the old buttons get the link buttons
+  for (const e of st.list) {
+    if (!e.msg || e.links || !['pending', 'approved'].includes(e.status)) continue;
+    await call('editMessageReplyMarkup', { chat_id: admin, message_id: e.msg, reply_markup: keyboardFor(e, env) }).then(() => { e.links = true; }).catch(() => {});
   }
 
   // 2. new requests: find the feed, then ask the admin
@@ -236,9 +241,10 @@ export async function processSourceRequests(prev = {}, requests = [], { now = Da
         text: requestText({ ...e, by: r.by, note: r.note }),
         parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
-        reply_markup: { inline_keyboard: [[{ text: '✅ לאשר', callback_data: `us:ok:${e.id}` }, { text: '❌ לדחות', callback_data: `us:no:${e.id}` }]] },
+        reply_markup: keyboardFor(e, env),
       });
       e.msg = msg?.message_id;
+      e.links = true;
       st.list.push(e);
       changed++;
     } catch (err) {

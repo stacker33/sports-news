@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>רדאר ספורט: אישור מקור</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root { --bg: #f6f7f9; --card: #fff; --fg: #14181f; --muted: #5d6673; --ok: #1f8a4c; --no: #b42318; --line: #e3e6eb; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #0b0f14; --card: #151b23; --fg: #e8ecf1; --muted: #9aa4b1; --line: #263040; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Arial, sans-serif; padding: 16px; }
+    .card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; text-align: center; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .host { direction: ltr; font-weight: 600; font-size: 18px; margin: 4px 0 16px; word-break: break-all; }
+    p { color: var(--muted); margin: 0 0 16px; }
+    button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 12px 20px; width: 100%; color: #fff; cursor: pointer; }
+    button.ok { background: var(--ok); }
+    button.no, button.rm { background: var(--no); }
+    button:disabled { opacity: .6; cursor: default; }
+    a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="card" id="card"><p>…</p></main>
+  <script>
+    // The admin's ✅ / ❌ / 🗑️ link from Telegram (src/usersources.js). The link is signed by the radar; this page only
+    // passes the decision on to the feedback channel, and the next run (about 5 minutes) checks the signature.
+    const TOPIC = 'https://ntfy.sh/sports-radar-feedback-3c0ee38ff1eb27f8';
+    const q = new URLSearchParams(location.hash.slice(1));
+    const a = q.get('a'), id = q.get('id') || '', s = q.get('s') || '', host = q.get('h') || '';
+    const L = {
+      ok: { title: 'לאשר את האתר לרדאר?', btn: '✅ לאשר', done: '✅ אושר. האתר ייכנס לרדאר אצל כל העורכים תוך כ-5 דקות.' },
+      no: { title: 'לדחות את הבקשה?', btn: '❌ לדחות', done: '❌ נדחה.' },
+      rm: { title: 'להסיר את האתר מהרדאר?', btn: '🗑️ להסיר', done: '🗑️ יוסר מהרדאר תוך כ-5 דקות.' },
+    }[a];
+    const card = document.getElementById('card');
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const home = '<p><a href="./">לרדאר</a></p>';
+    if (!L || !/^[a-f0-9]{8}$/.test(id) || !/^[a-f0-9]{24}$/.test(s)) {
+      card.innerHTML = `<h1>הקישור לא תקין</h1><p>פתחו אותו שוב מההודעה בטלגרם.</p>${home}`;
+    } else {
+      // a confirm button, so opening the link alone (or a link preview) never decides anything
+      card.innerHTML = `<h1>${esc(L.title)}</h1><div class="host">${esc(host)}</div><button class="${a}" id="go">${esc(L.btn)}</button>`;
+      document.getElementById('go').addEventListener('click', async (e) => {
+        e.target.disabled = true;
+        try {
+          const res = await fetch(TOPIC, { method: 'POST', body: JSON.stringify({ v: 1, type: 'decide', a, id, s }) });
+          if (!res.ok) throw new Error();
+          card.innerHTML = `<h1>${esc(L.done)}</h1><p>ההודעה בטלגרם תתעדכן בריצה הבאה.</p>${home}`;
+        } catch {
+          e.target.disabled = false;
+          card.insertAdjacentHTML('beforeend', '<p>השליחה לא הצליחה. נסו שוב.</p>');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
