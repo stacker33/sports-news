@@ -95,3 +95,32 @@ test('at night (01:00–06:00 in Israel) stories still go out, silently; by day 
     process.env = env;
   }
 });
+
+test('limits: 12 an hour by day, 4 an hour at night; the highest on the main page go first', async () => {
+  const heads = Array.from({ length: 16 }, (_, i) => `כותרת ייחודית ${['אלפא', 'בטא', 'גמא', 'דלתא', 'אפסילון', 'זטא', 'אטא', 'תטא', 'יוטא', 'קפא', 'למדא', 'מו', 'נו', 'קסי', 'אומיקרון', 'פי'][i]} ${['כדורגל', 'כדורסל', 'טניס', 'שחייה', 'אתלטיקה', 'ג׳ודו', 'שיט', 'רכיבה', 'חתירה', 'סיף', 'קליעה', 'התעמלות', 'אגרוף', 'היאבקות', 'קשתות', 'גולף'][i]}`);
+  const list = heads.map((h, i) => story(h, { ed: 95 - i * 3, age: 20 }));
+  // a busy hour: 11 already posted in the last hour → 1 more by day
+  const busy = { ...ready, hour: Array.from({ length: 11 }, (_, i) => now - (i + 1) * min) };
+  const day = await run(list, busy);
+  assert.equal(day.posted, 1);
+  assert.match(day.sent[0], /אלפא/); // the highest first
+  // at night (03:30 in Israel), 3 in the last hour → 1 more
+  const night = Date.parse('2026-10-24T00:30:00Z');
+  const nightList = list.map((s) => ({ ...s, first: night - 20 * min, latest: night - 20 * min, langs: ['he'] }));
+  const sent = [];
+  const before = globalThis.fetch;
+  const env = { ...process.env };
+  process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+  process.env.TELEGRAM_CHAT = '@test';
+  globalThis.fetch = async (url, opts) => {
+    if (String(url).includes('/sendMessage')) sent.push(JSON.parse(opts.body));
+    return { ok: true, json: async () => ({ ok: true, result: {} }) };
+  };
+  try {
+    const r = await telegramPost(nightList, { athletes: [], cards: {}, gameInfo: {}, siteUrl: 'https://x.test/' }, { ...ready, hour: [night - 5 * min, night - 10 * min, night - 15 * min] }, night);
+    assert.equal(r.posted, 1);
+  } finally {
+    globalThis.fetch = before;
+    process.env = env;
+  }
+});

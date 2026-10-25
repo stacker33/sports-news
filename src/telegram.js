@@ -6,14 +6,18 @@
 //   abroad did. The same list is pinned on the site until noon (morningBrief → news.json "brief").
 // - 🔔 Alerts (01:00–06:00 silently, without a sound): the stories at the top of the site's main page — a story is posted the first time it
 //   is in the main page's top 10 (same order as the page), and reporters' scoops (🔴) at once. At most 4 per run,
-//   15 per hour, 120 per day; every story / event once.
+//   12 an hour by day, 4 at night, 250 a day; every story / event once.
 
 import { isScoop } from './editorial.js';
 
 const API = 'https://api.telegram.org/bot';
 const PER_RUN = 4;
-const PER_HOUR = 15;
-const PER_DAY = 120;
+// Spread over the day so the daily cap is never reached in practice: 19 day hours × 12 + 5 night hours × 4 = 248.
+// The daily cap is a safety net against a bug flooding the channel. (Until 2026-10-25: 15 an hour, 120 a day, and
+// the cap ran out by ~10:00.) When more stories wait than fit, the highest on the main page go first.
+const PER_HOUR = 12;
+const PER_HOUR_NIGHT = 4;
+const PER_DAY = 250;
 const QUIET = [1, 6]; // 01:00–05:59 Israel time: alerts still go out, but silently (no sound / vibration)
 // competitions the editors follow (tag ids from src/entities.js)
 const BRIEF_HOUR = 6; // the morning editor starts at 6
@@ -233,7 +237,7 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     if (firstRun || switching) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now)); // first run / the switch to the main-page rule: no flood
     else {
       const silent = il.hour >= QUIET[0] && il.hour < QUIET[1]; // at night: posted without a sound
-      const room = Math.min(PER_RUN, PER_HOUR - st.hour.length, PER_DAY - st.dayCount);
+      const room = Math.min(PER_RUN, (silent ? PER_HOUR_NIGHT : PER_HOUR) - st.hour.length, PER_DAY - st.dayCount);
       let left = Math.max(0, room);
       for (const s of fresh.filter((x) => !needsVerdict(x, now))) {
         if (!left) break;
