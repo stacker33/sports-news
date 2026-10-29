@@ -45,3 +45,9 @@ test('an Israeli outlet\'s own feed stays Israeli as before; other sources are u
   assert.equal(run('Barcelona beat Sevilla 3-0', 'bbc-football').israel, false);
   assert.equal(run('Maccabi Tel Aviv beat Real Madrid', 'bbc-sport').israel, true);
 });
+
+test('"Ironi" counts only as a word: "ironic", "ironiza", "ironically" are not Israeli', () => {
+  for (const t of ['Carlos Boozer\'s Jazz Draft Admission Takes Ironic Turn After Brutal Injury News', 'Richarlison ironiza Flávio Bolsonaro após saída do país', 'LA media ironically used Shohei Ohtani'])
+    assert.equal(run(t, 'bbc-sport').israel, false, t);
+  for (const t of ['Ironi Kiryat Shmona sign a new striker', 'Ironi Tiberias coach sacked']) assert.equal(run(t, 'bbc-sport').israel, true, t);
+});

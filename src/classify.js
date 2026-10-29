@@ -61,7 +61,7 @@ const OTHER = [
 // Israeli context (clubs, national teams, leagues)
 const ISRAEL = [
   'israel', 'israeli', 'maccabi', 'hapoel', 'beitar', 'bnei sakhnin', 'bnei yehuda', 'bnei herzliya',
-  'ironi', 'ashdod', 'kiryat shmona', 'netanya', 'be\'er sheva', 'beersheba', 'beer sheva', 'petah tikva',
+  ' ironi ', 'ashdod', // ' ironi ' as a whole word: 'ironic', 'ironiza' (Portuguese: mocks) are not Ironi Kiryat Shmona 'kiryat shmona', 'netanya', 'be\'er sheva', 'beersheba', 'beer sheva', 'petah tikva',
   'ישראל', 'ישראלי', 'ישראלית', 'מכבי', 'הפועל', 'בית"ר', 'ביתר', 'בני סכנין', 'בני יהודה', 'בני הרצליה',
   ' עירוני ', 'מ.ס. אשדוד', 'קריית שמונה', 'באר שבע', 'פתח תקווה', 'נבחרת ישראל', 'ליגת העל',
   'ליגת ווינר', 'הליגה הלאומית', 'גביע המדינה', 'גביע הטוטו', 'בן שמעון', 'אלישע לוי', 'ברק בכר',
