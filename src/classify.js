@@ -68,6 +68,19 @@ const ISRAEL = [
   'עודד קטש', 'שרון דרוקר', 'יניב גרין',
 ];
 
+// Israel in other languages and scripts (accents removed before matching): an article from one of the radar's
+// "Israeli clubs in the world press" Google News searches counts as Israeli only when it actually names Israel or an
+// Israeli club. Google also returns loosely related articles (2026-10-29: Bolsonaro, Bogdanović in Houston, youth
+// games, Italian politics), and they were all marked Israeli and lifted up the main page.
+const ISRAEL_FOREIGN = [
+  'israel', 'israil', 'izrael', 'israele', 'tel aviv', 'tel-aviv', 'jerusalem', 'gerusalemme', 'jerusalen', 'makabi', 'makkabi', 'hapoel', 'beitar', 'betar',
+  'ισραηλ', 'μακαμπι', 'χαποελ', 'μπειταρ', 'τελ αβιβ', 'ιερουσαλημ',
+  'израел', 'израиль', 'израил', 'макаби', 'маккаби', 'хапоел', 'бейтар', 'тель-авив', 'тел авив',
+  'イスラエル', 'マッカビ', 'ハポエル',
+];
+const plain = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+export const israelEvidence = (text) => hits(text, ISRAEL) > 0 || hits(plain(text), ISRAEL_FOREIGN) > 0;
+
 // Israeli clubs/people that point to one sport (used only when a story names no sport)
 const IL_BASKETBALL = [
   'ליגת ווינר', 'גביע ווינר', 'יורוליג', 'יורוקאפ', 'הפועל חולון', 'בני הרצליה', 'מכבי ראשון', 'הפועל גליל עליון',
@@ -188,7 +201,8 @@ export function classify(item, source, ctx) {
   }
 
   // Israeli sport at home (clubs, leagues, national teams) — separate from Israelis abroad
-  const israel = !!(source.israel || hits(text, ISRAEL) > 0);
+  // a Google News search for Israeli clubs (source.israel + google) needs the article itself to name Israel / a club
+  const israel = !!((source.israel && (!source.google || israelEvidence(text))) || hits(text, ISRAEL) > 0);
   const israelOther = israel && sport === 'other' && hits(text, ISRAEL_OTHER) > 0;
   const ib = hits(text, IL_BASKETBALL);
   const ifb = hits(text, IL_FOOTBALL);
@@ -217,5 +231,7 @@ export function classify(item, source, ctx) {
     ib,
     ifb,
   };
-  return { sport, israel, israelOther, athletes, teams, breaking, looksSport, ev };
+  // an Israeli-clubs search result that names nothing Israeli (and no Israeli abroad): off target
+  const offTarget = !!(source.israel && source.google && !israel && !athletes.length);
+  return { sport, israel, israelOther, athletes, teams, breaking, looksSport, ev, offTarget };
 }

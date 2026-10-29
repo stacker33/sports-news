@@ -212,6 +212,8 @@ export async function collect({ log = console.log, force = false } = {}) {
 
       const tags = classify(raw, src, ctx);
       if (src.mixed && !tags.looksSport) { reject(raw, src, 'general-feed'); continue; }
+      // an "Israeli clubs in the world press" search result that names nothing Israeli (src/classify.js)
+      if (tags.offTarget) { reject(raw, src, 'no-israel'); continue; }
 
       const item = {
         id,
