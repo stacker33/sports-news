@@ -17,7 +17,7 @@ const PER_RUN = 4;
 // the cap ran out by ~10:00.) When more stories wait than fit, the highest on the main page go first.
 const PER_HOUR = 12;
 const PER_HOUR_NIGHT = 4;
-const PER_DAY = 250;
+export const PER_DAY = 250;
 const QUIET = [1, 6]; // 01:00–05:59 Israel time: alerts still go out, but silently (no sound / vibration)
 // competitions the editors follow (tag ids from src/entities.js)
 const BRIEF_HOUR = 6; // the morning editor starts at 6
@@ -80,6 +80,30 @@ function alertText(s, siteUrl, heName = new Map()) {
   const he = titleHe(s);
   const head = isHe(s.title) || he === s.title ? `<b>${esc(he)}</b>` : `<b>${esc(s.title)}</b>\n🇮🇱 ${esc(he)}`;
   return `${icon(s)} ${head}\n${s5Line}\n${who}${sum}\n<a href="${esc(s.realLink || s.link)}">${esc(s.sources[0]?.name || '')}${more}</a>${video} · <a href="${esc(siteUrl)}">רדאר ספורט</a>`;
+}
+
+// ---------- ⚽ live: an Israeli abroad scores, assists or is sent off ----------
+// From the match data the radar already reads (src/gameinfo.js, refreshed every run for live games): a post the
+// moment the event is in the data (~5 minutes), before any article is written. Each event once; its own daily cap
+// (not the stories' hourly limit); silent at night like the rest.
+const EVENTS_PER_DAY = 40;
+export function abroadEvents(gameInfo = {}, athletes = []) {
+  const byName = new Map(athletes.map((a) => [a.name, a]));
+  const out = [];
+  for (const [gid, g] of Object.entries(gameInfo)) {
+    if (!g?.home || !g?.away) continue;
+    const score = `${g.home.name} ${g.home.score ?? 0}:${g.away.score ?? 0} ${g.away.name}${g.comp ? ` · ${g.comp}` : ''}${g.final ? ' (סיום)' : ''}`;
+    for (const [name, p] of Object.entries(g.players || {})) {
+      const a = byName.get(name);
+      if (!a || a.sport === 'basketball') continue; // football events; basketball has the box score
+      const who = esc(a.name_he || a.name);
+      const team = a.team_he || a.team;
+      for (const m of p.goals || []) out.push({ key: `${gid}|${name}|g|${m}`, text: `⚽ <b>שער של ${who}!</b> ${esc(team)} · ${esc(m)}\n${esc(score)}` });
+      for (const m of p.assists || []) out.push({ key: `${gid}|${name}|a|${m}`, text: `🅰️ <b>בישול של ${who}</b> · ${esc(team)} · ${esc(m)}\n${esc(score)}` });
+      for (const m of p.rc || []) out.push({ key: `${gid}|${name}|r|${m}`, text: `🟥 <b>כרטיס אדום ל${who}</b> · ${esc(team)} · ${esc(m)}\n${esc(score)}` });
+    }
+  }
+  return out;
 }
 
 // One line per Israeli abroad who had a game in the last 24h
@@ -177,7 +201,7 @@ async function send(token, chat, text, preview, silent = false) {
 export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl, translate }, prev = {}, now = Date.now()) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chat = process.env.TELEGRAM_CHAT;
-  const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, rule: prev.rule, error: null };
+  const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, rule: prev.rule, lastPost: prev.lastPost || null, error: null };
   for (const [k, t] of Object.entries(st.sent)) if (now - t > 3 * 864e5) delete st.sent[k];
   st.recent = (prev.recent || []).filter((r) => now - r.at < RECENT_H * 3600e3); // what was posted: fingerprints
   if (!token || !chat) return { tg: { ...st, error: 'no TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT' }, posted: 0 };
@@ -229,6 +253,7 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
     if (wantBrief) {
       await send(token, chat, briefingText(brief, athletes, cards, gameInfo, now, siteUrl), false);
       st.briefDay = il.day;
+      st.lastPost = now;
       posted++;
     }
     // 🔔 alerts
@@ -251,11 +276,27 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
         st.recent.push({ ...fp, at: now });
         st.hour.push(now);
         st.dayCount++;
+        st.lastPost = now;
         posted++;
         left--;
       }
     }
     // stories that were worth it but didn't fit stay unsent; once older than 90 minutes they're dropped
+    // ⚽ live events of Israelis abroad (the first time: what's already in the data is marked, not posted)
+    const evFirst = !prev.events;
+    st.events = Object.fromEntries(Object.entries(prev.events || {}).filter(([, t]) => now - t < 3 * 864e5));
+    st.evDay = prev.evDay === il.day ? prev.evDay : il.day;
+    st.evCount = prev.evDay === il.day ? prev.evCount || 0 : 0;
+    const silentEv = il.hour >= QUIET[0] && il.hour < QUIET[1];
+    for (const ev of abroadEvents(gameInfo, athletes)) {
+      if (st.events[ev.key]) continue;
+      st.events[ev.key] = now;
+      if (evFirst || firstRun || st.evCount >= EVENTS_PER_DAY) continue;
+      await send(token, chat, `${ev.text}\n<a href="${esc(siteUrl)}">רדאר ספורט</a>`, false, silentEv);
+      st.evCount++;
+      st.lastPost = now;
+      posted++;
+    }
   } catch (e) {
     st.error = String(e.message).slice(0, 200);
   }

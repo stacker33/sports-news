@@ -3,7 +3,7 @@
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
 const API = 'https://webws.365scores.com/web';
 const DAY = 86400e3;
-const INFO_V = 2; // 2: minutes and the basketball box score
+const INFO_V = 3; // 2: minutes and the basketball box score; 3: the teams, score and competition (for live alerts)
 
 async function get(path, params) {
   const qs = new URLSearchParams({ appTypeId: 5, langId: 1, timezoneName: 'UTC', userCountryId: 6, ...params });
@@ -85,8 +85,13 @@ export async function loadGameInfo(athletes, teamCache, prev = {}, now = Date.no
         }
       }
       const hasLineup = [det.homeCompetitor, det.awayCompetitor].some((c) => c.lineups?.members?.length);
+      const side = (c) => ({ id: c.id, name: c.name, score: c.score >= 0 ? c.score : null });
       games[g.id] = {
         v: INFO_V,
+        home: side(det.homeCompetitor),
+        away: side(det.awayCompetitor),
+        comp: det.competitionDisplayName || '',
+        live: det.statusGroup === 3,
         tv:(det.tvNetworks || []).map((t) => t.name).filter(Boolean).slice(0, 2),
         lineup: hasLineup,
         players,

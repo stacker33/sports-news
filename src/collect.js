@@ -10,6 +10,7 @@ import { SOURCES } from '../config/sources.js';
 import { fetchFeed, pool } from './feeds.js';
 import { classify, JUNK_TITLE, SITE_TITLE, isStreamSpam } from './classify.js';
 import { trimLocal } from './trim.js';
+import { selfCheck } from './selfcheck.js';
 import { makeDelta } from './delta.js';
 import { editorialBoost, bigEvent, markLocal, markLow, memberLocal } from './editorial.js';
 import { features, trainModel, predict, entitySport, decideSport, SURE } from './triage.js';
@@ -659,6 +660,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   // ✉️ stories editors sent to web@sport5.co.il, from the radar's own mailbox (src/mailer.js)
   const { mail, sent: mailsSent, newError: mailError } = await sendMails(state.mail, mails, now).catch((e) => ({ mail: { ...(state.mail || {}), error: String(e.message) }, sent: 0, newError: null }));
   if (mailError) await adminSend(`✉️ <b>רדאר ספורט: שליחת מייל נכשלה</b>\n${mailError.replace(/[<>&]/g, '')}\nהידיעות ממתינות וינסו שוב בריצות הבאות. לא תקבל על זה הודעה נוספת היום.`).catch(() => {});
+  // 🩺 the radar watches itself (src/selfcheck.js): a private message to the admin when something stops quietly
+  const { selfAlerts, message: selfMsg } = selfCheck({ now, tg, ai, stateFrom: process.env.STATE_FROM || null, tookMs: Date.now() - started }, state.selfAlerts);
+  if (selfMsg) await adminSend(selfMsg).catch(() => {});
   if (mailsSent) log(`[mail] sent ${mailsSent} to web@sport5.co.il`);
   // ➕ sites editors asked to add: the admin approves each one in Telegram; approved ones are read from the next run
   const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES), decisions: srcDecisions }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
@@ -694,7 +698,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: { waiting: count(userAthletesSt.list, 'pending'), approved: count(userAthletesSt.list, 'approved'), queue: (userAthletesSt.queue || []).length, error: userAthletesSt.error || null },
     votes: Object.keys(feedback.votes || {}).length,
   });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, selfAlerts, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
