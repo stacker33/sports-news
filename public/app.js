@@ -1125,6 +1125,7 @@ function cardHtmlV2(s, fresh) {
   const lead = (d.link !== s.link && s.sources.find((x) => x.link === d.link)?.name) || s.sources[0]?.name || '';
   const isHot = s.breaking && s.sourceCount >= 2 && Date.now() - s.first < HOT_HOURS * 3600e3;
   const unseen = isUnseen(s);
+  const rise = s.rise && Date.now() - s.rise.at < 20 * 60e3 ? s.rise : null; // a stale page doesn't keep saying it
   const foreignLink = d.link === s.link && s.lang !== 'he' && s.lang !== 'en';
   const st = s5Status(s);
   const stInner = `${icon(st.ic, 14, 2)}<span class="lbl-long">${esc(st.long)}</span><span class="lbl-short">${esc(st.short)}</span>`;
@@ -1140,6 +1141,7 @@ function cardHtmlV2(s, fresh) {
     s.local ? `<span class="lb lb--local" title="${esc(he ? 'ליגה מקומית — מוצג נמוך ברשימה' : 'Local league — shown lower')}">${he ? 'מקומי' : 'Local'}</span>` : '',
     reporter ? `<span class="lb lb--scoop" title="${esc(L.socialTip)}">${esc(he ? `סקופ · ${reporter}` : `Scoop · ${reporter}`)}</span>` : '',
     isHot ? `<span class="lb lb--hot">${icon('flame', 12, 2)}${esc(noEmoji(L.hot))}</span>` : '',
+    rise ? `<span class="lb lb--rise" title="${esc(he ? `${rise.n} כלי תקשורת פרסמו את זה בחצי השעה האחרונה` : `${rise.n} outlets published this in the last half hour`)}">${esc(he ? `צובר תאוצה · +${rise.n} ב-30 דק׳` : `Picking up · +${rise.n} in 30 min`)}</span>` : '',
     mixed && L.sportName[s.sport] ? `<span class="lb lb--sport">${esc(L.sportName[s.sport])}</span>` : '',
     ...(s.tags || []).map((g) => `<button type="button" class="lb lb--topic tag${g.id === state.tag ? ' on' : ''}" data-tag="${esc(g.id)}">${esc(tagName(g))}</button>`),
     s.uncertain ? `<span class="lb lb--sport" title="${esc(L.uncertainTip)}">?</span>` : '',

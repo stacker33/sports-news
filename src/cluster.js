@@ -255,7 +255,23 @@ export function buildStory(members, now) {
     latest,
     score: Math.round(score * 100) / 100,
     pop: Math.round(pop * 100) / 100,
+    ...(rising(members, now) || {}),
   };
+}
+
+// "Picking up speed": 4+ outlets first published it in the last 30 minutes, and they are at least half of all its
+// outlets (a new story spreading, or an old one blowing up again). Dated articles only; each outlet counts once.
+export const RISE_MIN = 30;
+export function rising(members, now) {
+  const firstBy = new Map();
+  for (const m of members) {
+    if (m.dateUnknown || !m.published || m.published > now + 5 * 60e3) continue;
+    const k = pubKey(m.publisher);
+    if (!firstBy.has(k) || m.published < firstBy.get(k)) firstBy.set(k, m.published);
+  }
+  const all = new Set(members.map((m) => pubKey(m.publisher))).size;
+  const n = [...firstBy.values()].filter((t) => now - t <= RISE_MIN * 60e3).length;
+  return n >= 4 && n * 2 >= all ? { rise: { n, at: now } } : null;
 }
 
 // Why the story got its sport: the most common reason among its articles (for the card's "why" line)

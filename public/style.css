@@ -743,6 +743,7 @@ body.v2 .c-labels { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 2px
 body.v2 .lb { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border: 0; border-radius: 2px; font: 600 11px Heebo, sans-serif; white-space: nowrap; line-height: 1; }
 body.v2 .lb--scoop { background: var(--inkchip); color: var(--oninkchip); }
 body.v2 .lb--hot { background: transparent; color: var(--hot); box-shadow: inset 0 0 0 1px var(--hot); }
+body.v2 .lb--rise { background: var(--hot); color: #fff; }
 body.v2 .lb--sport { background: var(--chip); color: var(--text); }
 body.v2 .lb--topic { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
 body.v2 .lb--topic:hover { color: var(--text); box-shadow: inset 0 0 0 1px var(--muted); }
