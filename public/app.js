@@ -443,6 +443,27 @@ function ago(ts) {
   if (h > -24) return rtf.format(h, 'hour');
   return rtf.format(d, 'day');
 }
+// The story's sources in time order, with the moments an editor looks for: who was first, the first Israeli outlet,
+// reporters, official channels, Sport5. Undated sources go last.
+function timelineItems(s) {
+  const he = state.ui === 'he';
+  const seen = new Set();
+  const all = [...s.sources, ...(s.tl || [])].filter((x) => !seen.has(x.link) && seen.add(x.link));
+  const dated = all.filter((x) => !x.unknown).sort((a, b) => a.published - b.published);
+  const firstIl = dated.find((x) => x.o === 'il' && x.r !== 'sport5');
+  const tags = (x, i) => [
+    i === 0 && dated.length > 1 ? (he ? 'ראשון' : 'First') : '',
+    x === firstIl && i > 0 ? (he ? 'ראשון בישראל' : 'First in Israel') : '',
+    x.r === 'reporter' ? (he ? 'כתב' : 'Reporter') : '',
+    x.r === 'official' ? (he ? 'רשמי' : 'Official') : '',
+    x.r === 'sport5' ? (he ? 'ספורט 5' : 'Sport5') : '',
+  ].filter(Boolean);
+  const li = (x, i) => {
+    const tg = tags(x, i);
+    return `<li${tg.length ? ' class="key"' : ''}>${x.unknown ? '' : `<time class="tl-t">${esc(hhmm(x.published))}</time> `}<b>${esc(x.name)}</b>${tg.map((g) => ` <span class="tl-tag">${esc(g)}</span>`).join('')} <a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`;
+  };
+  return [...dated.map(li), ...all.filter((x) => x.unknown).map((x) => li(x, -1))].join('');
+}
 const hhmm = (ts) => new Date(ts).toLocaleTimeString(state.ui === 'he' ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
 
 // ---------- what you've seen ----------
@@ -933,9 +954,7 @@ function cardHtml(s, fresh) {
     ? `<img class="thumb" src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
     : '';
   const others = s.sources.length > 1
-    ? `<details><summary>${esc(t().allSources(s.sourceCount))}</summary><ul>${s.sources
-        .map((x) => `<li><b>${esc(x.name)}${x.unknown ? '' : ` · ${timeEl(x.published)}`}</b><a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`)
-        .join('')}</ul></details>`
+    ? `<details><summary>${esc(t().allSources(s.sourceCount))}</summary><ul class="tl">${timelineItems(s)}</ul></details>`
     : '';
   const unseen = isUnseen(s);
   const grew = grewBy(s);
@@ -1162,9 +1181,7 @@ function cardHtmlV2(s, fresh) {
         <button type="button" class="c-less">${he ? 'פחות' : 'Less'}</button>
       </div>`
     : '';
-  const srcs = s.sources.length > 1
-    ? `<ul class="srcs" hidden>${s.sources.map((x) => `<li><b>${esc(x.name)}</b>${x.unknown ? '' : ` · ${timeEl(x.published)}`} <a href="${esc(x.link)}" target="_blank" rel="noopener" dir="auto">${esc(x.title)}</a></li>`).join('')}</ul>`
-    : '';
+  const srcs = s.sources.length > 1 ? `<ul class="srcs tl" hidden>${timelineItems(s)}</ul>` : '';
   const mine = !!claimFor(s)?.mine;
   const img = s.image
     ? `<div class="c-thumb"><img src="${esc(s.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()">${s.video ? `<span class="c-play">${icon('play', 18)}</span>` : ''}</div>`

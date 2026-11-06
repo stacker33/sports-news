@@ -17,6 +17,7 @@ import { features, trainModel, predict, entitySport, decideSport, SURE } from '.
 import { loadCorrections } from './corrections.js';
 import { aiSummaries, aiCap, attachDesk } from './ai.js';
 import { mergeSameEvent } from './merge.js';
+import { sourceReportStep } from './sourcereport.js';
 import { telegramPost, adminHealthAlerts, adminHello, adminReports, adminSend, morningBrief } from './telegram.js';
 import { loadFeedback, votesFile } from './feedback.js';
 import { mailEnabled, sendMails } from './mailer.js';
@@ -540,6 +541,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   const trendSearch = nextTrendSearches(trends, state.trendSearch, now);
   // ☀️ the morning's list, pinned on the site until noon
   const brief = morningBrief(stories, state.brief, now);
+  // Weekly source report to the admin (src/sourcereport.js): yesterday's tally once a day (while the stories still
+  // have their articles), the report on Sunday; sent with the other admin messages below
+  const { srcReport, message: srcMsg } = sourceReportStep(now, state.srcReport, { stories, items, nameOf: (id) => srcById.get(id)?.name, votes: state.feedback?.votes });
   const shownIds = new Set(); // articles in a published story (for the save-time trim)
   for (const s of stories) {
     for (const m of s._members) shownIds.add(m.id);
@@ -559,6 +563,23 @@ export async function collect({ log = console.log, force = false } = {}) {
     const l = lead && { name: lead.name, status: lead.status, origin: lead.origin, role: lead.role, ...(i >= 0 ? { i } : { link: lead.link }) };
     return { lead: l, outlets, il, foreign, ...(attrib ? { attrib, attribBy } : {}), ...(official ? { official } : {}), ...(reporter ? { reporter } : {}) };
   };
+  // The card's timeline needs the key moments even when they are not among the 8 sources the app gets:
+  // the first report, the first Israeli one, reporters and official channels (at most 4 more)
+  const timelineExtra = (sources) => {
+    const rest = sources.slice(8).filter((x) => !x.unknown);
+    if (!rest.length) return {};
+    const shown = sources.slice(0, 8).filter((x) => !x.unknown);
+    const firstT = Math.min(...shown.map((x) => x.published), Infinity);
+    const ilT = Math.min(...shown.filter((x) => x.o === 'il' && x.r !== 'sport5').map((x) => x.published), Infinity);
+    const byTime = [...rest].sort((a, b) => a.published - b.published);
+    const pick = new Set();
+    if (byTime[0].published < firstT) pick.add(byTime[0]);
+    const il = byTime.find((x) => x.o === 'il' && x.r !== 'sport5');
+    if (il && il.published < ilT) pick.add(il);
+    for (const x of byTime) if (x.r === 'reporter' || x.r === 'official') pick.add(x);
+    const tl = [...pick].slice(0, 4).map(({ name, title, link, published, o, r }) => ({ name, title, link, published, ...(o ? { o, r } : {}) }));
+    return tl.length ? { tl } : {};
+  };
   // What the app needs, nothing more (phones): ≤8 sources per story, no repeated links, no unused fields
   const slim = (s) => {
     const { summary: _s, seen: _seen, ...rest } = s;
@@ -568,6 +589,7 @@ export async function collect({ log = console.log, force = false } = {}) {
       ...rest,
       t,
       sources: s.sources.slice(0, 8).map(({ name, title, link, published, unknown, o, r }) => ({ name, title, link, published, ...(unknown ? { unknown } : {}), ...(o ? { o, r } : {}) })),
+      ...timelineExtra(s.sources),
       sum: s.ai?.he?.sum ? undefined : s.sum, // the language model's summary replaces the feed blurb
       ...(s.ed ? { ed: { score: s.ed.score, reasons: s.ed.reasons, limits: s.ed.limits.map((l) => l.k).filter((k) => k !== 'headline'), ...(s.ed.votes ? { votes: s.ed.votes } : {}) } } : {}),
       ...(s.ev ? { ev: slimEv(s) } : {}),
@@ -663,6 +685,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   // 🩺 the radar watches itself (src/selfcheck.js): a private message to the admin when something stops quietly
   const { selfAlerts, message: selfMsg } = selfCheck({ now, tg, ai, stateFrom: process.env.STATE_FROM || null, tookMs: Date.now() - started }, state.selfAlerts);
   if (selfMsg) await adminSend(selfMsg).catch(() => {});
+  if (srcMsg) await adminSend(srcMsg).catch(() => {}); // the weekly source report (tallied above)
   if (mailsSent) log(`[mail] sent ${mailsSent} to web@sport5.co.il`);
   // ➕ sites editors asked to add: the admin approves each one in Telegram; approved ones are read from the next run
   const { userSources: userSourcesSt } = await processSourceRequests(state.userSources, sourceReqs, { now, known: builtinHosts(SOURCES), decisions: srcDecisions }).catch((e) => ({ userSources: { ...(state.userSources || {}), error: String(e.message) } }));
@@ -698,7 +721,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: { waiting: count(userAthletesSt.list, 'pending'), approved: count(userAthletesSt.list, 'approved'), queue: (userAthletesSt.queue || []).length, error: userAthletesSt.error || null },
     votes: Object.keys(feedback.votes || {}).length,
   });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, selfAlerts, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, selfAlerts, srcReport, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
 
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`

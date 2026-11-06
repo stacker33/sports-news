@@ -197,7 +197,7 @@ export const SOURCES = [
     ['hta-bc', 'הפועל תל אביב כדורסל', 'UC_NezmJH4nzURv6TSvOarEA', 'he', { israel: true, sport: 'basketball' }],
     ['euroleague', 'EuroLeague', 'UCGr3nR_XH9r6E5b09ZJAT9w', 'en', { sport: 'basketball' }],
     ['nba', 'NBA', 'UCWJ2lWNubArHWmf3FIHbfcQ', 'en', { sport: 'basketball' }],
-    ['skynews', 'Sky Sports News', 'UCcw05gGzjLIs5dnxGkQHMvw', 'en', {}],
+    ['skynews', 'Sky Sports News', 'UCcw05gGzjLIs5dnxGkQHMvw', 'en', { official: false }], // a news channel, not a club or league
     ['blazers', 'Trail Blazers', 'UCXk66yyzXo7-2M1BMqLhltQ', 'en', { sport: 'basketball' }],
     ['nets', 'Brooklyn Nets', 'UCTenKHt0h3VjdMvRWP6Lbvw', 'en', { sport: 'basketball' }],
     ['palace', 'Crystal Palace', 'UCWB9N0012fG6bGyj486Qxmg', 'en', { sport: 'football' }],

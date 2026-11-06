@@ -800,6 +800,9 @@ body.v2 .srcs[hidden] { display: none; }
 body.v2 .srcs li { padding: 6px 10px; background: var(--surface-2); border-radius: 3px; }
 body.v2 .srcs a { color: var(--text); text-decoration: none; unicode-bidi: plaintext; }
 body.v2 .srcs a:hover { color: var(--brand); }
+.tl .tl-t { font-variant-numeric: tabular-nums; color: var(--muted); }
+.tl .tl-tag { display: inline-block; font-size: 11px; line-height: 1.5; padding: 0 6px; border-radius: 3px; background: var(--chip, #eee); color: var(--text); }
+.tl li.key { box-shadow: inset -3px 0 0 var(--brand); }
 body.v2 .c-thumb { position: relative; width: 104px; height: 70px; border-radius: 2px; overflow: hidden; background: repeating-linear-gradient(135deg, var(--chip) 0 6px, var(--surface-2) 6px 12px); }
 body.v2 .c-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 body.v2 .c-play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; background: rgba(0, 0, 0, .25); }
