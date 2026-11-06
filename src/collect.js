@@ -245,7 +245,8 @@ export async function collect({ log = console.log, force = false } = {}) {
         rival: src.rival || prev?.rival || null,
         social: !!raw.social, // a reporter's own post (Telegram / Bluesky)
         reporter: src.reporter ?? !!raw.social, // a reporter (their own post, or their site); outlets' accounts set reporter: false
-        official: !!src.official, // a club / league / federation channel
+        official: (!!src.official && (!src.officialSite || !!raw.official)) || !!prev?.official, // a club / league / federation channel (an official site: its main address)
+        ...(src.officialSite || prev?.confirm ? { confirm: true } : {}), // an official site: shown when others report it too, or with an Israeli angle
         video: raw.video || null, // YouTube: 'press' | 'highlights'
       };
       if (!prev) fresh++;
@@ -458,6 +459,8 @@ export async function collect({ log = console.log, force = false } = {}) {
     .map(markLow) // tickets, polls, live streams: collapsed in the world tabs
     // Direct national outlets ("assist"): their local-only stories need a known team/player or an Israeli angle
     .filter((s) => !s._members.every((m) => m.assist) || s.israel || s.abroad || s.teams.length || s.trending || s.tags.some((t) => t.k === 'team' || t.k === 'player'))
+    // Official club / league sites: a story only they have is shown with an Israeli angle; otherwise they confirm others
+    .filter((s) => !s._members.every((m) => m.confirm) || s.israel || s.abroad)
     .sort((a, b) => b.latest - a.latest);
   // The cap keeps the newest stories, but an Israeli-angle story inside the 36-hour window is never cut for space
   // (found by the evaluation set: a day-old Spanish story about Roy Revivo was dropped for space)

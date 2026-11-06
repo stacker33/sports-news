@@ -1,4 +1,5 @@
 // Fetch + parse RSS / Atom feeds into plain items.
+import { officialName } from '../config/official.js';
 import { XMLParser } from 'fast-xml-parser';
 import { videoKind, ytPage, parseChannelPage } from './youtube.js';
 
@@ -261,6 +262,27 @@ export async function fetchFeed(source, timeoutMs = 15000) {
   for (const it of rssItems) {
     let title = cleanText(text(it.title));
     let publisher = source.name;
+    let official = false;
+    if (source.officialSite) {
+      // an official-sites search: only the club's / league's main address is an announcement (not its shop)
+      const name = officialName(it.source?.['@url'] || '');
+      if (!name) continue;
+      official = true;
+      const suffix = ' - ' + cleanText(text(it.source)); // Google News: "Headline - Publisher"
+      if (title.endsWith(suffix)) title = title.slice(0, -suffix.length);
+      // a section page, not an article ("Basket-TV", "- Club name")
+      if (title.length < 20 || /^[-|–]/.test(title) || title.split(/\s+/).length < 4) continue;
+      out.push({
+        title,
+        link: decodeEntities(text(it.link) || text(it.guid) || '').trim(),
+        summary: '',
+        published: parseDate(text(it.pubDate), source.tz),
+        image: findImage(it),
+        publisher: name,
+        official,
+      });
+      continue;
+    }
     if (source.google) {
       // Google News: "Headline - Publisher"
       const src = text(it.source);

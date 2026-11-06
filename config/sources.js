@@ -73,6 +73,8 @@ export const gnews = (q, locale = 'en') => {
   return `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=${hl}&gl=${gl}&ceid=${ceid}`;
 };
 
+import { officialSources } from './official.js';
+
 export const SOURCES = [
   // ---------- Israel (Hebrew) ----------
   { id: 'one', name: 'ONE', url: 'https://www.one.co.il/rss', lang: 'he', weight: 3 },
@@ -327,4 +329,6 @@ export const SOURCES = [
   { id: 'ghanasoccernet', name: 'Ghanasoccernet', url: 'https://ghanasoccernet.com/feed', lang: 'en', country: 'Ghana', weight: 1, sport: 'football', assist: true, every: 5 },
   { id: 'nikkansports', name: 'Nikkan Sports', url: 'https://www.nikkansports.com/soccer/atom.xml', lang: 'ja', weight: 1, sport: 'football', assist: true, every: 5 },
   { id: 'yahoo-jp-sports', name: 'Yahoo! Japan Sports', url: 'https://news.yahoo.co.jp/rss/categories/sports.xml', lang: 'ja', weight: 1, assist: true, every: 5 },
+  // ---------- official club / league websites (config/official.js) ----------
+  ...officialSources(gnews),
 ];
