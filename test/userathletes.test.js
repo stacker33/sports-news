@@ -120,3 +120,11 @@ test('a removal: by any of the person’s names; someone not on the list is igno
   assert.ok(!after.some((a) => a.name === 'Oscar Gloukh'));
   assert.equal(publicAthleteList(r2.userAthletes)[0].kind, 'remove');
 });
+
+test('a player added from the site: his surname alone counts only next to his club (Franco Colapinto is not Danny Franco)', () => {
+  const a = toAthlete({ name: 'Danny Franco', name_he: 'דני פרנקו', team: 'Slask Wroclaw', team_he: 'שלונסק ורוצלב', country: 'poland', sport: 'basketball', role: 'player' });
+  const m = buildMatchers([a], {});
+  const hit = (t) => m.players(t.toLowerCase()).includes('Danny Franco');
+  for (const t of ['Franco Colapinto vuelve a Interlagos', 'Franco Armani y una de sus atajadas', 'הסגל של קוסובו לישראל: פרנקו בפנים', 'פרנקו מוכן לדקות נוספות בשיקגו']) assert.ok(!hit(t), t);
+  for (const t of ['Danny Franco scores 20 for Slask Wroclaw', 'Slask Wroclaw win, Franco with 18 points', 'דני פרנקו קלע 15 נקודות', 'שלונסק ורוצלב ניצחה, פרנקו קלע 12']) assert.ok(hit(t), t);
+});

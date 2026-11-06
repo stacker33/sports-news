@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { clusterItems, headlineFixture, fixtureOf, otherMatch } from '../src/cluster.js';
-import { mergeSameEvent } from '../src/merge.js';
+import { mergeSameEvent, sameEventStrict, eventPrint } from '../src/merge.js';
 
 const T0 = Date.parse('2026-10-21T10:00:00Z');
 let n = 0;
@@ -67,4 +67,20 @@ test('the cross-language merge does not join stories about two different matches
   a[0].ents.push('p1');
   b[0].ents.push('p1');
   assert.equal(mergeSameEvent([a, b], cards).length, 2);
+});
+
+test('nearly the same Hebrew headline from many outlets is one story, even when its words are common; not when the scores differ', () => {
+  const card = (id, he, about) => [[{ id, title: 'x', lang: 'sr', published: T0, ents: ['t5509'], sport: 'basketball' }], { [id]: { title_he: he, about } }];
+  const [a, ca] = card('p1', 'פרטיזן בלגרד תארח את מכבי תל אביב ביורוליג', 'Partizan Belgrade Maccabi Tel Aviv EuroLeague');
+  const [b, cb] = card('p2', 'פרטיזן בלגרד מארחת את מכבי תל אביב ביורוליג', 'Partizan vs Maccabi Tel Aviv');
+  const [c, cc] = card('p3', 'פרטיזן בלגרד פוגשת את מכבי תל אביב ביורוליג', 'Partizan Belgrade Maccabi Tel Aviv EuroLeague');
+  // many other cards with the same words make them "common" (that used to block the merge)
+  const others = Array.from({ length: 30 }, (_, i) => card(`o${i}`, `מכבי תל אביב ביורוליג ${i} פרטיזן בלגרד ידיעה אחרת לגמרי מספר ${i}`, `Other ${i}`));
+  const cards = Object.assign({}, ca, cb, cc, ...others.map((o) => o[1]));
+  const merged = mergeSameEvent([a, b, c, ...others.map((o) => o[0])], cards);
+  assert.ok(merged.some((g) => ['p1', 'p2', 'p3'].every((id) => g.some((m) => m.id === id))));
+  // with common words (no rare ones), only the near-same-headline rule can join: not when the headlines' scores differ
+  const fp = (he) => eventPrint([{ ents: ['t131'], title: 'x' }], { title_he: he, about: 'Real Madrid Sevilla' });
+  assert.equal(sameEventStrict(fp('ריאל מדריד ניצחה 2:0 את סביליה בליגה הספרדית'), fp('ריאל מדריד ניצחה 3:1 את סביליה בליגה הספרדית'), new Set()), false);
+  assert.equal(sameEventStrict(fp('ריאל מדריד ניצחה 2:0 את סביליה בליגה הספרדית'), fp('ריאל מדריד ניצחה 2:0 את סביליה בליגה'), new Set()), true);
 });

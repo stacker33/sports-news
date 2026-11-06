@@ -41,6 +41,7 @@ export function eventPrint(members, card) {
     ids: [...new Set(members.flatMap((m) => (m.ents || []).filter((id) => /^[tp]/.test(id))))],
     words: words(he),
     scores: [...new Set([he, ...members.slice(0, 6).map((m) => m.title)].flatMap(scoresIn))],
+    heScores: [...new Set(scoresIn(he))], // the score in the card's own headline (live blogs' running scores differ)
     nums: [...new Set((he.match(/\d{2,}/g) || []).filter((n) => !/^20\d\d$/.test(n)))],
     about: [...new Set(String(card?.about || '').toLowerCase().split(/[^a-zÀ-ɏ]+/).filter((w) => w.length >= 4))],
   };
@@ -57,7 +58,16 @@ export function sameEventStrict(a, b, rare) {
   const sameNum = a.nums.some((n) => b.nums.includes(n) && (!rare || rare.has(n))); // a rare number: "981", not "90"
   const sameAbout = a.about.filter((w) => b.about.includes(w)).length >= 2; // the subject: a star is a common word
   const grounded = shared >= 1 || sameAbout; // the same club / player / subject
-  return grounded && ((shared >= 2 && (jac >= 0.25 || sameScore || sameNum)) || (inter >= 2 && jac >= 0.3) || ((sameScore || sameNum) && (shared >= 1 || sameAbout)));
+  // Almost the same Hebrew headline (the language model wrote nearly one headline for all of them): the same event,
+  // even when its words are "common" because there are many copies (2026-11-06: Partizan - Maccabi from 5 Serbian
+  // live blogs stayed 5 stories). Not when the headlines' scores differ ("Real won 2:0" / "Real won 3:1").
+  const all = (l) => new Set(l);
+  const A = all(a.words), B = all(b.words);
+  const allInter = [...A].filter((w) => B.has(w)).length;
+  const allJac = allInter / Math.max(1, new Set([...A, ...B]).size);
+  const scoresClash = (a.heScores || []).length && (b.heScores || []).length && !a.heScores.some((x) => b.heScores.includes(x));
+  const nearSameHeadline = allJac >= 0.7 && A.size >= 4 && B.size >= 4 && !scoresClash;
+  return grounded && (nearSameHeadline || (shared >= 2 && (jac >= 0.25 || sameScore || sameNum)) || (inter >= 2 && jac >= 0.3) || ((sameScore || sameNum) && (shared >= 1 || sameAbout)));
 }
 
 // clusters: arrays of articles; cards: { key: { title_he, about } } (src/ai.js state.desk)

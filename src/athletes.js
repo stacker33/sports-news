@@ -193,7 +193,9 @@ function matcher(term) {
 // no other word stands right before it (start of the headline, after ":" or ","), or when the text also names the
 // player's club or Israel. Full names and multi-word aliases always count.
 const ISRAEL_CTX = ['israel', 'israeli', 'ישראל', 'ישראלי', 'ישראלית'];
-function surnameMatcher(term, context) {
+// strict (players added from the site, src/userathletes.js): their surnames were not chosen by hand and can be common
+// first names ("Franco": Franco Colapinto, Franco Armani), so a surname alone counts only next to the player's club.
+function surnameMatcher(term, context, strict = false) {
   const t = term.toLowerCase();
   const latin = /[a-z]/.test(t);
   const word = latin ? new RegExp(`(^|[^\\p{L}])${escapeRe(t)}($|[^\\p{L}])`, 'gu') : null;
@@ -203,6 +205,7 @@ function surnameMatcher(term, context) {
     else for (let i = text.indexOf(t); i >= 0; i = text.indexOf(t, i + 1)) at.push(i);
     if (!at.length) return false;
     if (context.some((f) => f(text))) return true;
+    if (strict) return false;
     // another word right before it (letters, then a space) = a different first name
     return at.some((i) => !/\p{L}[\p{M}'’]*\s+$/u.test(text.slice(Math.max(0, i - 30), i)));
   };
@@ -213,10 +216,12 @@ export function buildMatchers(athletes, teamCache) {
     const terms = [a.name, a.name_he, ...a.alt, ...(a.local || [])].filter(Boolean);
     const full = teamCache?.[`${a.sport}|${a.team}`]?.name;
     const full2 = a.team2 ? teamCache?.[`${a.sport}|${a.team2}`]?.name : null;
-    const context = [a.team, a.team_he, full, ...(a.team_alt || []), a.team2, full2, ...(a.team2_alt || []), ...ISRAEL_CTX].filter(Boolean).map(matcher);
+    const clubs = [a.team, a.team_he, full, ...(a.team_alt || []), a.team2, full2, ...(a.team2_alt || [])].filter(Boolean);
+    // added from the site: only the club counts as context (not "Israel": "Kosovo's squad for Israel" is not Danny Franco)
+    const context = (a.user ? clubs : [...clubs, ...ISRAEL_CTX]).map(matcher);
     return {
       name: a.name,
-      test: terms.map((x) => (/\s/.test(x.trim()) ? matcher(x) : surnameMatcher(x, context))),
+      test: terms.map((x) => (/\s/.test(x.trim()) ? matcher(x) : surnameMatcher(x, context, !!a.user))),
     };
   });
   const teams = new Map();
