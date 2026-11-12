@@ -1,0 +1,156 @@
+{
+  "savedFor": "the grouping code as it was when this was written",
+  "real": {
+    "pairs": 264,
+    "missing": 0,
+    "same": 57,
+    "different": 114,
+    "correctMerges": 32,
+    "missedMerges": 25,
+    "falseMerges": 33,
+    "correctlyApart": 81,
+    "precision": 49.2,
+    "recall": 56.1,
+    "mergedByWords": 30,
+    "mergedByCards": 2,
+    "sameMatch": 53,
+    "sameMatchTogether": 28,
+    "related": 40,
+    "relatedTogether": 11,
+    "matchIsOneStory": {
+      "precision": 64.5,
+      "recall": 54.5
+    },
+    "editorConfirmed": 0,
+    "byGroup": {
+      "multilingual": {
+        "same": 17,
+        "found": 16,
+        "different": 13,
+        "falseMerges": 13,
+        "sameMatch": 7,
+        "sameMatchTogether": 6,
+        "related": 5,
+        "relatedTogether": 5
+      },
+      "big-cluster": {
+        "same": 8,
+        "found": 8,
+        "different": 11,
+        "falseMerges": 11,
+        "sameMatch": 20,
+        "sameMatchTogether": 20,
+        "related": 6,
+        "relatedTogether": 6
+      },
+      "same-subject": {
+        "same": 6,
+        "found": 0,
+        "different": 21,
+        "falseMerges": 0,
+        "sameMatch": 14,
+        "sameMatchTogether": 0,
+        "related": 12,
+        "relatedTogether": 0
+      },
+      "hebrew-vs-foreign": {
+        "same": 9,
+        "found": 0,
+        "different": 20,
+        "falseMerges": 0,
+        "sameMatch": 7,
+        "sameMatchTogether": 0,
+        "related": 5,
+        "relatedTogether": 0
+      },
+      "same-player": {
+        "same": 2,
+        "found": 0,
+        "different": 19,
+        "falseMerges": 0,
+        "sameMatch": 3,
+        "sameMatchTogether": 0,
+        "related": 6,
+        "relatedTogether": 0
+      },
+      "transfer": {
+        "same": 7,
+        "found": 0,
+        "different": 21,
+        "falseMerges": 0,
+        "sameMatch": 0,
+        "sameMatchTogether": 0,
+        "related": 5,
+        "relatedTogether": 0
+      },
+      "late-source": {
+        "same": 8,
+        "found": 8,
+        "different": 9,
+        "falseMerges": 9,
+        "sameMatch": 2,
+        "sameMatchTogether": 2,
+        "related": 1,
+        "relatedTogether": 0
+      }
+    }
+  },
+  "synthetic": {
+    "pairs": 17,
+    "missing": 0,
+    "same": 10,
+    "different": 6,
+    "correctMerges": 10,
+    "missedMerges": 0,
+    "falseMerges": 0,
+    "correctlyApart": 6,
+    "precision": 100,
+    "recall": 100,
+    "mergedByWords": 10,
+    "mergedByCards": 0,
+    "sameMatch": 0,
+    "sameMatchTogether": 0,
+    "related": 1,
+    "relatedTogether": 1,
+    "matchIsOneStory": {
+      "precision": 100,
+      "recall": 100
+    },
+    "editorConfirmed": 0,
+    "byGroup": {
+      "synthetic": {
+        "same": 10,
+        "found": 10,
+        "different": 6,
+        "falseMerges": 0,
+        "sameMatch": 0,
+        "sameMatchTogether": 0,
+        "related": 1,
+        "relatedTogether": 1
+      }
+    }
+  },
+  "time": {
+    "stepHours": 3,
+    "moved": 818,
+    "kept": 51081,
+    "movedPct": 1.6,
+    "lostStories": 71,
+    "looksNew": 12
+  },
+  "shape": {
+    "articles": 7441,
+    "stories": 349,
+    "singleArticle": 147,
+    "biggest": [
+      721,
+      563,
+      529,
+      440,
+      417
+    ],
+    "over100Articles": 15,
+    "over50Outlets": 15,
+    "joinedByCards": 41
+  }
+}

@@ -1,0 +1,502 @@
+{
+ "about": "INVENTED cases (clubs, players and outlets do not exist) for situations the real data of 2026-10-20 did not have. They show how the grouping code treats a described situation; they are not evidence of how often it happens. Scored apart from the real pairs and never mixed into their numbers. No story cards: only the word grouping can join them.",
+ "items": [
+  {
+   "id": "syn001",
+   "title": "El Atlético Norte negocia el fichaje de Marco Valdés con el Sporting Oeste",
+   "en": "Atlético Norte negotiate the signing of Marco Valdés with Sporting Oeste",
+   "lang": "es",
+   "publisher": "Diario Uno",
+   "published": 1792396800000,
+   "seen": 1792397100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001",
+    "t90001",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn002",
+   "title": "Atlético Norte verhandelt mit Sporting Oeste über Valdés-Transfer",
+   "en": "Atlético Norte in talks with Sporting Oeste over Valdés transfer",
+   "lang": "de",
+   "publisher": "Sportblatt",
+   "published": 1792400400000,
+   "seen": 1792400700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001",
+    "t90001",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn003",
+   "title": "Valdés verso l'Atlético Norte: trattativa avviata con lo Sporting Oeste",
+   "en": "Valdés towards Atlético Norte: talks opened with Sporting Oeste",
+   "lang": "it",
+   "publisher": "Gazzetta Due",
+   "published": 1792402200000,
+   "seen": 1792402500000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001",
+    "t90001",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn004",
+   "title": "דיווח: אתלטיקו נורטה במגעים עם ספורטינג אואסטה על מרקו ואלדס",
+   "en": "Report: Atlético Norte in talks with Sporting Oeste over Marco Valdés",
+   "lang": "he",
+   "publisher": "אתר לדוגמה",
+   "published": 1792404000000,
+   "seen": 1792404300000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001",
+    "t90001",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn005",
+   "title": "Valdés to Atlético Norte: five-year contract and a 40m euro fee agreed with Sporting Oeste",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792414800000,
+   "seen": 1792415100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001",
+    "t90001",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn006",
+   "title": "Atlético Norte to pay 55m euros for Marco Valdés, not 40m, Sporting Oeste sources say",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792418400000,
+   "seen": 1792418700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001",
+    "t90001",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn007",
+   "title": "Marco Valdés opens a football school for children in his home town",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792407600000,
+   "seen": 1792407900000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn008",
+   "title": "Marco Valdés, sancionado dos partidos por insultar al árbitro",
+   "en": "Marco Valdés banned for two matches for insulting the referee",
+   "lang": "es",
+   "publisher": "Diario Uno",
+   "published": 1792411200000,
+   "seen": 1792411500000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90001"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn009",
+   "title": "Sporting Oeste striker Luis Ortega out for six weeks with a hamstring injury",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792396800000,
+   "seen": 1792397100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90002",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn010",
+   "title": "Sporting Oeste goalkeeper Pedro Lima out for the season with a knee injury",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792400400000,
+   "seen": 1792400700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90003",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn011",
+   "title": "Sporting Oeste: Stürmer Ortega fällt sechs Wochen aus",
+   "en": "Sporting Oeste: striker Ortega out for six weeks",
+   "lang": "de",
+   "publisher": "Sportblatt",
+   "published": 1792404000000,
+   "seen": 1792404300000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90002",
+    "t90002"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn012",
+   "title": "Riverside United 3-1 Harbour City: Keller scores twice in the derby",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792432800000,
+   "seen": 1792433100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90003",
+    "t90004"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn013",
+   "title": "El Riverside United gana 3-1 al Harbour City con doblete de Keller",
+   "en": "Riverside United beat Harbour City 3-1 with a Keller double",
+   "lang": "es",
+   "publisher": "Diario Uno",
+   "published": 1792434600000,
+   "seen": 1792434900000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90003",
+    "t90004"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn014",
+   "title": "Riverside United-Harbour City 3-1: gol e highlights",
+   "en": "Riverside United-Harbour City 3-1: goals and highlights",
+   "lang": "it",
+   "publisher": "Gazzetta Due",
+   "published": 1792436400000,
+   "seen": 1792436700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90003",
+    "t90004"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn015",
+   "title": "Harbour City defender Tom Reyes charged by the league over a racist gesture at the derby",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792504800000,
+   "seen": 1792505100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90004",
+    "t90004"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn016",
+   "title": "Champions League: UEFA confirms the new format for next season",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792396800000,
+   "seen": 1792397100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [],
+   "weight": 2
+  },
+  {
+   "id": "syn017",
+   "title": "Champions League: ticket prices for the final rise by 20 per cent",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792400400000,
+   "seen": 1792400700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [],
+   "weight": 2
+  },
+  {
+   "id": "syn018",
+   "title": "Coach Andrés Molina sacked by Riverside United after five defeats in a row",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792396800000,
+   "seen": 1792397100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90005",
+    "t90003"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn019",
+   "title": "Riverside United entlässt Trainer Andrés Molina nach fünf Niederlagen",
+   "en": "Riverside United sack coach Andrés Molina after five defeats",
+   "lang": "de",
+   "publisher": "Sportblatt",
+   "published": 1792429200000,
+   "seen": 1792429500000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90005",
+    "t90003"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn020",
+   "title": "ריברסייד יונייטד פיטרה את המאמן אנדרס מולינה",
+   "en": "Riverside United sacked coach Andrés Molina",
+   "lang": "he",
+   "publisher": "ספורט 5",
+   "published": 1792400400000,
+   "seen": 1792400700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90005",
+    "t90003"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn021",
+   "title": "Riverside United appoint Carla Renner as head coach to replace Molina",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792468800000,
+   "seen": 1792469100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "p90006",
+    "p90005",
+    "t90003"
+   ],
+   "weight": 2
+  }
+ ],
+ "cards": {},
+ "pairs": [
+  {
+   "id": "s01",
+   "a": "syn001",
+   "b": "syn002",
+   "label": "same",
+   "group": "synthetic",
+   "case": "the same transfer rumour in several languages",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s02",
+   "a": "syn001",
+   "b": "syn003",
+   "label": "same",
+   "group": "synthetic",
+   "case": "the same transfer rumour in several languages",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s03",
+   "a": "syn001",
+   "b": "syn004",
+   "label": "same",
+   "group": "synthetic",
+   "case": "the same transfer rumour in several languages (a Hebrew article)",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s04",
+   "a": "syn001",
+   "b": "syn005",
+   "label": "same",
+   "group": "synthetic",
+   "case": "the same transfer story with new contract details",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s05",
+   "a": "syn005",
+   "b": "syn006",
+   "label": "same",
+   "group": "synthetic",
+   "case": "conflicting reports about one event (the fee): still one story",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s06",
+   "a": "syn001",
+   "b": "syn007",
+   "label": "different",
+   "group": "synthetic",
+   "case": "unrelated stories about the same footballer",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s07",
+   "a": "syn001",
+   "b": "syn008",
+   "label": "different",
+   "group": "synthetic",
+   "case": "unrelated stories about the same footballer",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s08",
+   "a": "syn007",
+   "b": "syn008",
+   "label": "different",
+   "group": "synthetic",
+   "case": "unrelated stories about the same footballer",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s09",
+   "a": "syn009",
+   "b": "syn010",
+   "label": "different",
+   "group": "synthetic",
+   "case": "two injuries, different players, the same club",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s10",
+   "a": "syn009",
+   "b": "syn011",
+   "label": "same",
+   "group": "synthetic",
+   "case": "one injury in two languages",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s11",
+   "a": "syn012",
+   "b": "syn013",
+   "label": "same",
+   "group": "synthetic",
+   "case": "several reports about the same match",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s12",
+   "a": "syn012",
+   "b": "syn014",
+   "label": "same",
+   "group": "synthetic",
+   "case": "several reports about the same match",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s13",
+   "a": "syn012",
+   "b": "syn015",
+   "label": "different",
+   "group": "synthetic",
+   "case": "the match report vs. a disciplinary case from that match",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s14",
+   "a": "syn016",
+   "b": "syn017",
+   "label": "different",
+   "group": "synthetic",
+   "case": "a shared broad subject, not the same event",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s15",
+   "a": "syn018",
+   "b": "syn019",
+   "label": "same",
+   "group": "synthetic",
+   "case": "a story that gets a new source nine hours later",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s16",
+   "a": "syn018",
+   "b": "syn020",
+   "label": "same",
+   "group": "synthetic",
+   "case": "a story Sport5 published (Hebrew) and the foreign report of it",
+   "by": "synthetic",
+   "editor": null
+  },
+  {
+   "id": "s17",
+   "a": "syn020",
+   "b": "syn021",
+   "label": "related",
+   "group": "synthetic",
+   "case": "a story Sport5 published that develops later (the sacking, then the new coach)",
+   "by": "synthetic",
+   "editor": null
+  }
+ ]
+}

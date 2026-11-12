@@ -1,0 +1,2408 @@
+{
+ "about": [
+  "Hand-labelled pairs of real articles (ids in corpus.json.gz). a, b: the two articles. label: same | different | same-match | related (see scripts/eval-clusters.mjs).",
+  "group: how the pair was picked. multilingual: two languages inside one story of the radar. big-cluster: two articles inside one of the 14 biggest stories. same-subject: two stories the language model gave the same subject, kept apart. hebrew-vs-foreign: a story led by a Hebrew article and a foreign one that share a club / player and wording. same-player: two separate stories about one player. transfer: two separate stories about a move / contract of one player. late-source: the first and the last article of a story that kept getting sources for 6+ hours.",
+  "by: who decided the label. 'assistant' = Claude read both headlines (foreign ones in the radar's machine translation) and decided; it did not open the articles. editor: null until a Sport5 editor confirms ('confirmed') or corrects the label. No label here has been confirmed by an editor yet: treat the numbers as a careful first reading, not as ground truth.",
+  "Pairs were picked by a seeded script from candidates, then every candidate was read; 29 unclear or junk candidates were dropped. The set is a probe of hard cases, not a random sample of the radar: its percentages say how the code does on these cases, not on a normal day."
+ ],
+ "pairs": [
+  {
+   "id": "r000",
+   "a": "c47ba27703939fc1",
+   "b": "5b5d4718cddf3fd4",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r001",
+   "a": "a4e44dc64fe838cb",
+   "b": "70505397d026a740",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r002",
+   "a": "c2afc4d93725dbc8",
+   "b": "f425967bf810e3ae",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r004",
+   "a": "ef6b59e43d28665d",
+   "b": "e87bf78567b84806",
+   "label": "related",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r006",
+   "a": "c7cb2b5334f4dfbd",
+   "b": "7f43664a8b28bb5f",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r007",
+   "a": "49a2f2ca659f6ee0",
+   "b": "c330527d6b2baed3",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r008",
+   "a": "4100a3bf3eff1148",
+   "b": "753b431a065d8291",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r009",
+   "a": "0132ce8b17abd46a",
+   "b": "c665cea002d37282",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r010",
+   "a": "900c3783d5854799",
+   "b": "dbe6703c4b77b18b",
+   "label": "related",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r011",
+   "a": "b475d429e345b0e3",
+   "b": "6a76901cbb13c253",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r012",
+   "a": "9ecdb65fc531d9fa",
+   "b": "e7a8a00f58a8ab64",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r013",
+   "a": "1c68557b99823032",
+   "b": "6d364968db0c31bb",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r014",
+   "a": "1afa51e623654410",
+   "b": "6cf94417c12bc2fe",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r015",
+   "a": "a5914c01c6f7b947",
+   "b": "1a6691aee3ff2a38",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r016",
+   "a": "d6018fca721db8e3",
+   "b": "d47e648e20d9f2f5",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r017",
+   "a": "b2f6d8256f09c682",
+   "b": "1d1574dca50bc9dc",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r018",
+   "a": "08717870b189cb17",
+   "b": "768e1b59de7ca052",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r019",
+   "a": "916318bc112abd6b",
+   "b": "c2634db73040a75c",
+   "label": "related",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r020",
+   "a": "c76baac2363b762f",
+   "b": "52fd5d611c906e3a",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r021",
+   "a": "060717d42fd2e256",
+   "b": "93e792242c90b11f",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r022",
+   "a": "9977b42eef34dde3",
+   "b": "57193c1af271a27c",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r023",
+   "a": "05cdbd382493085c",
+   "b": "55d9a35e4468043a",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r024",
+   "a": "dacfbc98df7e6b1f",
+   "b": "3a5fa2a684f5f339",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r025",
+   "a": "414e42fe5b8cce98",
+   "b": "79e963a313053117",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r026",
+   "a": "63a13c4bfedb6f44",
+   "b": "e366df793f345eb2",
+   "label": "related",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r027",
+   "a": "f778edfbd323e733",
+   "b": "f779ab50a87327ce",
+   "label": "related",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r028",
+   "a": "7a20e49d8f12fc57",
+   "b": "7e18e73d7c0bd821",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r029",
+   "a": "10084529f2d1aec8",
+   "b": "9c24ae680d3f20de",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r030",
+   "a": "9b1ecf2a0e7f46d4",
+   "b": "ae25a4ed80bbfacd",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r031",
+   "a": "a672c3cba94d1906",
+   "b": "60e183d15e91e950",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r032",
+   "a": "da0ea177109420cd",
+   "b": "c7a20520a819986c",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r033",
+   "a": "8e43439ff753c6dd",
+   "b": "94e59ce9e62b0852",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r034",
+   "a": "1188d7da7c5cec4a",
+   "b": "6fde7412bdf908d4",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r035",
+   "a": "4728138449cf0c97",
+   "b": "d56dbb8bf81b974b",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r036",
+   "a": "825c38caacab7029",
+   "b": "ed03b2ccc326d8da",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r037",
+   "a": "746fe80d5957c4d7",
+   "b": "920cd23b60ec68d6",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r038",
+   "a": "524c88d21e3763d5",
+   "b": "bb6a7bbc9662ccce",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r039",
+   "a": "6e6e81326edcb43a",
+   "b": "1b8276bf5b41a5c5",
+   "label": "different",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r040",
+   "a": "643d7ee0e696bcd5",
+   "b": "e3e5f58281761c28",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r041",
+   "a": "4b0966bb6a265362",
+   "b": "4eb76c35710cbf47",
+   "label": "same",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r042",
+   "a": "b4786ac677b0976a",
+   "b": "ce1b061a54ea6bbd",
+   "label": "different",
+   "group": "multilingual",
+   "note": "a disciplinary case about the fans vs. the match itself",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r043",
+   "a": "640bc1a67def56f5",
+   "b": "889165eef895d609",
+   "label": "same-match",
+   "group": "multilingual",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r046",
+   "a": "7f58155622e08862",
+   "b": "2dde9941d3119047",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r047",
+   "a": "6dd35dff83c94d7c",
+   "b": "c73843cbeafe6330",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r048",
+   "a": "a5d374dc4d5ca386",
+   "b": "2c186425b425adbf",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r049",
+   "a": "cafcf84111efbecf",
+   "b": "a2db297ccb4dfe8e",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r050",
+   "a": "b7b2c9fc36ba464d",
+   "b": "e9b42d452a375c03",
+   "label": "related",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r051",
+   "a": "f9e53cc29f97f589",
+   "b": "241bcc58e3bafe0d",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r054",
+   "a": "bd038aee2f1a2632",
+   "b": "471d12126bda5cee",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r055",
+   "a": "52a30e709df84ac7",
+   "b": "ba394c30284dd001",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r056",
+   "a": "854140dbbff53bd2",
+   "b": "c86387556fa901db",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r058",
+   "a": "17602f3fbcd6b2af",
+   "b": "01afa4c465421035",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r059",
+   "a": "18c7273b728ea846",
+   "b": "a1875501ccb8a091",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r061",
+   "a": "ad2affba8eb8a290",
+   "b": "05c07d142e76d8c5",
+   "label": "related",
+   "group": "big-cluster",
+   "note": "the coach's future after the match vs. the match",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r062",
+   "a": "8d8e56ec1f61411b",
+   "b": "e9ae79dcf42ad79f",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r064",
+   "a": "236547ee5207e7b4",
+   "b": "f22f12190057190c",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r065",
+   "a": "ffac259cd1315892",
+   "b": "08af32effba2be0e",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r068",
+   "a": "d51b00630581ec71",
+   "b": "57764a9ea46429bf",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r069",
+   "a": "bb3e9b3f37efae1a",
+   "b": "8e19de7b9b912e73",
+   "label": "related",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r070",
+   "a": "8a228bb318e885e3",
+   "b": "1d7a44127a740dad",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r071",
+   "a": "a31167093de3087e",
+   "b": "f069fd9205770476",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r072",
+   "a": "4d964372ae877c08",
+   "b": "a6204c1745a40d68",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r073",
+   "a": "b05c494adec80a8d",
+   "b": "613a115dca059cff",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r074",
+   "a": "0a9d6e1a6cc376ba",
+   "b": "d80b1a3113f6ec39",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r075",
+   "a": "df3c3089b973536f",
+   "b": "8b7601e3e5e53976",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r076",
+   "a": "bdd048927eca0fd7",
+   "b": "68123e0fdc90d4cc",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r077",
+   "a": "593128a0867f4c7b",
+   "b": "d169ee81bfdfafa6",
+   "label": "different",
+   "group": "big-cluster",
+   "note": "the under-19 match vs. the first team's match",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r078",
+   "a": "d057f8fe55c75422",
+   "b": "ae661a37c8f53a84",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r080",
+   "a": "39bb07e5a12726f5",
+   "b": "b4d2ec9bdf052145",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r081",
+   "a": "2bee9b5b35fec0b6",
+   "b": "39bb07e5a12726f5",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r082",
+   "a": "2fd5239a2656d7ba",
+   "b": "daf7d8bad150c8c7",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r083",
+   "a": "d695ff5dbed05735",
+   "b": "99b37a41b57ddf0b",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r084",
+   "a": "4e637e7c796b8118",
+   "b": "74c9eb84e22e3bc0",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r085",
+   "a": "f9a386cd74adfe5e",
+   "b": "d38317659f23ef31",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r086",
+   "a": "90521a49210a69d3",
+   "b": "a1f413244071009b",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r087",
+   "a": "203d0dfc1ec342e3",
+   "b": "5c2dbdd1009c3100",
+   "label": "different",
+   "group": "big-cluster",
+   "note": "Ajax's match vs. Jong Ajax's match",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r088",
+   "a": "7dd4bc2f2859e695",
+   "b": "f7e6ca00def9f12e",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r089",
+   "a": "2d642192d99fbee7",
+   "b": "df079b3c02f355c3",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r090",
+   "a": "52683a116d64110e",
+   "b": "f7e6ca00def9f12e",
+   "label": "same-match",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r091",
+   "a": "0248adf69f369832",
+   "b": "0b0032e8e12c1871",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r092",
+   "a": "4726c8aa6c44f97b",
+   "b": "3d7c4bd544b86a92",
+   "label": "related",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r093",
+   "a": "3fd21aaaaf9fc541",
+   "b": "21f62278e30d652e",
+   "label": "different",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r094",
+   "a": "51e8b3aa79a6189e",
+   "b": "9b3135a1743d4489",
+   "label": "related",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r095",
+   "a": "51e8b3aa79a6189e",
+   "b": "b8a6270266bcc51e",
+   "label": "related",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r096",
+   "a": "27c33c25016cd383",
+   "b": "0eee4d84cf394bff",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r097",
+   "a": "ea3067a18b388393",
+   "b": "b6b5a18a741b88e2",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r098",
+   "a": "34419f26a7432fad",
+   "b": "d9dfd89854051f64",
+   "label": "same",
+   "group": "big-cluster",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r100",
+   "a": "a3da10b523c823d1",
+   "b": "788ada5e34e58661",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r101",
+   "a": "1464285c5d0b6246",
+   "b": "a989987d33fc43cc",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r102",
+   "a": "13506b7ea8d5bb3d",
+   "b": "c934db1de45dedb5",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r103",
+   "a": "8f0717e29d49fff6",
+   "b": "627bab89a7c375fb",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r104",
+   "a": "838eff1e2367a2bd",
+   "b": "ce7bfd918329909f",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r105",
+   "a": "4365d54f11a933b0",
+   "b": "b1f20a9f86d3390b",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r106",
+   "a": "a989987d33fc43cc",
+   "b": "e4ab0c2904516be2",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r107",
+   "a": "3c40a1dc5ebed932",
+   "b": "fd00615d3954bac8",
+   "label": "different",
+   "group": "same-subject",
+   "note": "a signing vs. a live game of the same club",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r108",
+   "a": "1d9816f7a285cd58",
+   "b": "882bf518e8569e08",
+   "label": "same",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r109",
+   "a": "eda4027e1700f5a5",
+   "b": "eadb221e003b543b",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r111",
+   "a": "c00f51e577e98c5b",
+   "b": "b476d34c7fe722db",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r113",
+   "a": "d6ea40232fb7e050",
+   "b": "c42ebb2dea7af350",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r114",
+   "a": "624b34056068e94a",
+   "b": "ce82b8d6fa3088db",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r115",
+   "a": "f716944c6cae4d31",
+   "b": "98ebc09c83e7d5e2",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r116",
+   "a": "3f1c5bee82725cc4",
+   "b": "b59efe02eb11ecf5",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r117",
+   "a": "8a9eb8307866c5e7",
+   "b": "4dca5a35ef87d244",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r118",
+   "a": "57611d3f520110ee",
+   "b": "bb69f7d8a7919a45",
+   "label": "same",
+   "group": "same-subject",
+   "note": "the same Mourinho answer about Arda Guler",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r119",
+   "a": "3f3dcd2f0c2e25eb",
+   "b": "1c37f0f3f9dbd0eb",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r120",
+   "a": "7aad56379205edf2",
+   "b": "7ae891e6be09ceb4",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r122",
+   "a": "98092bf4e531f57d",
+   "b": "de13e469fd866891",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r123",
+   "a": "48feaceb47eef574",
+   "b": "249c1524a1d1e150",
+   "label": "same",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r125",
+   "a": "ff3c15e586fe0f05",
+   "b": "32612400b6c95f04",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r126",
+   "a": "3f6d1a67d30b3fea",
+   "b": "12186d2d3c47c1fe",
+   "label": "same",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r127",
+   "a": "95f0d7780565d8fd",
+   "b": "ff3c15e586fe0f05",
+   "label": "different",
+   "group": "same-subject",
+   "note": "the football team's story vs. the basketball team's live game",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r128",
+   "a": "2bf150c48653d109",
+   "b": "afdf746105cc80c5",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r129",
+   "a": "22ad12b14307cf72",
+   "b": "d5b750272969d331",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r131",
+   "a": "1ce8191f95503930",
+   "b": "86c16602d1d972a2",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r132",
+   "a": "7f0f927b4dd5be9d",
+   "b": "64c5d51781dd8ac4",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r133",
+   "a": "3abb0a7aeac2f8dc",
+   "b": "66f9b49bf68da97e",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r134",
+   "a": "ba5491224e42b058",
+   "b": "df61f6785d26047a",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r135",
+   "a": "4240feb35a7ff7aa",
+   "b": "02c0ddac4c7cc07f",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r136",
+   "a": "e6118b74e8c57106",
+   "b": "6663b17cefaf12ce",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r137",
+   "a": "32021aff120a6f23",
+   "b": "443d0599dd57a8b0",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r138",
+   "a": "3cff2645307a12e5",
+   "b": "2e434ddc31dc6b23",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r139",
+   "a": "0f3f6b9d828dc2bf",
+   "b": "dcffb1c84d2ce4d6",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r140",
+   "a": "f8459700d6ff8c27",
+   "b": "648f21cfd5ef3ca9",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r141",
+   "a": "db62893ac2231770",
+   "b": "28d8bde4d9500cd5",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r142",
+   "a": "bb69f7d8a7919a45",
+   "b": "82b430f96dd5b7b4",
+   "label": "same",
+   "group": "same-subject",
+   "note": "the same Mourinho answer about Arda Guler",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r143",
+   "a": "a989987d33fc43cc",
+   "b": "ff382d84175b2827",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r144",
+   "a": "98092bf4e531f57d",
+   "b": "a6672160b04b95d0",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r145",
+   "a": "e2584df07bec2b94",
+   "b": "f9de47a580da165c",
+   "label": "same",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r146",
+   "a": "41eebf9151bdf1b9",
+   "b": "7e629e85035ac3f4",
+   "label": "related",
+   "group": "same-subject",
+   "note": "injury, then the diagnosis",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r147",
+   "a": "5816d71834857401",
+   "b": "89354479ae664847",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r148",
+   "a": "12ba2dd5d2c6ae16",
+   "b": "b8bf55802083713c",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r149",
+   "a": "c165227d7c1438a5",
+   "b": "a989987d33fc43cc",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r151",
+   "a": "4894b5d830e9502b",
+   "b": "6a163a431b8f6902",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r152",
+   "a": "c4c114540b2dc5b0",
+   "b": "db372a08f7941882",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r153",
+   "a": "c0170b1d5bf7b295",
+   "b": "393aabca56c3963c",
+   "label": "same-match",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r154",
+   "a": "13344dc8404e4e74",
+   "b": "df61f6785d26047a",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r155",
+   "a": "a989987d33fc43cc",
+   "b": "a8bac5006bcb532f",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r157",
+   "a": "80ff587b2445c65d",
+   "b": "d42bf13471b95e1e",
+   "label": "related",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r158",
+   "a": "e9d86895ca8d8ebb",
+   "b": "b9143321de4f9e6a",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r159",
+   "a": "ff3c15e586fe0f05",
+   "b": "c2137b3651ed40b0",
+   "label": "different",
+   "group": "same-subject",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r160",
+   "a": "af9dc6719adeb2b3",
+   "b": "8b4c77ea9008efdf",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r161",
+   "a": "c411c620e7d77a56",
+   "b": "502e231d5f808399",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r162",
+   "a": "6100718233565489",
+   "b": "4e46d536c011942a",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r163",
+   "a": "8abd9dc335b616eb",
+   "b": "f429d196a3ba1c79",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r164",
+   "a": "99de13e975f72021",
+   "b": "4b14391edddb8bd2",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r165",
+   "a": "74314192e6ba2c58",
+   "b": "37b2d45fa5bcd7d5",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r166",
+   "a": "c411c620e7d77a56",
+   "b": "6a5655a25415d07a",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r167",
+   "a": "c411c620e7d77a56",
+   "b": "76d8313060d90d51",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r169",
+   "a": "f9d87056de68a335",
+   "b": "b29e5ccdf8d93be3",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r170",
+   "a": "f9d87056de68a335",
+   "b": "92f8293cef651be8",
+   "label": "related",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r171",
+   "a": "f9d87056de68a335",
+   "b": "ba4008df69ccc0c3",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r172",
+   "a": "f9d87056de68a335",
+   "b": "3bb8349f935b7096",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r173",
+   "a": "f9d87056de68a335",
+   "b": "4e46d536c011942a",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r174",
+   "a": "0c2048ffeee8a709",
+   "b": "841f47e7d61577e6",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r175",
+   "a": "578e42b383172ef9",
+   "b": "cb3e264521ad43b3",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r176",
+   "a": "578e42b383172ef9",
+   "b": "0da88f018a339ce6",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r177",
+   "a": "578e42b383172ef9",
+   "b": "0395ed5a8e60b780",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r178",
+   "a": "411673d04b555c53",
+   "b": "953de74dc0fa52f9",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r179",
+   "a": "411673d04b555c53",
+   "b": "143c047835b9d95a",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r180",
+   "a": "dd4ce33098b67bf3",
+   "b": "5793a3f9ed141d97",
+   "label": "related",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r181",
+   "a": "5d036428f95c9f4f",
+   "b": "548484cb3cc2778c",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r182",
+   "a": "5d036428f95c9f4f",
+   "b": "4d2ff5914345c5c4",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r183",
+   "a": "6100718233565489",
+   "b": "ba4008df69ccc0c3",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "note": "a fans' protest vs. the match result",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r184",
+   "a": "6100718233565489",
+   "b": "3bb8349f935b7096",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r185",
+   "a": "99de13e975f72021",
+   "b": "2d226f6a7d3c4559",
+   "label": "related",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r186",
+   "a": "8e457d9f3f4b6703",
+   "b": "72c4792b289e533b",
+   "label": "related",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r187",
+   "a": "a5dc56fb415410b2",
+   "b": "8c8fd03b407359e6",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r188",
+   "a": "4a5bfc059d6ae5c2",
+   "b": "a6dc087416347c7d",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r189",
+   "a": "80f24355d99c9bd7",
+   "b": "2d226f6a7d3c4559",
+   "label": "related",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r190",
+   "a": "c3a42586717b0140",
+   "b": "02ef8955249e0054",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r191",
+   "a": "20a41f600512a068",
+   "b": "1ce8191f95503930",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r192",
+   "a": "a64ae9f290af137c",
+   "b": "2493b020f8297e6b",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "note": "two injuries, different players, same club",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r193",
+   "a": "74314192e6ba2c58",
+   "b": "bdf05e7529b19735",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r194",
+   "a": "74314192e6ba2c58",
+   "b": "deb1bf1ce40b32b4",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r195",
+   "a": "e0ca3e5f3c8a6d4d",
+   "b": "51d53b2c068b6ba0",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r196",
+   "a": "99de13e975f72021",
+   "b": "37b2d45fa5bcd7d5",
+   "label": "same",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r197",
+   "a": "5d036428f95c9f4f",
+   "b": "ba4008df69ccc0c3",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r198",
+   "a": "8abd9dc335b616eb",
+   "b": "460c0c6bbf88c22d",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r200",
+   "a": "8abd9dc335b616eb",
+   "b": "6f0b0bb28ff6a5de",
+   "label": "same-match",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r202",
+   "a": "af9dc6719adeb2b3",
+   "b": "2493b020f8297e6b",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "note": "two injuries, different players, same club",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r203",
+   "a": "c3a42586717b0140",
+   "b": "bdf05e7529b19735",
+   "label": "different",
+   "group": "hebrew-vs-foreign",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r204",
+   "a": "2ed296081d51bac4",
+   "b": "0a6a0b1747c1857a",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r205",
+   "a": "5a4ef92ec080ed3c",
+   "b": "5c6c86f68371bebb",
+   "label": "related",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r206",
+   "a": "c0727e05f5b97d3d",
+   "b": "ed271f9aaef386ef",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r207",
+   "a": "d57da88752fd10ae",
+   "b": "f54f78a7de06306a",
+   "label": "different",
+   "group": "same-player",
+   "note": "the same player, two different remarks",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r208",
+   "a": "51d798e7d22609e5",
+   "b": "6e45e0984375cf71",
+   "label": "same-match",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r209",
+   "a": "bc8d4bfe01e7b120",
+   "b": "d57da88752fd10ae",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r210",
+   "a": "7d16c4fa4942c5a4",
+   "b": "2c846ee71e998718",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r211",
+   "a": "cc24270a7baa0c1a",
+   "b": "a8cb24aa8c79dbde",
+   "label": "related",
+   "group": "same-player",
+   "note": "reports of an injury, then the club's statement",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r212",
+   "a": "838eff1e2367a2bd",
+   "b": "43e1f783a5389048",
+   "label": "related",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r213",
+   "a": "61e20f0428e88b9f",
+   "b": "e6a2af506bad27e6",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r214",
+   "a": "3d800bb4c90f5b34",
+   "b": "33b89c0f4f562831",
+   "label": "related",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r215",
+   "a": "27e3cc79b90ca420",
+   "b": "dfac63b6acf668e6",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r216",
+   "a": "1b32aa5e0c5defa9",
+   "b": "2d226f6a7d3c4559",
+   "label": "different",
+   "group": "same-player",
+   "note": "the same player, two different subjects",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r217",
+   "a": "725c6c2add6d19da",
+   "b": "84e88bebde8e64a9",
+   "label": "same",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r218",
+   "a": "f6260c8cf7c3baab",
+   "b": "8ca38e2c084f81b3",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r219",
+   "a": "ffd58315e2625de0",
+   "b": "25c873bc6a0af86e",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r220",
+   "a": "358e625825671754",
+   "b": "c94badb3ac2d85a7",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r221",
+   "a": "8db0ba6304e11a74",
+   "b": "dde2dd6f8ef5c8a4",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r222",
+   "a": "b2d451ba0ac66673",
+   "b": "1455d554d9a678db",
+   "label": "related",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r223",
+   "a": "4656ca9f26b5a15e",
+   "b": "b25bf7f2c0d032af",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r224",
+   "a": "2061beb2aa44df27",
+   "b": "5a2d29f3bff8db8a",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r225",
+   "a": "2f6de5fa3d05619e",
+   "b": "040fbc2914ea4d7b",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r226",
+   "a": "633723b230db6495",
+   "b": "09248b5173330765",
+   "label": "same-match",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r227",
+   "a": "2f4af9cb9755de8a",
+   "b": "bb9c13ec7864ccaf",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r228",
+   "a": "c1ff20c9f6c8f303",
+   "b": "dea464b679642c89",
+   "label": "related",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r229",
+   "a": "4ed7b16232a5280a",
+   "b": "54cb7312e8f164cf",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r230",
+   "a": "88aaa403699fc20d",
+   "b": "fd3edd46f1a47267",
+   "label": "different",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r231",
+   "a": "d818fe4256aac2e5",
+   "b": "a1f769141d95877d",
+   "label": "same",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r232",
+   "a": "15ba336bc9a6a39a",
+   "b": "aef78d6a72169c8d",
+   "label": "same-match",
+   "group": "same-player",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r233",
+   "a": "d6ea40232fb7e050",
+   "b": "77ff4d9584e542c7",
+   "label": "different",
+   "group": "same-player",
+   "note": "the player in a live match vs. his new contract",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r234",
+   "a": "f291285b3693f030",
+   "b": "a88bee1446ad1467",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r235",
+   "a": "5a2d29f3bff8db8a",
+   "b": "0b355e81066f41c7",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r237",
+   "a": "9e09a64afd4ef0c3",
+   "b": "38ce4777c8264d5f",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r238",
+   "a": "38d3066246ea9021",
+   "b": "b9210873970a8c62",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r239",
+   "a": "27874c16191babbb",
+   "b": "59ee1babe5f74dd8",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r240",
+   "a": "93e792242c90b11f",
+   "b": "d3745276c33ef9ad",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r241",
+   "a": "05e07083d2072338",
+   "b": "f429d196a3ba1c79",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r242",
+   "a": "58c29b39c7b0b70c",
+   "b": "351555eacc899ef7",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r243",
+   "a": "7d8da496ab5d51cc",
+   "b": "31e217e2f554ea27",
+   "label": "different",
+   "group": "transfer",
+   "note": "two different contract extensions from the same reporter",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r244",
+   "a": "27874c16191babbb",
+   "b": "77ff4d9584e542c7",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r245",
+   "a": "01f09a2b61def2ac",
+   "b": "82529ed8090d759a",
+   "label": "related",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r246",
+   "a": "3d89070c372fb448",
+   "b": "9e09a64afd4ef0c3",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r247",
+   "a": "05e07083d2072338",
+   "b": "b85b9f3f5d536a7f",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r248",
+   "a": "a9deaa1d8a0e9d2a",
+   "b": "c5977ce4969feab6",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r249",
+   "a": "01f09a2b61def2ac",
+   "b": "2455e76e175ac5c4",
+   "label": "related",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r250",
+   "a": "9144766ff2a1c6fd",
+   "b": "b73b2f93d0c0c294",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r251",
+   "a": "3c40a1dc5ebed932",
+   "b": "a3e867fab8fd1b72",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r252",
+   "a": "6b775823717a9f88",
+   "b": "59ee1babe5f74dd8",
+   "label": "related",
+   "group": "transfer",
+   "note": "the club rejects his demands, then an agreement the next day",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r253",
+   "a": "31e217e2f554ea27",
+   "b": "c6e923d26673a296",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r254",
+   "a": "fe6189f4d8f813f3",
+   "b": "ceec19fe73182ca3",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r255",
+   "a": "1b2920b1843bf517",
+   "b": "09c4d27ae6f5574e",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r256",
+   "a": "a719e6cf7dd40cf5",
+   "b": "5a2d29f3bff8db8a",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r257",
+   "a": "05bd8b7f5199e193",
+   "b": "5d33e451d1fc2b7e",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r258",
+   "a": "512175b7275191bd",
+   "b": "ddd3695dcb8748e7",
+   "label": "related",
+   "group": "transfer",
+   "note": "expected to sign, then signed",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r259",
+   "a": "3dd3f1e9d972ac8e",
+   "b": "8ec0a80d04352510",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r260",
+   "a": "4d122ac7eb41927b",
+   "b": "725c6c2add6d19da",
+   "label": "same",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r261",
+   "a": "59ee1babe5f74dd8",
+   "b": "f9f1385f21001959",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r263",
+   "a": "0ec9a4cf7172244a",
+   "b": "59ee1babe5f74dd8",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r264",
+   "a": "b85b9f3f5d536a7f",
+   "b": "80bedc63d33e59c0",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r265",
+   "a": "05e07083d2072338",
+   "b": "80bedc63d33e59c0",
+   "label": "related",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r266",
+   "a": "0ec9a4cf7172244a",
+   "b": "9564df0873c72206",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r267",
+   "a": "73ff5671819833fb",
+   "b": "5fff0573c07292e8",
+   "label": "different",
+   "group": "transfer",
+   "note": "Frenkie de Jong vs. Luuk de Jong",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r268",
+   "a": "f5e77098ff195683",
+   "b": "9144766ff2a1c6fd",
+   "label": "different",
+   "group": "transfer",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r270",
+   "a": "ebe0c665b7d0f42f",
+   "b": "b157f201dc90ab3c",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r271",
+   "a": "c1e565a5bed37f14",
+   "b": "d7380543e354b28b",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r272",
+   "a": "144b76fbef979550",
+   "b": "894c6d35fc499cd2",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r273",
+   "a": "8dcc6cad082657f2",
+   "b": "870dd48fbdbfbe2d",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r274",
+   "a": "76686fa998600a67",
+   "b": "65195cf2b2f22b0b",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r275",
+   "a": "65f52bf90db74889",
+   "b": "eacf8feccf5921f7",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r276",
+   "a": "4c445fb2727eedb6",
+   "b": "6079fb56393c091e",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r277",
+   "a": "9feb0a798e179d23",
+   "b": "1be4b021e5e73321",
+   "label": "same-match",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r279",
+   "a": "55377f25681b5db8",
+   "b": "f69549e2c738a1b4",
+   "label": "different",
+   "group": "late-source",
+   "note": "two different matches of the same club",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r280",
+   "a": "57ab6d9f680b237d",
+   "b": "92c5da04984e6636",
+   "label": "different",
+   "group": "late-source",
+   "note": "Cincinnati college football vs. FC Cincinnati",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r282",
+   "a": "218dddca526ac933",
+   "b": "1e54f0a5d36951c4",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r283",
+   "a": "24373fd2343d2347",
+   "b": "73646719716d5b40",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r284",
+   "a": "5263b19c6464761f",
+   "b": "888276dedbf50a99",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r286",
+   "a": "543199a4f60646d0",
+   "b": "b66f9d47181e5225",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r287",
+   "a": "2c4d956bc76549b6",
+   "b": "9a3aa368037b9174",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r288",
+   "a": "c2509d6d0cee7568",
+   "b": "503e05b1d34fbb30",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r289",
+   "a": "a075586558b857ac",
+   "b": "8e01dce05228f670",
+   "label": "related",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r290",
+   "a": "516c88f93abe5442",
+   "b": "0eeb394d27079796",
+   "label": "different",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r291",
+   "a": "3f04ba5322c19bd7",
+   "b": "09746ba0910c2046",
+   "label": "same",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  },
+  {
+   "id": "r292",
+   "a": "7a900216e2d14b39",
+   "b": "0ccdeac463bb9542",
+   "label": "same-match",
+   "group": "late-source",
+   "by": "assistant",
+   "editor": null
+  }
+ ]
+}
