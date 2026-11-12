@@ -87,9 +87,41 @@ export function otherMatch(a, b) {
   return false;
 }
 
-const WINDOW = 20 * 3600 * 1000; // same story must appear within 20h
+// ---------- the phase of a match ----------
+// The editors' rule (2026-11-12): the coverage before a match, during it and after it are separate stories. The same
+// match is not the same story. The phase is read from the headline's English text (the original or the radar's
+// translation); a headline that does not say stays unknown, and unknown never blocks and never joins by itself.
+//   pre_match   previews, expected and confirmed line-ups, squads, where to watch, pre-match press conferences
+//   live_match  live coverage, a running score, half-time
+//   post_match  the result, the match report, highlights
+// A TV / streaming listing is before the match even when it says "live".
+const LISTING = /where to watch|how to watch|what time|(which|what) channel|tv channel|live stream|kick-?off time/i;
+const LIVE = /\blive\b|\buživo\b|liveticker|live[- ]?blog|live updates|\bminute\b|half[- ]?time|(first|second|1st|2nd) half|\(part \d\)|\bdirect\b|en vivo|as it happens/i;
+const PRE = /preview|prediction|predicted|predictions|line-?ups?|starting (xi|eleven|11)|possible 11|team news|\bsquad\b|\bodds\b|\btips\b|betting|called up|call-ups?|press conference|\bh2h\b|head-to-head|probable/i;
+const POST = /\bbeat\b|\bbeats\b|\bwon\b|\bwins\b|\bdefeat(ed|s)?\b|\bdraw\b|\bdrew\b|thrash|victory|highlights|as it happened|player ratings|match report|full[- ]time|\bafter the (game|match|win|defeat|draw|loss)\b/i;
+// a result ("3-1", "80:66"), not a time ("19:00", "8.45pm") or a date ("18/10/2026")
+const hasScore = (t) => [...t.matchAll(/(?<![\d./])(\d{1,3})\s?[-:–]\s?(\d{1,3})(?![\d/])/g)].some((m) => (+m[1] <= 15 && +m[2] <= 15) || (+m[1] >= 40 && +m[2] >= 40));
+export function matchPhase(text) {
+  const t = String(text || '');
+  if (LISTING.test(t)) return 'pre_match';
+  if (LIVE.test(t)) return 'live_match';
+  if (PRE.test(t)) return 'pre_match';
+  if (POST.test(t) || hasScore(t)) return 'post_match';
+  return null;
+}
+
+// A story takes articles for 20 hours from its FIRST article. (It used to be 20 hours from its newest one, so every
+// new article moved the limit and a story could keep growing for the whole two days the radar remembers.)
+const WINDOW = 20 * 3600 * 1000;
 const CORE = 8; // a new article must match one of the story's first 8 articles
 const SPORTY = new Set(['football', 'basketball']);
+// a near copy of a headline: what an article needs to cross between a match story and a story that names no match
+function nearCopy(a, b) {
+  let shared = 0;
+  for (const t of a) if (b.has(t)) shared++;
+  const min = Math.min(a.size, b.size);
+  return min > 0 && shared >= 4 && shared / min >= 0.7;
+}
 
 export function clusterItems(items) {
   const sorted = [...items].sort((a, b) => a.published - b.published);
@@ -102,6 +134,7 @@ export function clusterItems(items) {
     it._key = en ? 'x' : it.lang;
     it._tok = tokens(en || it.title);
     it._match = fixtureOf(it);
+    const phase = matchPhase(en || it.title); // kept here, not on the article: nothing new is saved in the memory
     const candidates = new Map();
     for (const t of it._tok) for (const c of index.get(t) || []) candidates.set(c, (candidates.get(c) || 0) + 1);
 
@@ -109,26 +142,42 @@ export function clusterItems(items) {
     // check strongest candidates first
     for (const [c] of [...candidates].sort((x, y) => y[1] - x[1]).slice(0, 25)) {
       const cl = clusters[c];
-      if (cl.key !== it._key || it.published - cl.last > WINDOW) continue;
+      if (cl.key !== it._key || it.published - cl.first > WINDOW) continue;
       // never mix football and basketball in one story (Hapoel Tel Aviv vs Real Madrid exists in both)
       if (cl.sport && it.sportSure && SPORTY.has(it.sport) && it.sport !== cl.sport) continue;
       // never two different matches in one story
       if (cl.fixtures.some((f) => otherMatch(f, it._match))) continue;
+      // never two phases of one match in one story (the preview, the live coverage and the result are three stories)
+      if (it._match && phase && cl.phase && phase !== cl.phase) continue;
+      const core = cl.items.slice(0, CORE);
+      // A match story (most of its first articles name a match) and an article that names no match, or the other
+      // way round: news about a club that plays in the match is not the match. Club names and common words are not
+      // enough here. The article joins only when it is a near copy of one of the story's first headlines, or when
+      // it is clearly from the same phase as the match story (a result that tags only one of the two teams).
+      const matchStory = cl.named > 0 && cl.named * 2 >= core.length;
+      if (matchStory !== !!it._match) {
+        const samePhase = phase && phase === cl.phase && core.some((m) => similar(m._tok, it._tok));
+        if (!samePhase && !core.some((m) => nearCopy(m._tok, it._tok))) continue;
+        found = c;
+        break;
+      }
       // compare with the story's core (its first articles), not its newest member, so it can't drift
       // article by article into another story
-      if (cl.items.slice(0, CORE).some((m) => similar(m._tok, it._tok))) {
+      if (core.some((m) => similar(m._tok, it._tok))) {
         found = c;
         break;
       }
     }
     if (found === -1) {
       found = clusters.length;
-      clusters.push({ key: it._key, items: [], last: it.published, sport: null, fixtures: [] });
+      clusters.push({ key: it._key, items: [], first: it.published, last: it.published, sport: null, fixtures: [], named: 0, phase: null });
     }
     const cl = clusters[found];
     if (!cl.sport && it.sportSure && SPORTY.has(it.sport)) cl.sport = it.sport;
     cl.items.push(it);
     if (it._match && cl.fixtures.length < 6) cl.fixtures.push(it._match);
+    if (it._match && cl.items.length <= CORE) cl.named++; // how many of the story's first articles name a match
+    if (!cl.phase && it._match && phase) cl.phase = phase; // the phase of the first article that names the match and says it
     cl.last = Math.max(cl.last, it.published);
     for (const t of it._tok) {
       if (!index.has(t)) index.set(t, new Set());
@@ -138,8 +187,10 @@ export function clusterItems(items) {
   return joinSameMatch(clusters).map((c) => c.items);
 }
 
-// One story per match: groups of the same language that are mostly about the same match (its two team tags) join,
-// so the preview, the live updates and the result stay one story even when their wording differs.
+// One story per match PHASE: groups of the same language that are mostly about the same match (its two team tags)
+// and in the same phase join, so two previews or two result reports stay one story even when their wording differs.
+// The preview, the live coverage and the result stay apart, and a group whose phase is unknown is left as it is.
+// The 20 hours count from the first group's first article (they used to count from the newest article).
 function joinSameMatch(clusters) {
   const matchOf = (cl) => {
     const n = new Map();
@@ -152,18 +203,18 @@ function joinSameMatch(clusters) {
   const out = [];
   for (const cl of clusters) {
     const m = matchOf(cl);
-    if (!m) {
+    if (!m || !cl.phase) {
       out.push(cl);
       continue;
     }
-    const k = `${cl.key}|${m}`;
+    const k = `${cl.key}|${m}|${cl.phase}`;
     (byMatch.get(k) || byMatch.set(k, []).get(k)).push(cl);
   }
   for (const group of byMatch.values()) {
     group.sort((a, b) => a.items[0].published - b.items[0].published);
     let cur = group[0];
     for (const cl of group.slice(1)) {
-      if (cl.items[0].published - cur.last <= WINDOW) {
+      if (cl.items[0].published - cur.first <= WINDOW) {
         cur.items = [...cur.items, ...cl.items].sort((a, b) => a.published - b.published);
         cur.last = Math.max(cur.last, cl.last);
       } else {

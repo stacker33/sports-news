@@ -1,5 +1,5 @@
 {
- "about": "INVENTED cases (clubs, players and outlets do not exist) for situations the real data of 2026-10-20 did not have. They show how the grouping code treats a described situation; they are not evidence of how often it happens. Scored apart from the real pairs and never mixed into their numbers. No story cards: only the word grouping can join them.",
+ "about": "INVENTED cases (clubs, players and outlets do not exist) for situations the real data of 2026-10-20 did not have, and for the match-phase rules a Sport5 editor approved on 2026-11-12. They show how the grouping code treats a described situation; they are not evidence of how often it happens. Scored apart from the real pairs and never mixed into their numbers. No story cards: only the word grouping can join them. policy: the label under the approved rules (label keeps the first reading).",
  "items": [
   {
    "id": "syn001",
@@ -324,6 +324,112 @@
     "t90003"
    ],
    "weight": 2
+  },
+  {
+   "id": "syn022",
+   "title": "Lakeside FC vs Northgate Rovers: preview, team news and predicted line-ups",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792404000000,
+   "seen": 1792404300000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005",
+    "t90006"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn023",
+   "title": "Lakeside FC - Northgate Rovers: previa, bajas y posibles alineaciones",
+   "en": "Lakeside FC - Northgate Rovers: preview, absentees and possible line-ups",
+   "lang": "es",
+   "publisher": "Diario Uno",
+   "published": 1792407600000,
+   "seen": 1792407900000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005",
+    "t90006"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn024",
+   "title": "Lakeside FC v Northgate Rovers LIVE: Hart heads the hosts in front after 20 minutes",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792430640000,
+   "seen": 1792430940000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005",
+    "t90006"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn025",
+   "title": "Lakeside FC 2-0 Northgate Rovers: Hart and Silva send the hosts top",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792436400000,
+   "seen": 1792436700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005",
+    "t90006"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn026",
+   "title": "Lakeside FC schlägt Northgate Rovers 2:0 und ist Tabellenführer",
+   "en": "Lakeside FC beat Northgate Rovers 2-0 and go top of the table",
+   "lang": "de",
+   "publisher": "Sportblatt",
+   "published": 1792438200000,
+   "seen": 1792438500000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005",
+    "t90006"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn027",
+   "title": "Lakeside FC agree a new shirt sponsorship worth 30m euros",
+   "lang": "en",
+   "publisher": "The Daily Ball",
+   "published": 1792418400000,
+   "seen": 1792418700000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005"
+   ],
+   "weight": 2
+  },
+  {
+   "id": "syn028",
+   "title": "Lakeside FC vs Eastfield Town: preview, team news and predicted line-ups",
+   "lang": "en",
+   "publisher": "Football Wire",
+   "published": 1792612800000,
+   "seen": 1792613100000,
+   "sport": "football",
+   "sportSure": true,
+   "ents": [
+    "t90005",
+    "t90007"
+   ],
+   "weight": 2
   }
  ],
  "cards": {},
@@ -336,7 +442,9 @@
    "group": "synthetic",
    "case": "the same transfer rumour in several languages",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s02",
@@ -346,7 +454,9 @@
    "group": "synthetic",
    "case": "the same transfer rumour in several languages",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s03",
@@ -356,7 +466,9 @@
    "group": "synthetic",
    "case": "the same transfer rumour in several languages (a Hebrew article)",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s04",
@@ -366,7 +478,9 @@
    "group": "synthetic",
    "case": "the same transfer story with new contract details",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s05",
@@ -376,7 +490,9 @@
    "group": "synthetic",
    "case": "conflicting reports about one event (the fee): still one story",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s06",
@@ -386,7 +502,9 @@
    "group": "synthetic",
    "case": "unrelated stories about the same footballer",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   },
   {
    "id": "s07",
@@ -396,7 +514,9 @@
    "group": "synthetic",
    "case": "unrelated stories about the same footballer",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   },
   {
    "id": "s08",
@@ -406,7 +526,9 @@
    "group": "synthetic",
    "case": "unrelated stories about the same footballer",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   },
   {
    "id": "s09",
@@ -416,7 +538,9 @@
    "group": "synthetic",
    "case": "two injuries, different players, the same club",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   },
   {
    "id": "s10",
@@ -426,7 +550,9 @@
    "group": "synthetic",
    "case": "one injury in two languages",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s11",
@@ -436,7 +562,9 @@
    "group": "synthetic",
    "case": "several reports about the same match",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s12",
@@ -446,7 +574,9 @@
    "group": "synthetic",
    "case": "several reports about the same match",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s13",
@@ -456,7 +586,9 @@
    "group": "synthetic",
    "case": "the match report vs. a disciplinary case from that match",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   },
   {
    "id": "s14",
@@ -466,7 +598,9 @@
    "group": "synthetic",
    "case": "a shared broad subject, not the same event",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   },
   {
    "id": "s15",
@@ -476,7 +610,9 @@
    "group": "synthetic",
    "case": "a story that gets a new source nine hours later",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s16",
@@ -486,7 +622,9 @@
    "group": "synthetic",
    "case": "a story Sport5 published (Hebrew) and the foreign report of it",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "same",
+   "policyBy": "synthetic"
   },
   {
    "id": "s17",
@@ -496,7 +634,109 @@
    "group": "synthetic",
    "case": "a story Sport5 published that develops later (the sacking, then the new coach)",
    "by": "synthetic",
-   "editor": null
+   "editor": null,
+   "policy": "different",
+   "relation": "follow-up",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s18",
+   "a": "syn022",
+   "b": "syn023",
+   "label": "same",
+   "group": "synthetic",
+   "case": "two previews of one match (same phase, same thing)",
+   "by": "synthetic",
+   "editor": null,
+   "relation": "same-match",
+   "phaseA": "pre_match",
+   "phaseB": "pre_match",
+   "policy": "same",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s19",
+   "a": "syn025",
+   "b": "syn026",
+   "label": "same",
+   "group": "synthetic",
+   "case": "two result reports of one match (same phase, same thing)",
+   "by": "synthetic",
+   "editor": null,
+   "relation": "same-match",
+   "phaseA": "post_match",
+   "phaseB": "post_match",
+   "policy": "same",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s20",
+   "a": "syn022",
+   "b": "syn025",
+   "label": "different",
+   "group": "synthetic",
+   "case": "the preview and the result of one match (different phases)",
+   "by": "synthetic",
+   "editor": null,
+   "relation": "same-match",
+   "phaseA": "pre_match",
+   "phaseB": "post_match",
+   "policy": "different",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s21",
+   "a": "syn024",
+   "b": "syn025",
+   "label": "different",
+   "group": "synthetic",
+   "case": "the live coverage and the result of one match (different phases)",
+   "by": "synthetic",
+   "editor": null,
+   "relation": "same-match",
+   "phaseA": "live_match",
+   "phaseB": "post_match",
+   "policy": "different",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s22",
+   "a": "syn022",
+   "b": "syn024",
+   "label": "different",
+   "group": "synthetic",
+   "case": "the preview and the live coverage of one match (different phases)",
+   "by": "synthetic",
+   "editor": null,
+   "relation": "same-match",
+   "phaseA": "pre_match",
+   "phaseB": "live_match",
+   "policy": "different",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s23",
+   "a": "syn025",
+   "b": "syn027",
+   "label": "different",
+   "group": "synthetic",
+   "case": "a match report vs. separate news of a club that played in it",
+   "by": "synthetic",
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
+  },
+  {
+   "id": "s24",
+   "a": "syn022",
+   "b": "syn028",
+   "label": "different",
+   "group": "synthetic",
+   "case": "two different matches of the same team",
+   "by": "synthetic",
+   "editor": null,
+   "policy": "different",
+   "policyBy": "synthetic"
   }
  ]
 }
