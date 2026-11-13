@@ -288,3 +288,25 @@ test('a story with 3 outlets whose sources collapse to one is not upgraded again
     assert.equal(calls.filter((c) => c.kind === 'summary').length, 0);
   } finally { globalThis.fetch = realFetch; }
 });
+
+test('a pile: sources about other clubs, other sports or nothing in common are not sent; an untranslated Hebrew source cannot be judged and stays', () => {
+  const on = (p, t, ents = ['t1', 't2']) => art(p, t, { ents });
+  const members = [
+    on('A', 'Fiorentina vs Como: confirmed line-ups from the Franchi'),
+    on('B', 'Como arrive at Fiorentina after a month without a win'),
+    on('C', 'Fiorentina Como: Fabregas warns about a strong Fiorentina'),
+    on('D', 'Fiorentina against Como, Dragusin starts'),
+    on('E', 'Pau - Leicester, Champions Cup rugby, live', ['t900', 't901']), // another sport, other tags
+    art('F', 'Weather forecast for the weekend: rain in the north'), // no tags, English, nothing in common
+    art('G', 'דקה אחר דקה: דיון הארכת מעצר', { lang: 'he' }), // Hebrew, no translation: kept
+    on('H', 'Fiorentina Como preview and prediction'),
+  ];
+  const sel = selectSources(members, {});
+  const names = sel.sel.map((x) => x.m.publisher);
+  assert.equal(sel.offTopic, 2);
+  assert.ok(!names.includes('E') && !names.includes('F'));
+  assert.ok(names.includes('G'));
+  assert.equal(sel.total, 8);
+  // a small story is never filtered
+  assert.equal(selectSources(members.slice(0, 5), {}).offTopic, 0);
+});

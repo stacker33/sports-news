@@ -52,14 +52,14 @@ S8 The Athletic ("tears Achilles, expected to miss 2026-27; 30; one-year deal la
 | | old | new |
 |---|---|---|
 | outlets the model sees | 21.3% | 35.8% |
-| amounts / durations / years of the story present in the input | 42.5% | 77.5% |
+| amounts, durations, contract years of the story present in the input (only 8 in 38 stories) | 3 of 8 | 3 of 8 (no gain; an earlier 42%→78% figure counted season years like 2026-27 and was wrong) |
 | official / journalist sources included | 7 of 9 | 9 of 9 |
-| outlets with a description included | 58 of 144 | 105 of 144 |
-| input tokens per story (estimate) | avg 271, p95 376 | avg 342, p95 554 |
+| outlets with a description included | 58 of 144 | 106 of 144 |
+| input tokens per story (estimate) | avg 271, p95 376 | avg 345, p95 561 |
 | invented sources / unsupported numbers caught (mock errors) | n/a | 38 of 38 / 38 of 38 |
 | honest claims kept | n/a | 113 of 113 |
 | refresh: 7 scripted changes (3 redundant, 4 meaningful), wrong decisions | 5 of 7 | 0 of 7 |
-| refreshes replayed on 37 real stories | 33 | 2 |
+| refreshes replayed on 37 real stories | 33 | 6 |
 | requests per run (summary / cards) | 1 / up to 2 | 1 / up to 2 |
 
 Tokens: a request of 5 multi-source stories is about 1.7k input tokens for the sources (old about 1.4k) plus about 330 for the added instructions and about 150
@@ -70,7 +70,7 @@ multi-source summary (up to a few hundred KB at most).
 Behaviour when Gemini fails: the request throws, the earlier summary stays untouched, the error and the 30 minute cooldown are recorded, nothing is invented
 (tested with a 429). The deterministic fallback is the story's own source list that the card already shows.
 
-## What the automated tests cover (15 tests in `test/storysum.test.js`, mutation-checked) and what they do not
+## What the automated tests cover (16 tests in `test/storysum.test.js`, mutation-checked) and what they do not
 
 Covered: selection (dedupe, budget, official kept, copies, large cluster), validation of citations, numbers, kinds and conflicts, refresh decisions, throttle
 and idempotence, the real model path with a mocked provider (one request, sources recorded, a second run asks nothing, a redundant outlet asks nothing, a new
@@ -94,3 +94,26 @@ claim's wording is faithful to its cited source (the check is "the id exists and
 
 Deploy: push the commit. Nothing is quiet-run: summaries of 3+ outlet stories are rewritten gradually (5 stories a request, new stories first). Roll back:
 revert the commit; the saved summaries keep their old fields (the extra `rv`, `sig`, `rich`, `refreshes` fields are ignored by the old code).
+
+## Editorial-quality validation (second round)
+
+**Live Gemini was NOT run.** `AI_API_KEY` is a production secret that is not in this environment, and it is not mine to ask for or handle, so no
+real summary exists to judge: Hebrew quality, claim support against the source text, invented details, missing uncertainty and omissions are
+still UNVERIFIED. What was done instead:
+
+- `scripts/eval-summaries-live.mjs`: run it in your own shell (`AI_API_KEY=... node scripts/eval-summaries-live.mjs --yes --n 12`, add
+  `SR_MEMORY=<state.json>` to show the old-format summaries, 7 of the 38 saved stories have one). At most ceil(n/5) requests (3 for 12 stories),
+  cards and headline requests off, an empty throw-away state (nothing read from or written to the radar's state), stops at the first error or 429.
+  It writes a review sheet: sources as sent with their descriptions, the Hebrew summary, each claim with the TEXT of the source it cites, what the
+  checks dropped, the old summary, and the real request / token / error / model counts. Tried with `--mock`: 12 stories, 3 requests.
+- Review of what the model would be GIVEN, on the 38 real stories, found two real problems, both fixed narrowly:
+  1. Many large stories are piles (template pages, other matches): a rugby fixture and a court hearing sat inside "Fiorentina vs Como". Sources that
+     share no club / player tag and no topic word with the rest are now not sent (6+ outlets; an untranslated Hebrew source cannot be judged and stays).
+     Applied to 15 of the 38 stories, 33 sources removed; piles remain (the cause is in the clustering, outside this work).
+  2. Injuries had no steps of their own: "believed to have torn" to "tears, out for the season" is a development, and the status rule only knew transfer
+     steps. An injury step (suspected, then confirmed / ruled out / surgery) now counts as a status change.
+- Refresh against real historical developments (the saved memory, articles replayed in arrival order, summary written after the first fifth):
+  Nuno Mendes (refresh at "ruled out of PSG-Barcelona", right), Ben Simmons (refreshes on the $3.5m and $1m figures; the Achilles confirmation was already in
+  the first 39 articles), Alisson Santos (refresh at the return/relapse news), Kulusevski (refresh at his return), Sergio Ramos / Getafe (refresh when
+  Getafe's interest appeared), Allegri (one refresh as the sack talk grew), Man City and Courtois had too few separate articles to replay. No clearly
+  meaningful development was missed in these; two refreshes are debatable (an older fee quoted in a feature, a return from injury).

@@ -56,10 +56,18 @@ const STAGE = [
 ];
 const DENIAL = /\b(den(y|ies|ied)|denial|dismiss(es|ed)|rubbish(es|ed)) (the )?(reports?|claims?|rumou?rs?|moves?|talks|interest|story)\b|\bfake news\b|\b(denies|denied) (that |any |a )?(move|talks|deal|contact|offer)|הכחיש|הכחשה/i;
 export const stageOf = (text) => (MATCHY.test(text) ? 0 : STAGE.reduce((r, [n, re]) => (re.test(text) ? Math.max(r, n) : r), 0));
+// An injury has its own steps: a suspicion ("believed to have torn", "scare", "doubtful") and then the firm news (confirmed, diagnosed,
+// ruled out, out for the season, surgery). The step up is a development an editor must see. Not for match pages.
+const INJURY = /\b(injur\w*|torn|tear|tears|tore|ruptur\w*|fractur\w*|hamstring|ligament|achilles|surgery|ruled out|season-ending|miss the (season|rest))\b|פציע|קרע|ניתוח/i;
+const HEDGE = /\b(believed|suspected|feared|fears|reportedly|reports?|could|may|might|possible|possibly|scare|doubt\w*|worr\w+|sources)\b|חשש|חשד|ספק/i;
+const FIRM = /\b(confirm(ed|s)?|diagnos\w*|ruled out|out for|will miss|expected to miss|season-ending|undergo(es)? surgery|underwent surgery|has torn|tears|tore|ruptured)\b|אושר|ייעדר|יחמיץ/i;
+export const injuryStage = (text) => { const t = String(text || ''); if (MATCHY.test(t) || !INJURY.test(t)) return 0; return FIRM.test(t) && !HEDGE.test(t) ? 2 : 1; };
 export const denies = (text) => !MATCHY.test(String(text || '')) && DENIAL.test(String(text || ''));
 
 // ---------- choosing the sources ----------
 const STOP = new Set('the a an and or of to in on at for from by with as is are was were be been it its this that after before over into out up down about says say said report reports live latest news update'.split(' '));
+// words every template page shares (not a topic): never evidence that two articles are about one thing
+const GENERIC = new Set('today tonight match matches football soccer live results result schedule watch stream streaming channel tickets odds prediction predictions preview picks free promo code bonus betting cover forecast weather sport sports league premier serie liga bundesliga sunday monday tuesday wednesday thursday friday saturday october november stats team players player lineups lineup time where full highlights update news'.split(' '));
 const toks = (t) => new Set(String(t || '').toLowerCase().replace(/[^\p{L}\d\s]/gu, ' ').split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w)));
 const jacc = (a, b) => { let i = 0; for (const x of a) if (b.has(x)) i++; return i / Math.max(1, a.size + b.size - i); };
 const QUOTE = /["“”«»״]/;
@@ -79,11 +87,36 @@ function perOutlet(members, descOf) {
   return [...by.values()];
 }
 
+// A story is sometimes a pile: template pages and other matches share a few words with it ("Pau - Leicester" and a court hearing
+// inside "Fiorentina vs Como"). A source that shares no club / player tag and no frequent word with the rest of the story is not
+// about it and is not sent to the model. Only for 6+ outlets; a source with no tag and no English text cannot be judged and stays.
+function offTopic(cands) {
+  const out = new Set();
+  if (cands.length < 6) return out;
+  const idCount = new Map(), wCount = new Map();
+  for (const c of cands) {
+    for (const id of new Set((c.m.ents || []).filter((e) => /^[tp]/.test(e)))) idCount.set(id, (idCount.get(id) || 0) + 1);
+    for (const w of toks(textOf(c.m))) wCount.set(w, (wCount.get(w) || 0) + 1);
+  }
+  const need = Math.max(2, Math.ceil(cands.length * 0.25));
+  const topIds = new Set([...idCount].filter(([, n]) => n >= need).map(([id]) => id));
+  const topW = new Set([...wCount].filter(([w, n]) => n >= need && w.length > 3 && !GENERIC.has(w)).map(([w]) => w));
+  cands.forEach((c, i) => {
+    const ids = (c.m.ents || []).filter((e) => /^[tp]/.test(e));
+    const sharesWord = [...toks(textOf(c.m))].some((w) => topW.has(w));
+    if (ids.length) { if (topIds.size && !ids.some((id) => topIds.has(id))) out.add(i); return; } // a tagged source about other clubs / players
+    if ((c.m.lang === 'en' || c.m.tr?.en) && topW.size && !sharesWord) out.add(i);
+  });
+  return out;
+}
+
 // sums: the radar's cache of fetched page descriptions { [articleId]: { text } }.
 // Returns { sel: [{ sid, m, desc, official, reporter, copyOf? }], total, omitted, copies } in time order; sids S1.. by time.
 export function selectSources(members, sums = {}, { max = MAX_SOURCES, budget = CHAR_BUDGET } = {}) {
   const descOf = (m) => shorten(m.summary || '', m.title) || sums[m.id]?.text || '';
   const cands = perOutlet(members, descOf).map((m) => ({ m, desc: descOf(m), tk: toks(m.title), f: factsOf(`${textOf(m)} ${descOf(m)}`), official: !!m.official, reporter: !!m.reporter }));
+  const off = offTopic(cands);
+  for (const i of [...off].sort((a, b) => b - a)) cands.splice(i, 1);
   cands.sort((a, b) => a.m.published - b.m.published || (a.m.id < b.m.id ? -1 : 1));
   // copies: the same headline (or the same description) from another outlet adds nothing; the earliest is the original candidate
   const kept = [];
@@ -116,7 +149,7 @@ export function selectSources(members, sums = {}, { max = MAX_SOURCES, budget = 
   }
   chosen.sort((a, b) => a.m.published - b.m.published || (a.m.id < b.m.id ? -1 : 1));
   const sel = chosen.map((c, i) => ({ sid: `S${i + 1}`, m: c.m, desc: c.desc, official: c.official, reporter: c.reporter, ...(c.copies ? { copyOf: c.copies } : {}) }));
-  return { sel, total: cands.length, omitted: kept.length - chosen.length, copies };
+  return { sel, total: cands.length + off.size, omitted: kept.length - chosen.length, copies, offTopic: off.size };
 }
 
 // the text of the sources, as the model gets it
@@ -213,7 +246,7 @@ export function numericConflicts(selection) {
 export function signature(members, sums = {}) {
   const facts = new Set();
   const words = new Set();
-  let stage = 0, den = false;
+  let stage = 0, inj = 0, den = false;
   const off = [];
   for (const m of members) {
     const desc = shorten(m.summary || '', m.title) || sums[m.id]?.text || '';
@@ -221,11 +254,12 @@ export function signature(members, sums = {}) {
     for (const x of keyFacts(factsOf(t))) facts.add(x);
     for (const w of toks(t)) words.add(w);
     stage = Math.max(stage, stageOf(t));
+    inj = Math.max(inj, injuryStage(t));
     den ||= denies(t);
     // an official source counts when it is a statement: not a club video (highlights, live) and not a match page
     if (m.official && !m.video && !MATCHY.test(t)) off.push(pubKey(m.publisher));
   }
-  return { facts: [...facts].sort(), off: [...new Set(off)].sort(), stage, den, words: words.size };
+  return { facts: [...facts].sort(), off: [...new Set(off)].sort(), stage, inj, den, words: words.size };
 }
 
 export function refreshReasons(prev, cur) {
@@ -233,7 +267,7 @@ export function refreshReasons(prev, cur) {
   const why = [];
   if (cur.off.some((o) => !prev.off.includes(o))) why.push('official');
   if (cur.facts.some((f) => !prev.facts.includes(f))) why.push('number');
-  if (cur.stage > prev.stage) why.push('status');
+  if (cur.stage > prev.stage || (cur.inj || 0) > (prev.inj || 0)) why.push('status');
   if (cur.den && !prev.den) why.push('denial');
   // Not judged here: a new source that adds information in WORDS only (no new amount, status, official source or denial). A growing
   // vocabulary is what every new article brings (replayed on real stories, a rule on it fired on most of them), and deciding whether
