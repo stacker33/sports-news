@@ -22,9 +22,23 @@ import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 
+// Strict arguments: "--n" with no number used to become NaN (nothing selected, an empty sheet written, "planned at most NaN").
 const args = process.argv.slice(2);
-const flag = (f) => args.includes(f);
-const opt = (f, d) => (args.includes(f) ? args[args.indexOf(f) + 1] : d);
+const KNOWN = ['--yes', '--mock', '--check', '--n', '--out'];
+const die = (msg) => { console.error(msg); process.exit(2); };
+for (let i = 0; i < args.length; i++) {
+  const name = args[i].split('=')[0];
+  if (!args[i].startsWith('--')) { if (i > 0 && ['--n', '--out'].includes(args[i - 1])) continue; die(`Unexpected argument "${args[i]}". Use --n 12 (or --n=12), --out file.md, --yes, --mock, --check.`); }
+  if (!KNOWN.includes(name)) die(`Unknown option "${name}". Known: ${KNOWN.join(' ')}`);
+}
+const flag = (f) => args.some((a) => a === f || a.startsWith(f + '='));
+const opt = (f, d) => {
+  const i = args.findIndex((a) => a === f || a.startsWith(f + '='));
+  if (i < 0) return d;
+  const v = args[i].includes('=') ? args[i].slice(args[i].indexOf('=') + 1) : args[i + 1];
+  if (v === undefined || v === '' || v.startsWith('--')) die(`${f} needs a value (for example ${f === '--n' ? '--n 12' : '--out review.md'}).`);
+  return v;
+};
 const mock = flag('--mock');
 const HOST = new URL(process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com').hostname;
 
@@ -54,7 +68,9 @@ if (flag('--check')) {
   console.log('Node', process.version, '| IPv6 failing while IPv4 works is the usual cause of "fetch failed"; this script now prefers IPv4.');
   process.exit(0);
 }
-const n = Math.min(15, Math.max(1, Number(opt('--n', 12))));
+const nRaw = opt('--n', '12');
+if (!/^\d+$/.test(String(nRaw)) || Number(nRaw) < 1 || Number(nRaw) > 15) die(`--n must be a whole number from 1 to 15, got "${nRaw}".`);
+const n = Number(nRaw);
 if (!mock && (!flag('--yes') || !process.env.AI_API_KEY)) {
   console.error('Needs AI_API_KEY in your environment and --yes. It sends about ' + Math.ceil(n / 5) + ' requests to the model (the free quota). Use --mock to try the tool without the network.');
   process.exit(2);
@@ -77,6 +93,7 @@ const mk = (s) => {
   return { label: s.label, title: members[0].title, lang: members[0].lang, first, score: 1, sport: 'football', sourceCount: new Set(members.map((m) => String(m.publisher).toLowerCase())).size, _members: members, tags: [] };
 };
 const stories = picked.map(mk);
+if (stories.length !== Math.min(n, fx.stories.length)) { console.error(`Selected ${stories.length} stories for --n ${n} (the fixture has ${fx.stories.length}); not running and not writing a sheet.`); process.exit(3); }
 
 // count every request and its tokens; stop at the first failure
 const realFetch = globalThis.fetch;
@@ -145,6 +162,7 @@ stories.forEach((s, i) => {
   L.push('**Old format**', '', o ? `> ${o.summary_he}` : '(no earlier summary for this story)', '');
 });
 const out = opt('--out', mock ? 'summary-review-sheet.mock.md' : 'summary-review-sheet.md');
+if (!stories.length || !L.some((l) => l.startsWith('## '))) { console.error('The sheet would have no stories: not written.'); process.exit(3); }
 writeFileSync(out, L.join('\n'));
 if (mock) console.log(calls.map((c) => c.kind + ':' + c.n).join(' '));
 console.log(`wrote ${out}: ${stories.length} stories, ${calls.length} requests, ${calls.reduce((s, c) => s + c.tokens, 0)} tokens, errors: ${errors.join(' | ') || 'none'}`);
