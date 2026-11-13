@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { relevantMembers, RICH_ADDON, selectSources, sourcesBlock, factsOf, validateRich, numericConflicts, withNumericConflicts, signature, shouldRefresh, refreshReasons, richForUi, richRecord, stageOf, denies, MAX_SOURCES, REFRESH_MIN_MS } from '../src/storysum.js';
 import { aiSummaries } from '../src/ai.js';
 
+process.env.AI_RICH_SUMMARIES = '1'; // these tests are about the multi-source summaries: the flag is on; the flag tests below switch it off
 const T = Date.parse('2026-11-14T10:00:00Z');
 let n = 0;
 const art = (publisher, title, extra = {}) => ({ id: `a${++n}`, title, publisher, lang: 'en', published: T + n * 60e3, weight: 1, google: false, ents: [], sport: 'football', ...extra });

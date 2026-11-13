@@ -167,3 +167,32 @@ No code in the radar changed. Findings from the existing configuration and diagn
   for hours at a time. The model cannot be shown to be "available" or "out of quota" without an authenticated request.
 - `scripts/check-gemini-models.mjs` is the one safe diagnostic: a single read-only "list models" request (no generation, no tokens), key in a header, never printed.
   It says whether each configured model is listed for this key and supports generateContent.
+
+## Deployment safety review (2026-11-14) and how to deploy
+
+**Feature flag.** `AI_RICH_SUMMARIES` (a repository variable passed to the collect job; `src/ai.js` `richEnabled()`). OFF unless it is `1`, `true`, `on` or `yes`; an
+unset variable is OFF. OFF means: the same summary request (system and user text, models, count), the same refresh rule (the outlet count doubling), the same saved
+fields, no automatic upgrades, no source cleaning, no new prompt text, cards unchanged. This is tested against a frozen copy of the production `src/ai.js`
+(`test/fixtures/before-rich/ai.js`, 33ed5c2): the same stories go through both and the requests and the saved result are identical. ON adds: the multi-source input and
+output, source cleaning (also for cards), the facts-based refresh rule, the upgrade of earlier summaries, the "too mixed" skip and the wording rules.
+
+**Checked, with the flag OFF.**
+1. Collection, clustering, cards, Telegram, story ids: no file of `cluster.js`, `merge.js`, `storyids.js`, `telegram.js`, `collect.js` changed. The one workflow change is one
+   environment line (`AI_RICH_SUMMARIES`) in `collect.yml`. The only changed runtime files are `src/ai.js`, the new `src/storysum.js` (imported by `ai.js`, inert while OFF),
+   `public/app.js` / `style.css` (the extra block renders only when a summary has `rich` data, which an OFF radar never writes).
+2. A failed request (429, timeout, 5xx), a rejected answer (no Hebrew) and a malformed answer (not JSON) leave an earlier summary untouched, flag off and on (tested). With the
+   flag ON a rejected, malformed or missing answer also counts as an attempt (a refresh at most twice a day, an upgrade once in 6 hours), and a refresh whose multi-source
+   part comes back empty does not replace a summary that had one.
+3. No additional request by default: OFF changes nothing; ON does not change the number of requests per run, only their size (about +35-50% tokens on batches of multi-source
+   stories, estimated) and it skips mixed stories. A model that is unavailable (the 404 backup) is skipped as before.
+4. No Step 4 change is in the branch (`1b1ff55` is not an ancestor; `git diff origin/main` touches none of the clustering files).
+5. 265 tests pass offline (no network, no key); live Gemini was not used for any of this.
+
+**Deploy (feature OFF):** push the branch; nothing else. The next collect run is the same as before. To check: Actions, "Collect news" succeeds; the site's summaries look as before.
+
+**Later, to turn the feature on:** GitHub, Settings, Secrets and variables, Actions, Variables, new variable `AI_RICH_SUMMARIES` = `1`. Suggested after one more real review sheet. Watch the next
+runs: `state.ai.error`, `state.ai.rich` (stories, claims, droppedClaims), `state.ai.tokens` and the used count against `AI_DAILY_CAP`. To turn it off again: set the variable to `0` or delete it.
+Summaries already written with multi-source data keep showing it (harmless); new ones are written the old way and the old refresh rule applies again.
+
+**Roll back the code:** revert the branch's commits (the merge commit or the range `33ed5c2..HEAD`); `git push` the revert. Saved summaries keep their old fields; the extra
+fields (`rv`, `sig`, `rich`, `refreshes`, `upAt`) are ignored by the old code.

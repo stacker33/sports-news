@@ -37,6 +37,9 @@ export const aiCap = () => DAILY_CAP;
 let lastUsage = null; // tokens of the last call (for metering)
 const KEEP_DAYS = 3;
 const VERSION = 4; // results from older prompts are redone gradually, most important first
+// The multi-source summaries (src/storysum.js) are OFF unless the repository variable AI_RICH_SUMMARIES is 1 / true / on. Off = the summary
+// request, its input, its prompt, its refresh rule and what is saved are exactly what they were before this feature; on = see docs/multisource-summaries.md.
+export const richEnabled = () => /^(1|true|on|yes)$/i.test(String(process.env.AI_RICH_SUMMARIES || '').trim());
 const RICH_VERSION = 1; // multi-source summaries (src/storysum.js); a v4 summary of a story with 3+ outlets is upgraded once, after the new ones
 
 const STYLE = `You are a senior editor at an Israeli sports news website (like Sport5 or ONE). You write in natural, fluent, idiomatic Hebrew — the way an Israeli sports journalist writes, never word-for-word translation.
@@ -62,11 +65,14 @@ Examples of headlines:
 - "Navaro besan nakon poraza od FMP-a: Nismo bili ovde da igramo prijateljsku utakmicu" → "נבארו זועם אחרי ההפסד ל-FMP: ״לא באנו לשחק משחק ידידות״"
 - "Gonçalo Ramos partilha publicação: «O estatuto de ser o melhor!»" → "גונסאלו ראמוס בפוסט: ״המעמד של להיות הטוב ביותר״"
 - "Southwest Notes: Harris, Jerome, Rockets, Mavs, Pelicans" → "עדכוני הדרום-מערב: האריס, ג'רום, יוסטון, דאלאס וניו אורלינס"
+Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"],"quotes_he":[{"who":"…","he":"…"}]}]} with every id you were given.`;
+
+// Added to the summary prompt only when the multi-source summaries are on (AI_RICH_SUMMARIES): Hebrew sports wording and name rules.
+const WORDING = `
 Hebrew wording of the match and the people (plain and literal; never invent a figure of speech):
 - Say it the way a Sport5 desk would, in simple words: a heel assist is "בישל בעקב", line-ups are "הרכבים" ("ההרכבים הצפויים" for probable ones), a live page is "סיקור חי", a big win is described as big only if a source says so — never use a metaphor the sources do not use.
 - Never turn a phrase of a headline into a person or a role ("המפקד על המגרש"): when a phrase is unclear, leave it out. For a line-up or preview story say who plays whom, when and where, who starts, and nothing more.
-- Names: use the "Hebrew names" line exactly. A person or club that is NOT in that line: write the name in Latin letters as the Latin-script outlets spell it (Babis Kostoulas), and NEVER transliterate it by sound from a Greek, Cyrillic, Japanese or other-script headline or invent a Hebrew spelling for it. A world star or a big club that has a well known Israeli spelling may use it.
-Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"],"quotes_he":[{"who":"…","he":"…"}]}]} with every id you were given.`;
+- Names: use the "Hebrew names" line exactly. A person or club that is NOT in that line: write the name in Latin letters as the Latin-script outlets spell it (Babis Kostoulas), and NEVER transliterate it by sound from a Greek, Cyrillic, Japanese or other-script headline or invent a Hebrew spelling for it. A world star or a big club that has a well known Israeli spelling may use it.`;
 
 const HEAD_SYSTEM = `${STYLE}
 
@@ -214,7 +220,8 @@ async function callModel(token, model, system, user, { quick = false, timeout = 
 }
 
 // prev = { day, used, hourly, tokens, error, model, mainOffDay, res: { key: {...} }, heads: { key: { title_he, at } } }
-export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), heName = new Map(), { styleHeads = [] } = {}) {
+export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), heName = new Map(), { styleHeads = [], rich: richOpt } = {}) {
+  const RICH = richOpt ?? richEnabled(); // the feature flag (see richEnabled)
   // today's real Sport5 headlines: a style reference for both prompts
   const style = styleHeads.length
     ? `\n\nToday's real Sport5 headlines — imitate this STYLE (length, tone, word order), never their content:\n${styleHeads.slice(0, 10).map((h) => `- ${h}`).join('\n')}`
@@ -229,7 +236,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   // (summaries or cards), and a story whose sources are too mixed to be one development is left as it is (its earlier summary stays).
   const sels = new Map();
   const selOf = (s) => sels.get(s) || sels.set(s, selectSources(s._members, sums)).get(s);
-  const cleanMembers = (s) => (s.sourceCount >= RICH_MIN_SOURCES ? relevantMembers(s._members, selOf(s)) : s._members);
+  const cleanMembers = (s) => (RICH && s.sourceCount >= RICH_MIN_SOURCES ? relevantMembers(s._members, selOf(s)) : s._members);
   const token = process.env.AI_API_KEY;
   if (!token) st.error = 'no AI_API_KEY secret';
   const room = () => token && st.used < DAILY_CAP && st.hourly.length < PER_HOUR && !(st.cooldownUntil > now);
@@ -344,11 +351,17 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
       const need = stories
         .filter((s) => now - s.first < 18 * 3600e3)
         .filter((s) => {
-          if (s.sourceCount >= RICH_MIN_SOURCES && selOf(s).mixed) return false;
           const r = st.res[keyOf.get(s)];
+          if (!RICH) {
+            // flag off: the rule as it was (a story with no summary, an older prompt, or the outlet count doubled)
+            const go = !r || r.v !== VERSION || (s.sourceCount >= r.n * 2 && s.sourceCount >= r.n + 3 && now - r.at > 3600e3);
+            if (go) why.set(s, { prio: 0, why: ['new'] });
+            return go;
+          }
+          if (s.sourceCount >= RICH_MIN_SOURCES && selOf(s).mixed) return false;
           if (!r || r.v !== VERSION) { why.set(s, { prio: 0, why: ['new'] }); return true; }
           if (s.sourceCount < RICH_MIN_SOURCES) return false;
-          if (!r.rv) { why.set(s, { prio: 1, why: ['upgrade'] }); return true; }
+          if (!r.rv) { if (r.upAt && now - r.upAt < 6 * 3600e3) return false; why.set(s, { prio: 1, why: ['upgrade'] }); return true; } // a failed upgrade waits 6 hours
           const d = shouldRefresh(r, cleanMembers(s), sums, now);
           if (d.go) why.set(s, { prio: 0, why: d.why });
           return d.go;
@@ -356,9 +369,10 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         .sort((a, b) => why.get(a).prio - why.get(b).prio || b.score - a.score) // most important first — world and Israeli alike
         .slice(0, PER_REQUEST);
       const sel = new Map(); // story → its chosen sources (multi-outlet stories)
-      for (const s of need) if (s.sourceCount >= RICH_MIN_SOURCES) { const x = selOf(s); if (x.sel.length >= 2) sel.set(s, x); }
+      if (RICH) for (const s of need) if (s.sourceCount >= RICH_MIN_SOURCES) { const x = selOf(s); if (x.sel.length >= 2) sel.set(s, x); }
+      const updated = new Set(); // stories whose summary was really replaced in this run
       if (need.length) {
-        const out = await call(SYSTEM + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput({ ...s, _members: cleanMembers(s) }, sums, heName)}`).join('\n\n'), true);
+        const out = await call(SYSTEM + (RICH ? WORDING : '') + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput(RICH ? { ...s, _members: cleanMembers(s) } : s, sums, heName)}`).join('\n\n'), true);
         for (const r of out.stories || []) for (const k of ['title_he', 'summary_he', 'summary_en']) if (r[k]) r[k] = clean(r[k]);
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
@@ -381,11 +395,20 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
             st.rich.droppedClaims += dropped.claims;
             st.rich.droppedOther += dropped.added + dropped.conflicts;
           }
+          // A refresh whose multi-source part came back empty (every claim failed the checks) does not replace a summary that had one.
+          if (RICH && sel.has(s) && old?.rich?.claims?.length && !rich?.claims?.length && w.why[0] !== 'new' && w.why[0] !== 'upgrade') continue;
           st.res[keyOf.get(s)] = {
             v: VERSION, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, ...(quotes.length ? { quotes } : {}), n: s.sourceCount, at: now,
-            ...(s.sourceCount >= RICH_MIN_SOURCES ? { rv: RICH_VERSION, sig: signature(cleanMembers(s), sums), rich, refreshes: w.why[0] === 'new' || w.why[0] === 'upgrade' ? old?.refreshes || [] : [...(old?.refreshes || []), now] } : {}),
+            ...(RICH && s.sourceCount >= RICH_MIN_SOURCES ? { rv: RICH_VERSION, sig: signature(cleanMembers(s), sums), rich, refreshes: w.why[0] === 'new' || w.why[0] === 'upgrade' ? old?.refreshes || [] : [...(old?.refreshes || []), now] } : {}),
           };
+          updated.add(s);
           done++;
+        }
+        // An answer that was rejected, malformed, or left a story out does not touch its earlier summary; the attempt is counted so the same
+        // story is not asked again on every run (a refresh: at most twice a day; an upgrade: after 6 hours).
+        if (RICH) for (const s of need) {
+          const k = keyOf.get(s), o = st.res[k];
+          if (!updated.has(s) && o && s.sourceCount >= RICH_MIN_SOURCES) st.res[k] = { ...o, refreshes: [...(o.refreshes || []), now].slice(-4), ...(o.rv ? {} : { upAt: now }) };
         }
       }
     }

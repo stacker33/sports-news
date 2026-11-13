@@ -129,6 +129,8 @@ jobs:
           AI_BASE_URL: ${{ vars.AI_BASE_URL }}
           AI_MODEL: ${{ vars.AI_MODEL }}
           AI_DAILY_CAP: ${{ vars.AI_DAILY_CAP }}
+          # multi-source summaries (src/storysum.js): OFF unless this repository variable is 1 / true / on; delete it or set 0 to turn them off again
+          AI_RICH_SUMMARIES: ${{ vars.AI_RICH_SUMMARIES }}
           # Telegram channel (src/telegram.js): bot token as a secret, channel ("@name") as a repository variable
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}
