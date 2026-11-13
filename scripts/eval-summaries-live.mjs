@@ -11,7 +11,13 @@
 //
 // The sheet shows, per story: the sources as sent (headlines and descriptions), the generated Hebrew summary, every claim with the
 // TEXT of the source it cites (so you can judge support, not just a matching number), what the checks dropped, and the old summary.
+import dns from 'node:dns';
+import net from 'node:net';
+import tls from 'node:tls';
 import { readFileSync, writeFileSync } from 'node:fs';
+// Some networks drop IPv6 to Google without an error, and Node's fetch then waits on it instead of using IPv4 ("fetch failed").
+// IPv4 first fixes that, in this script only.
+dns.setDefaultResultOrder('ipv4first');
 import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
@@ -20,6 +26,34 @@ const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
 const opt = (f, d) => (args.includes(f) ? args[args.indexOf(f) + 1] : d);
 const mock = flag('--mock');
+const HOST = new URL(process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com').hostname;
+
+// What went wrong at the network level, without the key and without any request to the model: the error's real cause and what it usually means.
+function explain(e) {
+  const c = e?.cause || e;
+  const codes = [c?.code, ...(c?.errors || []).map((x) => x.code + (x.address ? '@' + x.address : ''))].filter(Boolean);
+  const proxy = ['HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy', 'ALL_PROXY'].filter((k) => process.env[k]);
+  let hint = 'unknown: run with --check';
+  const txt = codes.join(' ') + ' ' + (c?.message || '');
+  if (/ENOTFOUND|EAI_AGAIN/.test(txt)) hint = 'DNS: the name did not resolve (offline, VPN or DNS filter)';
+  else if (/ETIMEDOUT|ENETUNREACH|EHOSTUNREACH/.test(txt) && /:.*:/.test(txt)) hint = 'IPv6 route blocked (this script already prefers IPv4; check the firewall)';
+  else if (/ETIMEDOUT|ENETUNREACH|EHOSTUNREACH|timeout/i.test(txt)) hint = 'connection timed out or no route: firewall, VPN or proxy';
+  else if (/CERT|SELF_SIGNED|UNABLE_TO_VERIFY|ERR_TLS|SSL/i.test(txt)) hint = 'TLS: a security product or proxy is replacing the certificate (set NODE_EXTRA_CA_CERTS to its root certificate)';
+  else if (/ECONNREFUSED|ECONNRESET|socket hang up/.test(txt)) hint = 'connection refused or reset: firewall or proxy';
+  if (proxy.length) hint += ` | a proxy variable is set (${proxy.join(', ')}); Node's fetch ignores it`;
+  return `${e?.name || 'Error'}: ${e?.message}; cause: ${codes.join(',') || c?.message || '-'}; host: ${HOST}; ${hint}`;
+}
+
+// --check: DNS, then a TCP and a TLS handshake to the model's host. No HTTP request, no key, no quota.
+if (flag('--check')) {
+  const step = async (label, f) => { const t0 = Date.now(); try { console.log(label.padEnd(14), 'OK  ', Date.now() - t0 + 'ms', (await f()) ?? ''); } catch (e) { console.log(label.padEnd(14), 'FAIL', e.code || '', e.message); } };
+  await step('DNS IPv4', async () => (await dns.promises.resolve4(HOST)).slice(0, 2).join(','));
+  await step('DNS IPv6', async () => (await dns.promises.resolve6(HOST)).slice(0, 1).join(','));
+  for (const family of [4, 6]) await step('TCP 443 IPv' + family, () => new Promise((res, rej) => { const sock = net.connect({ host: HOST, port: 443, family, timeout: 6000 }, () => { sock.destroy(); res(); }); sock.on('error', rej); sock.on('timeout', () => { sock.destroy(); rej(new Error('timeout')); }); }));
+  await step('TLS', () => new Promise((res, rej) => { const sock = tls.connect({ host: HOST, port: 443, servername: HOST, timeout: 6000 }, () => { const r = `${sock.getProtocol()} verified=${sock.authorized}${sock.authorizationError ? ' ' + sock.authorizationError : ''}`; sock.destroy(); res(r); }); sock.on('error', rej); sock.on('timeout', () => { sock.destroy(); rej(new Error('timeout')); }); }));
+  console.log('Node', process.version, '| IPv6 failing while IPv4 works is the usual cause of "fetch failed"; this script now prefers IPv4.');
+  process.exit(0);
+}
 const n = Math.min(15, Math.max(1, Number(opt('--n', 12))));
 if (!mock && (!flag('--yes') || !process.env.AI_API_KEY)) {
   console.error('Needs AI_API_KEY in your environment and --yes. It sends about ' + Math.ceil(n / 5) + ' requests to the model (the free quota). Use --mock to try the tool without the network.');
@@ -47,6 +81,7 @@ const stories = picked.map(mk);
 // count every request and its tokens; stop at the first failure
 const realFetch = globalThis.fetch;
 const calls = [];
+let netError = null;
 globalThis.fetch = async (url, init) => {
   if (mock) {
     const body = JSON.parse(init.body);
@@ -59,7 +94,8 @@ globalThis.fetch = async (url, init) => {
     calls.push({ ok: true, tokens: 0, kind: /numbered sports headlines/.test(sys) ? 'heads' : /story cards/.test(sys) ? 'cards' : 'summary', n: user.split('### id:').length - 1 });
     return { ok: true, status: 200, text: async () => JSON.stringify({ choices: [{ message: { content: JSON.stringify(out) } }], usage: { total_tokens: 0 } }) };
   }
-  const res = await realFetch(url, init);
+  let res;
+  try { res = await realFetch(url, init); } catch (e) { netError = explain(e); throw e; } // the key is never part of the message
   const text = await res.text();
   let tokens = 0;
   try { tokens = JSON.parse(text).usage?.total_tokens || 0; } catch {}
@@ -77,7 +113,7 @@ for (let i = 0; i < stories.length; i += 5) {
   const batch = stories.slice(i, i + 5);
   const r = await aiSummaries(batch, {}, st, now, new Map(), {});
   st = r.ai;
-  if (st.error) { errors.push(st.error); break; }
+  if (st.error) { errors.push(netError ? `${st.error} -- ${netError}` : st.error); break; }
   if (calls.length > Math.ceil(n / 5)) { errors.push('more requests than planned: stopped'); break; }
 }
 globalThis.fetch = realFetch;
