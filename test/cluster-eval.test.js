@@ -116,3 +116,13 @@ test('grouping evaluation: the score counts what it says', () => {
   assert.equal(s.precision, 33.3);
   assert.equal(s.recall, 50);
 });
+
+test('r289: the Griezmann goal clip and the later Ojeda quote stay two stories (the editor ruled: separate but related)', () => {
+  const p = loadPairs().pairs.find((x) => x.id === 'r289');
+  assert.equal(p.editorDecision, 'SEPARATE_BUT_RELATED'); // linked, never merged automatically
+  const corpus = loadCorpus();
+  const run = runGrouping(corpus.items, corpus.cards);
+  assert.notEqual(run.storyOf.get(p.a), run.storyOf.get(p.b));
+  // the saved gate records the fix: one false merge fewer than before the patch
+  assert.equal(loadBaseline().editorApproved.falseMerges, 8);
+});

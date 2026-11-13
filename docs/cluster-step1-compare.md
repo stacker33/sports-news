@@ -1,20 +1,20 @@
 ```
 BEFORE (frozen pre-Step-1 grouping) → NOW, same data, editor-approved rules
-  precision %                                                  31.7 →     61.2
+  precision %                                                  31.7 →     62.5
   recall %                                                     50.8 →     46.2
-  false merges (of 199 "different")                              71 →       19
+  false merges (of 199 "different")                              71 →       18
   missed merges (of 65 "same")                                   32 →       35
   correct merges                                                 33 →       30
   two phases of one match in one story (of 32)                   16 →        2
-  separate follow-ups joined (of 35)                             11 →        4
-  "separate but related" in one story (of 83)                    38 →        9
-  editor-approved pairs: false merges (of 85)                    38 →        9
+  separate follow-ups joined (of 35)                             11 →        3
+  "separate but related" in one story (of 83)                    38 →        8
+  editor-approved pairs: false merges (of 85)                    38 →        8
   editor-approved pairs: missed merges (of 10)                    9 →       10
   unreviewed pairs: false merges (of 114)                        33 →       10
   unreviewed pairs: missed merges (of 55)                        23 →       25
   synthetic: false merges (of 12)                                 4 →        1
   synthetic: missed merges (of 12)                                0 →        0
-  stories                                                       349 →     1091
+  stories                                                       349 →     1092
   biggest story (articles)                                      721 →      249
   stories over 100 articles                                      15 →       14
   stories over 50 outlets                                        15 →       13
@@ -26,8 +26,8 @@ BEFORE (frozen pre-Step-1 grouping) → NOW, same data, editor-approved rules
   over time: stories that lost their id                          71 →       49
   over time: stories that look new again                         12 →       41
     of them young enough for Telegram (under 3h)                  0 →        2
-  one grouping run (ms, this machine)                           353 →      761
-The switch itself (old stories, then one run of the new grouping): 4450 of 7441 articles change story id (59.8%), 2 stories lose their id, 339 look new (6 of them under 3 hours old).
+  one grouping run (ms, this machine)                           312 →      448
+The switch itself (old stories, then one run of the new grouping): 4449 of 7441 articles change story id (59.8%), 2 stories lose their id, 339 look new (6 of them under 3 hours old).
 
 FALSE MERGES FIXED (different, were in one story, now apart): 53
   r001 multilingual (two separate pre-match press conferences (Hoeness, Simeone))
@@ -190,10 +190,7 @@ FALSE MERGES FIXED (different, were in one story, now apart): 53
      [nl] Voetbal International: VI Live: packed football Sunday with IJsselderby, Arsenal and Real Madrid
      [tr] Goal.com: Claim from Jose Mourinho for Vinicius Jr, who is linked with Arsenal: He should have left Real Madrid to go to
 
-NEW FALSE MERGES (different, were apart, now in one story): 1
-  r289 late-source (a goal clip during the game vs. a team-mate's quote after it)
-     [en] MLSsoccer.com: Goal: A. Griezmann vs. D.C. United, 15'
-     [fr] L'Équipe: Ojeda: “Griezmann makes football easier”
+NEW FALSE MERGES (different, were apart, now in one story): 0
 
 CORRECT MERGES LOST (same, were in one story, now apart): 3
   r065 big-cluster (two live blogs of the same match)

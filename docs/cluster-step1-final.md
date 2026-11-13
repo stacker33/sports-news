@@ -3,7 +3,8 @@
 13 November 2026. Everything here is local: nothing was pushed, deployed, or written to live data. All tests and
 replays use saved files and read-only copies.
 
-**Recommendation: CONDITIONAL.** See the end for the conditions.
+**Recommendation: READY.** The first version of this report was CONDITIONAL on one thing: the Griezmann patch. The editor approved it and it is applied
+(commit `ee2f8b3`), with two regression tests (13 November, later the same day). The figures below include the patch. The plan is in section 7.
 
 ## 1. The editor's decisions
 
@@ -46,19 +47,19 @@ whole-site rates.
 
 | Measure | Before | After |
 |---|---|---|
-| Precision | 31.7% | 61.2% |
+| Precision | 31.7% | 62.5% |
 | Recall | 50.8% | 46.2% |
-| False merges | 71 of 199 | **19** |
+| False merges | 71 of 199 | **18** |
 | Missed merges | 32 of 65 | 35 |
 | Correct merges | 33 | 30 |
-| "Separate but related" pairs in one story | 38 of 83 | 9 |
+| "Separate but related" pairs in one story | 38 of 83 | 8 |
 | Two phases of one match in one story | 16 of 32 | 2 |
 
 ### Editor-approved pairs (95: 10 must merge, 85 must not)
 
 | Measure | Before | After |
 |---|---|---|
-| False merges | 38 of 85 | **9** |
+| False merges | 38 of 85 | **8** |
 | Correct merges | 1 of 10 | **0 of 10** |
 | Precision / recall | 2.6% / 10% | 0% / 0% |
 
@@ -80,9 +81,9 @@ injury and the club statement, Leko, Peretz), which is the job of Steps 2 to 4, 
 False merges 4 → 1, missed merges 0 → 0. Scored apart; they show how the code treats a described situation, not how
 often it happens.
 
-### The 19 false merges that remain
+### The 18 false merges that remain
 
-Nine are editor-approved "separate but related" pairs:
+Eight are editor-approved "separate but related" pairs (a ninth, r289, the Griezmann clip and quote, was fixed by the patch of section 4):
 
 | Pair | What |
 |---|---|
@@ -93,7 +94,6 @@ Nine are editor-approved "separate but related" pairs:
 | r043 | result vs. preview of Once Caldas–Medellín |
 | r051 | Spalletti's reply to Bremer vs. the Juventus–Lazio result |
 | r086 | Ajax–Groningen result vs. the live blog |
-| r289 | Griezmann goal clip vs. a later quote (see section 4) |
 | r292 | analysis of Botafogo's win vs. a player's comment on it |
 
 Ten are unreviewed pairs, mostly unrelated stories that share ordinary words (a boat accident and a car on a pitch,
@@ -150,17 +150,20 @@ splits six merged stories on the set, and four of the six look like true merges 
 drink, Kees Smit's contract, two Arteta quotes, Koloko's signing). Rejected.
 
 **Narrow rule, tested.** A goal / video clip ("Goal: ...", "VIDEO ...", "Watch ...") against a quote with a named
-speaker ("Ojeda: “...”"), unless they share a score or a number. It is not in the repository: `src/merge.js` is
-outside Step 1, so the proposal is a patch file, `docs/proposed-merge-clip-vs-quote.patch` (a small patch: two regular expressions and one condition).
+speaker ("Ojeda: “...”"), unless they share a score or a number. It lives in `src/merge.js`, outside Step 1, so it was
+proposed as a patch file, `docs/proposed-merge-clip-vs-quote.patch` (two regular expressions and one condition), and
+applied only after the editor approved it (commit `ee2f8b3`).
 
-| With the patch applied temporarily | Result |
+| With the patch applied | Result |
 |---|---|
-| Tests | 211 pass |
+| Tests | all pass (213 with the two regression tests below) |
 | Hard-case set | false merges 19 → 18; correct merges 30 → 30; one story changes (the Griezmann one) |
-| Full memory (47,708 articles) | exactly one merged story changes (the 12-article Griezmann one); nothing else |
+| Full memory (47,708 articles) | exactly one merged story changes (the 13-article Griezmann story); no other labelled pair or story changes; no story is newly joined |
 | Editor-approved false merges | 9 → 8 |
 
-`src/merge.js` was restored byte for byte afterwards. It can be applied with `git apply docs/proposed-merge-clip-vs-quote.patch`.
+**Regression tests.** `test/merge.test.js` checks the rule on the real Griezmann headlines (the clip and the quote stay apart in either order, the clip and a
+plain report of the same goal still join, and the whole merge step agrees). `test/cluster-eval.test.js` checks r289 through the whole pipeline on the
+saved data. Without the patch three tests fail (these two and the baseline gate); with it all pass.
 
 ## 5. Final validation
 
@@ -169,21 +172,21 @@ current code, with the editor's labels and the radar's real story IDs and Telegr
 
 | Check | Result |
 |---|---|
-| **Clustering accuracy** (264 pairs, full memory) | precision 31.8% → 59.6%; recall 52.3% → 47.7%; false merges 73 → 21 (of 199); missed merges 31 → 34; correct merges 34 → 31. 52 false merges fixed, **no new false merge**, the same 3 correct merges lost (r065, r088, r291) as on the set. |
+| **Clustering accuracy** (264 pairs, full memory) | precision 31.8% → 59.6%; recall 52.3% → 47.7%; false merges 73 → 20 (of 199); missed merges 31 → 34; correct merges 34 → 31. 53 false merges fixed, **no new false merge**, the same 3 correct merges lost (r065, r088, r291) as on the set. The full-memory run was made before the patch (73 → 21, precision 59.6%); the pair-by-pair comparison then showed r289 as the only labelled pair the patch changes, so the figures here follow from it. |
 | **Cluster drift** | biggest story 721 → 268 articles; stories over 100 articles 35 → 20; word groups that grew past 20 hours 575 → 52; stories spanning over 24 hours 446 → 58. |
 | **Story IDs** | day to day (12 steps of 3 hours, the set): articles changing ID 1.6% → 1.7%; stories losing their ID 71 → 49. The one-time switch: 24.0% of articles change ID (old code run again: 15.8%); 168 stories of 2+ articles lose their ID (control 408); 750 multi-article stories get a new ID (control 96). |
 | **Editorial state** | claims and category corrections match by article links and survive; no vote exists on a visible story; the "new" badge needs a newer first article (section 3). Nothing was reset or re-keyed. |
 | **Duplicate Telegram posts** | 170 stories the channel had posted are still in the data: 165 keep their ID. 42 new-ID stories contain an article of a posted story, 7 of them under 3 hours old. Those 7 were the posting risk; the quiet first run (section 3) now marks everything on the page as sent, so none of them can post. Residual risk: a split-off story that enters the top 10 only in a later run, which the 12-hour headline check still covers. |
-| **Run time** (full memory, this machine, two runs) | word grouping 8.3-8.8 s → 7.1-7.7 s; card merge 33.5-33.9 s → 38.8-41.5 s; both 41.8-42.7 s → 46.5-48.6 s. About 5-7 s more. A whole run takes about 2.5 minutes and the job is stopped at 8, so there is room. The live memory is smaller than this one. The added time comes from the card merge getting 12% more groups. |
-| **Backward compatibility** | the radar's code changed in two files only, `src/cluster.js` and `src/telegram.js`. Nothing new is stored on articles or stories; the only new saved field is `grouping` in the Telegram state (older code ignores it). Card format, site data files and the frontend are unchanged. |
+| **Run time** (full memory, this machine, two runs) | word grouping 8.3-8.8 s → 7.1-7.7 s; card merge 33.5-33.9 s → 38.8-41.5 s; both 41.8-42.7 s → 46.5-48.6 s. About 5-7 s more. A whole run takes about 2.5 minutes and the job is stopped at 8, so there is room. The live memory is smaller than this one. The added time comes from the card merge getting 12% more groups. Measured before the Griezmann patch, which adds two small regular-expression tests per group and was not timed separately. |
+| **Backward compatibility** | the radar's code changed in three files only: `src/cluster.js` (Step 1), `src/telegram.js` (the quiet run) and `src/merge.js` (the Griezmann rule). Nothing new is stored on articles or stories; the only new saved field is `grouping` in the Telegram state (older code ignores it). Card format, site data files and the frontend are unchanged. |
 | **New paid services, new network calls, new dependencies** | none (checked in the diff). |
 | **AI summaries** | untouched: `src/ai.js`, `src/summaries.js` and the prompts did not change, and no AI request was added. |
-| **Tests** | 211 pass (206 before Step 0, plus the evaluation, phase and Telegram tests). |
+| **Tests** | 213 pass (203 before Step 0, plus the evaluation, phase, Telegram and Griezmann tests). |
 
 ## 6. Remaining known problems
 
 - **0 of 10** editor MERGE pairs are joined by the radar. Step 1 lost one (r065). Steps 2 to 4 address the rest.
-- 19 false merges remain (18 with the patch). Ten are the word similarity itself and are outside Step 1.
+- 18 false merges remain. Ten are the word similarity itself and are outside Step 1.
 - The radar shows more cards: about 12% more stories on the full memory. Previews, live coverage and results are now
   separate cards by design, and some same-event reports in different wording show as separate cards until
   Steps 2 to 4.
@@ -197,13 +200,17 @@ current code, with the editor's labels and the radar's real story IDs and Telegr
 
 **Before pushing**
 
-1. Decide on the merge patch (section 4): apply it or leave it. It must be applied before the push to be included.
+1. The Griezmann patch is already in (commit `ee2f8b3`); there is nothing to decide first.
 2. `npm test` and `node scripts/eval-clusters.mjs` both pass on the commit you push.
 
-**Deploy.** The branch holds local commits for Step 0, Step 1 and this final work. The usual one command pushes them all:
+**Deploy.** This is the isolated deployment branch `step1-deploy` (worktree `C:\Users\avrah\sr-deploy`), built from `origin/main`
+(`8e93271`) with five cherry-picked commits and nothing else: the evaluation set (`aa48894`), Step 1 (`95e516b`), the editor's
+decisions with the Telegram guard (`8863a18`), the Griezmann patch (`ee2f8b3`) and the maintenance commit (regression tests, new
+baseline). The athlete and official-site changes for Gal Raviv, Aviv Aronov, Miami and Eastern Michigan are not in it; they stay
+on the original branch. One command pushes it:
 
 ```powershell
-cd C:\Users\avrah\sr-merge; git push origin HEAD:main
+cd C:\Users\avrah\sr-deploy; git push origin HEAD:main
 ```
 
 Best at a quiet hour for editors (the channel is silent 01:00 to 06:00 Israel time anyway). I would not deploy
@@ -217,29 +224,43 @@ during a big match evening.
 - No self-check alert to the admin about a slow run or a quiet channel in the next hours.
 - Ask one editor whether "I'm on it" marks and category fixes still show.
 
-**Rollback.** The memory format is unchanged, so no data needs restoring.
+**Rollback.** The memory format is unchanged, so no data needs restoring. Nothing is rewritten: the rollback is new commits on
+top of `main`, and it keeps the Telegram guard so the rollback run is quiet too (IDs change back once more, and the same
+table of section 3 applies in reverse). The five deployment commits, newest first: the one titled "Step 1 maintenance"
+(find it with `git log --format=%h --grep="Step 1 maintenance"`), `ee2f8b3`, `8863a18`, `95e516b`, `aa48894`.
 
-1. `git revert` the Step 1 commit (it only touches `src/cluster.js` in the radar's code, plus its tests).
-2. In the same commit set `GROUPING` in `src/telegram.js` to `3`, so the rollback run is quiet too. Without it, the
-   IDs change back and Telegram would rely on its headline check alone.
-3. Push. IDs change once more; the same table in section 3 applies in reverse.
+```powershell
+git fetch
+git checkout -b rollback origin/main
+git revert --no-commit <maintenance> ee2f8b3 8863a18 95e516b aa48894
+git checkout <maintenance> -- src/telegram.js test/telegram-main.test.js test/selfcheck-events.test.js
+```
+
+Then set `GROUPING` in `src/telegram.js` from `2` to `3` (the tests follow the constant), commit, and push with
+`git push origin HEAD:main`.
+
+This was tested on a throwaway branch: the five reverts apply without conflict, `src/cluster.js` and `src/merge.js` are
+back to their pre-deployment versions, the tree differs from the pre-deployment `main` only in the Telegram guard and its two
+test files, and 204 tests pass (the 203 older ones plus the quiet-run test).
 
 ## 8. Files changed in this step
 
-All local, in one local commit on top of Step 1. Not pushed.
+The five commits of the isolated deployment branch `step1-deploy` (section 7). Not pushed.
 
 | File | Change |
 |---|---|
 | `src/telegram.js` | `GROUPING` constant; the first run after it changes posts nothing |
 | `test/telegram-main.test.js`, `test/selfcheck-events.test.js` | the saved state they use carries `grouping: 2`; one new test |
 | `scripts/eval-clusters.mjs` | scores by the editor's decision; editor-approved, unreviewed and "separate but related" reported apart; new review-sheet format |
-| `test/cluster-eval.test.js` | checks for the 95 decisions and what each means for the score |
+| `src/merge.js` | the Griezmann rule: a goal / video clip and a later named quote do not merge (12 added lines, commit `ee2f8b3`) |
+| `test/merge.test.js` | new: the rule on the real Griezmann headlines, with controls |
+| `test/cluster-eval.test.js` | checks for the 95 decisions and what each means for the score; r289 through the whole pipeline |
 | `test/fixtures/cluster-eval/pairs.json` | `editorDecision`, `editorAt`, `editor` on the 95 pairs; original labels kept |
 | `test/fixtures/cluster-eval/editor-decisions.json` | new: the 95 decisions with their source |
-| `test/fixtures/cluster-eval/baseline.json` | the gate, re-measured under the editor's decisions |
-| `test/fixtures/cluster-eval/baseline-step1-assistant-labels.json` | the previous gate, kept as history |
+| `test/fixtures/cluster-eval/baseline.json` | the gate: the current code (Step 1 plus the patch) under the editor's decisions: 18 false merges |
+| `test/fixtures/cluster-eval/baseline-step0.json`, `baseline-step1-assistant-labels.json`, `baseline-step1-editor-labels.json` | history: Step 0; Step 1 under the assistant's labels; Step 1 under the editor's decisions before the patch |
 | `docs/cluster-step1-final.md` | this report |
-| `docs/proposed-merge-clip-vs-quote.patch` | the proposed `src/merge.js` patch, not applied |
+| `docs/proposed-merge-clip-vs-quote.patch` | the `src/merge.js` patch as proposed; applied in `ee2f8b3`, kept as a record |
 | `docs/cluster-editor-review.html` | the Hebrew review page the editor used |
 | `docs/cluster-eval-review.csv`, `docs/cluster-step1-compare.md` | regenerated |
 | `docs/cluster-step1.md`, `docs/cluster-eval-baseline.md` | a note pointing to this report |

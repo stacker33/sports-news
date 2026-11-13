@@ -1,4 +1,4 @@
-// FROZEN COPY of src/cluster.js as it was before Step 1 (commit 43aff13), for before / after replays only.
+// FROZEN COPY of src/cluster.js as it was before Step 1 (commit aa48894), for before / after replays only.
 // Not used by the radar. Do not edit.
 // Group items that report the same story (same language) and score each story.
 import { heBase } from '../../../../src/hebrew.js';

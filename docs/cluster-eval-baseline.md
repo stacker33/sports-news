@@ -85,7 +85,7 @@ or correct each label.
 
 ## Baseline numbers
 
-Measured on the code as it was on 12 November 2026 (commit `00a09d8`).
+Measured on the grouping code as it was on 12 November 2026 (the same as on `origin/main` `8e93271`: no grouping file had changed).
 
 ### Real pairs
 

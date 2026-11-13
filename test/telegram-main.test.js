@@ -44,7 +44,7 @@ async function run(stories, prev) {
     process.env = env;
   }
 }
-const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', grouping: 2, recent: [] };
+const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', grouping: GROUPING, recent: [] };
 
 test('the channel posts what is in the main page top 10, in its order; not what is below it', async () => {
   // 12 distinct stories: the top 10 (by the page's order) can go, the last two can't

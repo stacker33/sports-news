@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { selfCheck } from '../src/selfcheck.js';
-import { abroadEvents, telegramPost } from '../src/telegram.js';
+import { abroadEvents, telegramPost, GROUPING } from '../src/telegram.js';
 
 const noon = Date.parse('2026-11-04T10:00:00Z'); // 12:00 in Israel
 const h = 3600e3;
@@ -45,7 +45,7 @@ test('live events go to the channel once each; what is already in the data when 
     if (String(url).includes('/sendMessage')) sent.push(JSON.parse(opts.body));
     return { ok: true, json: async () => ({ ok: true, result: {} }) };
   };
-  const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', grouping: 2, recent: [] };
+  const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', grouping: GROUPING, recent: [] };
   const post = (gi, prev) => telegramPost([], { athletes, cards: {}, gameInfo: gi, siteUrl: 'https://x.test/' }, prev, noon);
   try {
     const first = await post(game({ 'Oscar Gloukh': { goals: ["10'"] } }), ready); // the first run with this feature
