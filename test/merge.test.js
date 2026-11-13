@@ -178,3 +178,18 @@ test('Step 3: injury stories: a quote, a hypothetical, a match report, a coach\'
   const sackB = injury('How much would it cost Napoli to sack Allegri?', 'כמה יעלה לנאפולי לפטר את אלגרי', ['p6', 't2'], { published: T + 3600e3 });
   assert.equal(mergeSameEvent([sackA.members, sackB.members], {}).length, 2); // the editors: separate but related (r026)
 });
+
+test('Step 3: a small group that names two players is no injury event of either (Szoboszlai\'s recurrence, Frimpong substituted)', () => {
+  const t1 = (en, he, ents, min) => ({ members: [art(en, { lang: 'en', ents, tr: { en, he }, published: T + min * 60000 })], card: null });
+  // group A: three articles, one tags Szoboszlai, two tag Frimpong (they name both)
+  const a = { members: [
+    art('Szoboszlai injury: Liverpool pair out for some time', { lang: 'en', ents: ['p1', 't1'], tr: { en: 'Szoboszlai injury: Liverpool pair out for some time', he: 'פציעה של שובוסלאי: ליברפול נפרדת לזמן מה' } }),
+    art('Szoboszlai injury recurs, Frimpong substituted', { lang: 'en', ents: ['p2'], tr: { en: 'Szoboszlai injury recurs, Frimpong substituted', he: 'הפציעה של שובוסלאי חוזרת' } }),
+    art('Szoboszlai injury recurs, Frimpong substituted after 8 minutes', { lang: 'en', ents: ['p2'], tr: { en: 'Szoboszlai injury recurs, Frimpong substituted after 8 minutes', he: 'הפציעה של שובוסלאי חוזרת' } }),
+  ], card: null };
+  const b = t1('Frimpong suffers new hamstring injury, may miss internationals', 'פרימפונג סובל מפציעה חדשה', ['p2', 't1'], 1500);
+  assert.equal(mergeSameEvent([a.members, b.members], {}).length, 2);
+  // the same two reports about ONE player do join
+  const c = { members: a.members.map((m) => ({ ...m, id: `${m.id}c`, ents: ['p2'] })), card: null };
+  assert.equal(mergeSameEvent([c.members, b.members], {}).length, 1);
+});

@@ -103,7 +103,10 @@ export function eventTypeOf(members, he) {
   }).map(([k]) => k);
   return found.length === 1 ? found[0] : null;
 }
-const playersOf = (members) => focusedIds(members, 0.5).filter((id) => id[0] === 'p');
+// The player a group is about. In a small group a second player named in a quarter of the articles makes it a story about two
+// people ("Szoboszlai's injury recurs, Frimpong substituted"): no single player, no injury event. In a big group (8+) a stray
+// mention (the coach) does not count until half.
+const playersOf = (members) => focusedIds(members, members.length >= 8 ? 0.5 : 0.25).filter((id) => id[0] === 'p');
 
 export function eventPrint(members, card) {
   const he = card?.title_he || '';

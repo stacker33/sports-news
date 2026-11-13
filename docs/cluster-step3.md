@@ -25,8 +25,9 @@ No AI calls, no new services, no change to summaries, the frontend, workflows, s
     "risks the sack" vs "cost of sacking" separate, r026).
   - Word indexes make the Hebrew-led and translated passes about as fast as before (merge step 3.1 s to 4.5 s on the full memory).
 - `src/cluster.js`: `nationalFixture` reads two nations from a football headline ("Armenia vs. Cyprus", "Italy-France", "lineup for
-  Kosovo"). It only blocks: different matches and different phases stay apart. It never makes a story a "match story", so no join that
-  worked before is blocked by it. Football only (a cricket Test also names two nations).
+  Kosovo"). It is a post-step (`splitNational`) that only ever SPLITS a group holding two national matches or two phases of one; it never
+  makes two groups join (the first version did, through knock-on effects in junk "World Cup" groups: found and removed in the final check).
+  Football only (a cricket Test also names two nations).
 - `src/telegram.js`: `GROUPING` 3 to 4 (one quiet run after deploy, no reposts).
 - Evaluation: `scripts/eval-step3-compare.mjs` (frozen `before-step3/`), corpus carries the cached translation (`he`) so the set
   behaves like production, gate `baseline.json` re-saved, previous gate kept as `baseline-step2-final.json`.
@@ -44,21 +45,20 @@ No AI calls, no new services, no change to summaries, the frontend, workflows, s
 
 Precision 67.9 to 68.4 percent, recall 52.8 to 54.2 percent.
 
-Full memory: word groups 20,932 to 20,928; stories 20,262 to 20,233. Labelled pairs 35 to 36 of 72 correct, false merges 21 to 21.
-Biggest stories unchanged (268, 223, 199...); stories of 50+ articles 70 to 70. Story ids: 24.1 to 24.2 percent of articles move,
-stories losing their id 178 to 189.
+Full memory: word groups 20,932 to 20,935; stories 20,262 to 20,239. Labelled pairs 35 to 36 of 72 correct, false merges 21 to 21.
+Biggest stories unchanged (268, 223, 199...); stories of 50+ articles 70 to 70. Story ids: 24.1 to 24.1 percent of articles move,
+stories losing their id 178 to 188.
 
-The merge step's own joins (all read by hand): 17. Right: Kane 100th game, Ramos to Getafe, Betis-Barcelona report, Conceicao shoulder
+The merge step's own joins (all read by hand): 16 stories join old ones. Right: Kane 100th game, Ramos to Getafe, Betis-Barcelona report, Conceicao shoulder
 (4 reports), Semenyo (3), Dybala, Ventura, Mendes (2, 60 articles), Kompany, Dembele, Leao (2 joins), Alisson Santos (3), Karetsas (3),
-Allegri week-of-truth (3 near-copies), Ben Simmons (5 reports, 193 articles). Ambiguous: Szoboszlai / Frimpong (one injury story of
-two players). No clear false merge found.
+Allegri week-of-truth (3 near-copies), Ben Simmons (5 reports, 193 articles). The Szoboszlai / Frimpong join (a small group that named both players, "Szoboszlai's injury recurs, Frimpong substituted", joined Frimpong's new injury of the next day) was a distinct-event
+merge: fixed by a general rule (a small group naming a second player in a quarter of its articles is no one player's injury event). 16 joins remain, none clearly wrong.
 
 ## National-team matches (79 football articles name one in the saved memory, the October break was mostly youth teams)
 
-Groups mixing two national matches 3 to 1; groups mixing two phases of one match 1 to 0. 12 old stories were split on the full
-memory (and 9 joined): all in template blobs ("Team Stats" pages, generic "World Cup" pages); the two largest are UFC and U-17 women's
-World Cup pages that were mixed with other matches. The live site today (international window) showed 5 stories with mixed phases and
-two nation listings joined into one; not replayable with full data (the live state is private).
+Groups mixing two national matches 3 to 1; groups mixing two phases of one match 1 to 0. On the full memory the grouping now changes in
+exactly 2 old groups, both splits (a Poland-Nigeria / Germany-Morocco item out of a junk "World Cup" group; Spain-Portugal roller hockey
+out of a cycling group), 0 joins. Read: all correct. The live site today (international window) is not replayable with full data.
 
 ## Honest limits
 
@@ -66,7 +66,6 @@ two nation listings joined into one; not replayable with full data (the live sta
   a rule that merges them also merges the editors' 83 related pairs. r146 (Zoma) has no player tag at all. Not forced.
 - The 17 joins and the national-team splits are my reading, not an editor's.
 - National-team recognition needs an English headline with the nation's English name; Hebrew-only headlines are not read.
-- The word-group change is small but moves some articles in already-garbled blobs (12 old stories split, 9 joined).
 
 ## Deploy and roll back
 

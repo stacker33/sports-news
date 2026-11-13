@@ -172,7 +172,9 @@ export function clusterItems(items) {
     const en = it.lang === 'en' ? it.title : it.tr?.en;
     it._key = en ? 'x' : it.lang;
     it._tok = tokens(en || it.title);
-    it._match = fixtureOf(it);
+    const fx = fixtureOf(it);
+    it._match = fx?.national ? null : fx; // a national-team match never takes part in the grouping itself (see splitNational)
+    it._nat = fx?.national ? fx.ents : null;
     const phase = matchPhase(en || it.title); // kept here, not on the article: nothing new is saved in the memory
     const candidates = new Map();
     for (const t of it._tok) for (const c of index.get(t) || []) candidates.set(c, (candidates.get(c) || 0) + 1);
@@ -223,7 +225,38 @@ export function clusterItems(items) {
       index.get(t).add(found);
     }
   }
-  return joinSameMatch(clusters).map((c) => c.items);
+  return splitNational(joinSameMatch(clusters).map((c) => c.items));
+}
+
+// Step 3: a group that holds two national-team matches, or two phases of one, is split: the matches (and their phases) leave the
+// group, the rest stays. Only ever splits: a national-team match never makes two groups join (it did, through the knock-on of
+// the groups it pulled out, in already-mixed "World Cup" template groups). Nations are compared without the squad level when
+// only one headline names it ("Liechtenstein under 17" / "Liechtenstein until 17" are one match).
+function splitNational(groups) {
+  const out = [];
+  for (const g of groups) {
+    const nat = g.filter((it) => it._nat);
+    if (!nat.length) { out.push(g); continue; }
+    const byBase = new Map();
+    for (const it of nat) {
+      const base = it._nat.split(':').slice(0, 2).join(':');
+      const p = matchPhase(it.lang === 'en' ? it.title : it.tr?.en || it.title) || '';
+      const m = byBase.get(base) || byBase.set(base, new Map()).get(base);
+      (m.get(p) || m.set(p, []).get(p)).push(it);
+    }
+    const buckets = [];
+    for (const m of byBase.values()) {
+      const known = [...m.keys()].filter(Boolean);
+      if (known.length === 1 && m.has('')) m.get(known[0]).push(...m.get(''), ...[]), m.delete(''); // no phase said: the match's one phase
+      for (const items of m.values()) buckets.push(items);
+    }
+    if (buckets.length < 2) { out.push(g); continue; }
+    buckets.sort((a, b) => b.length - a.length);
+    const moved = new Set(buckets.slice(1).flat());
+    out.push(g.filter((it) => !moved.has(it)));
+    for (const b of buckets.slice(1)) out.push(b.sort((x, y) => x.published - y.published));
+  }
+  return out.filter((g) => g.length);
 }
 
 // One story per match PHASE: groups of the same language that are mostly about the same match (its two team tags)
