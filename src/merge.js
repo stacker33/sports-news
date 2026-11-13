@@ -12,6 +12,7 @@
 import { matchPhase } from './cluster.js';
 
 const RECENT_MS = 24 * 3600e3;
+const EVENT_MS = 36 * 3600e3; // Step 3: one player's injury / one coach's sacking stays news a little longer
 
 const scoresIn = (t) => [...String(t || '').matchAll(/(\d{1,3})\s*[-–:]\s*(\d{1,3})/g)].map((m) => [m[1], m[2]].sort().join('-'));
 const words = (t) => [...new Set(String(t || '').replace(/[^\p{L}\d\s]/gu, ' ').split(/\s+/).filter((w) => w.length >= 3))];
@@ -51,13 +52,17 @@ const mostly = (members, re) => members.length > 0 && members.filter((m) => re.t
 // and the groups that already merge on real cards are never touched: the Step 1 algorithm runs first, unchanged.
 function standInCard(members) {
   const lead = [...members].sort((a, b) => (b.google ? 0 : 1) - (a.google ? 0 : 1) || b.weight - a.weight || a.published - b.published)[0];
-  if (lead?.lang !== 'he' || !/[א-ת]/.test(lead.title)) return null;
-  if (new Set(scoresIn(lead.title)).size >= 2) return null; // a round-up of several results ("0:1 Arsenal, 2:5 Ajax") is not one event
-  return { title_he: lead.title, about: '', pseudo: true };
+  if (!lead) return null;
+  // Step 3: a foreign group still waiting for its AI card (the card backlog) stands in with the cached machine translation
+  // of its headline, which every foreign article already has (src/translate.js): no new call of any kind
+  const he = lead.lang === 'he' ? lead.title : lead.tr?.he;
+  if (!he || !/[א-ת]/.test(he)) return null;
+  if (new Set(scoresIn(he)).size >= 2) return null; // a round-up of several results ("0:1 Arsenal, 2:5 Ajax") is not one event
+  return { title_he: he, about: '', pseudo: true, mt: lead.lang !== 'he' };
 }
 
 // Before / during / after a match, read from a Hebrew headline (the card's, or a Hebrew article's own)
-const HE_LIVE = /סיקור חי|שידור חי|חי ב|חי מ|לייב|דקה \d|\(מחצית|מחצית \d|\(רבע|רבע (ראשון|שני|שלישי|רביעי|\d)/;
+const HE_LIVE = /זמן אמת|סיקור חי|שידור חי|חי ב|חי מ|לייב|דקה \d|\(מחצית|מחצית \d|\(רבע|רבע (ראשון|שני|שלישי|רביעי|\d)/;
 // (these only ever block a merge: a marker that is too wide costs a merge, never makes one)
 const HE_PRE = /לקראת|הרכב|הרכבים|תחזית|איפה לראות|באיזו שעה|באיזה ערוץ|מסיבת עיתונאים|ערב המשחק|סגל למשחק|צפוי לפתוח|תארח|תפגוש|יפגשו|נפגשות|בקרב|אחרי בדיקה|מצבו של|יחמיץ|יעדר/;
 const HE_POST = /גברה|ניצחה|הביסה|ניצחון|הפסידה|תבוסה|סיכום המשחק|תקציר|הפסד|השיגה|סיימה|עצרה|כבש|כבשה|צמד|הכריעה|נכנעה|\d:\d/;
@@ -75,18 +80,38 @@ function groupPhase(members) {
   return top && top[1] >= n * 0.6 ? top[0] : null;
 }
 // the clubs / players a group is about: the ones in at least a quarter of its articles (a round-up names many)
-function focusedIds(members) {
+function focusedIds(members, share = 0.25) {
   const cnt = new Map();
   for (const m of members) for (const id of new Set((m.ents || []).filter((x) => /^[tp]/.test(x)))) cnt.set(id, (cnt.get(id) || 0) + 1);
-  const need = Math.max(1, Math.ceil(members.length * 0.25));
+  const need = Math.max(1, Math.ceil(members.length * share));
   return [...cnt].filter(([, c]) => c >= need).map(([id]) => id);
 }
+
+// Step 3: the kind of news event, read from the English text of a group's articles and from its Hebrew headline. Only the
+// kind where one person and one kind of news make one event is read: a player's injury. (A coach's sacking was tried and
+// left out: "Allegri skips training, sack risk" and "what it would cost to sack Allegri" are two stories, the editors ruled.)
+// A return from injury, or a match report that mentions an injury, is not an injury event.
+const EVENT_TYPES = {
+  injury: { not: /\b(returns?|returned|comeback|back (in|from)|recovered)\b|\bif (he|they|\w+) (is |gets |are |were |was )?(injured|ruled out)/i, heNot: /חזרS* (לסגל|לאימונים|למגרש|לפעילות|להתאמן)|שב לאימונים|התאושש/, en: /\b(injur\w*|ruled out|sidelined|torn|rupture\w*|fractur\w*|hamstring|ligament|surgery|operation|diagnos\w*|lesion|strain|dislocat\w*|out for (weeks|months|the season))\b/i, he: /פציע|נפצע|ייעדר|יעדר|קרע|שבר ב|ניתוח|פריקת|אבחנ|רצועה|שריר|סובל מ/ },
+};
+export function eventTypeOf(members, he) {
+  const first = members.slice(0, 6);
+  const found = Object.entries(EVENT_TYPES).filter(([, r]) => {
+    if (r.not && (first.filter((m) => r.not.test(enOf(m))).length * 2 > first.length || (r.heNot && r.heNot.test(he || '')))) return false; // e.g. a return from injury is no injury
+    const hits = first.filter((m) => r.en.test(enOf(m))).length;
+    return hits * 2 > first.length || (r.he.test(he || '') && hits * 2 >= first.length);
+  }).map(([k]) => k);
+  return found.length === 1 ? found[0] : null;
+}
+const playersOf = (members) => focusedIds(members, 0.5).filter((id) => id[0] === 'p');
 
 export function eventPrint(members, card) {
   const he = card?.title_he || '';
   const first = members.slice(0, 6);
   return {
+    he,
     pseudo: !!card?.pseudo,
+    mt: !!card?.mt,
     phase: groupPhase(members),
     hePhase: hePhase(he),
     nMatches: matchesOf(members).size,
@@ -139,6 +164,8 @@ export function sameEventStrict(a, b, rare, names) {
     // a quote (a player's or coach's words after the game) and the report of the result are different events
     if ((a.spoken && (b.heScores || []).length) || (b.spoken && (a.heScores || []).length)) return false;
   }
+  // A machine-translated stand-in (the card is still waiting): a score or a number alone is not enough, "0-3" is in a hundred matches
+  if (a.mt || b.mt) return shared >= 2 && a.ids.length <= shared + 1 && b.ids.length <= shared + 1 && (nearSameHeadline || (inter >= 2 && jac >= 0.3) || (inter >= 1 && (sameScore || sameNum)));
   return nearSameHeadline || (shared >= 2 && (jac >= 0.25 || sameScore || sameNum)) || (inter >= 2 && jac >= 0.3) || ((sameScore || sameNum) && (shared >= 1 || sameAbout));
 }
 
@@ -160,19 +187,24 @@ export function mergeSameEvent(clusters, cards = {}) {
   const rare = { has: (w) => (df.get(w) || 0) <= limit }; // a word no card has used (only a Hebrew headline has) is rare
   // for the Hebrew-led pass every headline counts: Israeli club names are common in Hebrew headlines, but the foreign
   // AI cards rarely have them, so counting the cards alone would make "Hapoel Beer Sheva" a rare word
-  const dfAll = new Map();
-  for (const x of info) if (x) for (const w of new Set([...x.fp.words, ...x.fp.nums])) dfAll.set(w, (dfAll.get(w) || 0) + 1);
-  const limitAll = Math.max(4, Math.round(info.filter(Boolean).length * 0.004));
-  const rareAll = { has: (w) => (dfAll.get(w) || 0) <= limitAll };
-  // the words that are a club's / player's NAME: in at least 40% of the headlines carrying that tag (3 headlines or more)
-  const idPrints = new Map(), idWords = new Map();
-  for (const x of info) if (x) for (const id of x.fp.ids) {
-    idPrints.set(id, (idPrints.get(id) || 0) + 1);
-    const m = idWords.get(id) || idWords.set(id, new Map()).get(id);
-    for (const w of x.fp.words) m.set(w, (m.get(w) || 0) + 1);
-  }
-  const names = new Map();
-  for (const [id, cnt] of idPrints) if (cnt >= 3) names.set(id, new Set([...idWords.get(id)].filter(([, c]) => c / cnt >= 0.4).map(([w]) => w)));
+  // statistics for the Hebrew-led pass: every headline except the machine-translated ones (so Step 2 decisions stay as they were);
+  // for the last pass the machine-translated ones count too
+  const stats = (use) => {
+    const dfAll = new Map();
+    for (const x of info) if (x && use(x)) for (const w of new Set([...x.fp.words, ...x.fp.nums])) dfAll.set(w, (dfAll.get(w) || 0) + 1);
+    const limitAll = Math.max(4, Math.round(info.filter((x) => x && use(x)).length * 0.004));
+    const rareAll = { has: (w) => (dfAll.get(w) || 0) <= limitAll };
+    // the words that are a club's / player's NAME: in at least 40% of the headlines carrying that tag (3 headlines or more)
+    const idPrints = new Map(), idWords = new Map();
+    for (const x of info) if (x && use(x)) for (const id of x.fp.ids) {
+      idPrints.set(id, (idPrints.get(id) || 0) + 1);
+      const m = idWords.get(id) || idWords.set(id, new Map()).get(id);
+      for (const w of x.fp.words) m.set(w, (m.get(w) || 0) + 1);
+    }
+    const names = new Map();
+    for (const [id, cnt] of idPrints) if (cnt >= 3) names.set(id, new Set([...idWords.get(id)].filter(([, c]) => c / cnt >= 0.4).map(([w]) => w)));
+    return { rareAll, names };
+  };
   const same = (g, me, r = rare, nm) => g.seed.sport === me.sport && Math.abs(g.seed.first - me.first) <= RECENT_MS && !otherMatches(g.seed.matches, me.matches) && sameEventStrict(g.seed.fp, me.fp, r, nm);
   const byTime = (i, j) => info[i].first - info[j].first;
   const groups = []; // { seed: info, members: [] }
@@ -187,12 +219,51 @@ export function mergeSameEvent(clusters, cards = {}) {
   // round-up: a group that names several matches takes in nothing.
   const teamsOf = (fp) => fp.ids.filter((id) => id[0] === 't').length;
   const single = (g, me) => me.fp.nMatches <= 1 && teamsOf(me.fp) <= 2 && matchesOf(g.members).size <= 1; // a headline about 3+ clubs is a round-up
-  for (const i of clusters.map((_, k) => k).filter((k) => info[k]?.fp.pseudo).sort(byTime)) {
-    const me = info[i];
-    const g = groups.find((x) => same(x, me, rareAll, names) && single(x, me));
-    if (g) g.members.push(...clusters[i]);
-    else groups.push({ seed: me, members: [...clusters[i]] });
+  const pass2 = (pick, { rareAll, names }) => {
+    // A Hebrew stand-in has no subject text, so a pair is only ever grounded in a shared club / player tag: look only at the
+    // groups whose first story carries one of this story's tags (same answer as asking every group, much faster)
+    const byId = new Map();
+    const index = (g) => { g.n = g.n ?? groups.indexOf(g); for (const id of g.seed.fp.ids) (byId.get(id) || byId.set(id, []).get(id)).push(g); };
+    groups.forEach((g, n) => { g.n = n; index(g); });
+    for (const i of clusters.map((_, k) => k).filter((k) => info[k] && pick(info[k].fp)).sort(byTime)) {
+      const me = info[i];
+      const cand = [...new Set(me.fp.ids.flatMap((id) => byId.get(id) || []))].sort((x, y) => x.n - y.n);
+      const g = cand.find((x) => same(x, me, rareAll, names) && single(x, me));
+      if (g) g.members.push(...clusters[i]);
+      else { const ng = { seed: me, members: [...clusters[i]], n: groups.length }; groups.push(ng); index(ng); }
+    }
+  };
+  pass2((fp) => fp.pseudo && !fp.mt, stats((x) => !x.fp.mt)); // Hebrew-led first: exactly the Step 2 decisions
+  pass2((fp) => fp.mt, stats(() => true)); // then the foreign groups that still have no card
+  // pass 4 (Step 3), the same event by what happened: two groups about one player's injury, within 36 hours, are one story,
+  // even when their headlines share no word (reports in different languages are worded differently). Evidence needed: the
+  // same kind of event AND the same one person (the dominant player of both groups); a name or a club alone is never
+  // enough. A match report, a group that names two matches or a round-up of several people is no such event.
+  const evs = groups.map((g) => {
+    const players = playersOf(g.members);
+    const type = eventTypeOf(g.members, g.seed.fp.he);
+    return { g, type, players, first: g.seed.first, scoreless: !g.seed.fp.scores.length && !g.seed.fp.heScores.length, matches: matchesOf(g.members) };
+  });
+  const ok = (e) => e.type && e.players.length === 1 && e.scoreless && e.matches.size <= 1;
+  const absorbed = new Set();
+  const order = evs.map((_, k) => k).filter((k) => ok(evs[k])).sort((a, b) => evs[a].first - evs[b].first);
+  for (const k of order) {
+    const me = evs[k];
+    for (const t of order) {
+      if (t === k || absorbed.has(t) || evs[t].first > me.first || t === k) continue;
+      const you = evs[t];
+      if (you.type !== me.type || you.g.seed.sport !== me.g.seed.sport || me.first - you.first > EVENT_MS) continue;
+      if (otherMatches(you.matches, me.matches)) continue;
+      if (you.players[0] !== me.players[0]) continue;
+      const a = you.g.seed.fp, b = me.g.seed.fp;
+      if (a.spoken || b.spoken || a.clip || b.clip) continue; // a quote or a clip is its own event (editors, 2026-11-13)
+      if ((a.phase && b.phase && a.phase !== b.phase) || (a.hePhase && b.hePhase && a.hePhase !== b.hePhase)) continue;
+      you.g.members.push(...me.g.members);
+      absorbed.add(k);
+      break;
+    }
   }
+  const finalGroups = groups.filter((_, k) => !absorbed.has(k));
   const out = clusters.filter((_, k) => !info[k]); // no card, not Hebrew-led: left as it is
-  return [...out, ...groups.map((g) => g.members.sort((a, b) => a.published - b.published))];
+  return [...out, ...finalGroups.map((g) => g.members.sort((a, b) => a.published - b.published))];
 }

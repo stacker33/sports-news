@@ -42,7 +42,7 @@ const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 export function loadCorpus(dir = DIR) {
   const c = JSON.parse(gunzipSync(readFileSync(join(dir, 'corpus.json.gz'))).toString('utf8'));
   // the grouping code reads the English text from item.tr.en
-  for (const it of c.items) it.tr = it.en ? { en: it.en } : null;
+  for (const it of c.items) it.tr = it.en || it.he ? { ...(it.en ? { en: it.en } : {}), ...(it.he ? { he: it.he } : {}) } : null;
   return c;
 }
 export const loadPairs = (dir = DIR) => readJson(join(dir, 'pairs.json'));

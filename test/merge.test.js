@@ -129,3 +129,52 @@ test('Hebrew-led: headlines with two different scores are two different results'
   assert.equal(mergeSameEvent([foreign.members, other.members], cards).length, 2); // 0:2 against 1:2
   assert.equal(mergeSameEvent([foreign.members, same.members], cards).length, 1); // the same score and result
 });
+
+// ---------- Step 3 ----------
+// a foreign article still waiting for its AI card: only the cached machine translation of its headline exists
+const mt = (title, he, ents = [], extra = {}) => ({ members: [art(title, { lang: 'de', weight: 1, ents, tr: { en: title, he }, ...extra })], card: null });
+const injury = (en, he, ents, extra = {}) => ({ members: [art(en, { lang: 'en', weight: 1, ents, tr: { en, he }, ...extra })], card: null });
+const joined = (out) => out.length === 1;
+
+test('Step 3: a card-less foreign story joins the same event only on strong evidence (both teams and two rare words)', () => {
+  const real = cl('Barcelona beat Betis in Seville thanks to a Yamal goal', { title_he: 'ברצלונה ניצחה את בטיס בסביליה אחרי שער של ימאל', about: 'Barcelona Betis' }, { lang: 'es', weight: 2, ents: ['t10', 't20'] });
+  const same = mt('Spectacle in Seville: Barcelona beat Betis', 'מחזה בסביליה: ברצלונה ניצחה את בטיס אחרי שער של ימאל', ['t10', 't20']);
+  assert.ok(joined(mergeSameEvent([real.members, same.members], Object.fromEntries([real.card]))));
+  // one shared club is not enough, whatever the words
+  const oneClub = mt('Barcelona beat Betis', 'ברצלונה ניצחה את בטיס אחרי שער של ימאל', ['t10']);
+  assert.equal(mergeSameEvent([real.members, oneClub.members], Object.fromEntries([real.card])).length, 2);
+});
+
+test('Step 3: a score alone does not join two card-less stories ("0-3" is in a hundred matches)', () => {
+  const a = mt('Juve Stabia - Sudtirol: 3-0', 'יובה סטביה - סודטירול: 3-0 סדרה ב', ['t50']);
+  const b = mt('Lazio huge 0:3 over Juventus', 'בלתי מנוצחת: 0:3 ענק ללאציו על יובנטוס', ['t50', 't100']);
+  assert.equal(mergeSameEvent([a.members, b.members], {}).length, 2);
+});
+
+test('Step 3: the same player\'s injury, reported twice in different words, is one story', () => {
+  const a = injury('Nuno Mendes suffers muscle injury as tests confirmed', 'נונו מנדס סובל מפציעה בשריר', ['p77', 't1']);
+  const b = injury('Alarm in Paris: Mendes out for weeks', 'אזעקה בפריז: מנדס בחוץ לכמה שבועות עם פציעה', ['p77', 't1'], { published: T + 5 * 3600e3 });
+  assert.ok(joined(mergeSameEvent([a.members, b.members], {})));
+  const other = injury('Marquinhos injury scare for PSG', 'חשש לפציעה של מרקיניוס', ['p88', 't1'], { published: T + 6 * 3600e3 });
+  assert.equal(mergeSameEvent([a.members, other.members], {}).length, 2); // another player: another event
+});
+
+test('Step 3: an injury needs the same player AND the same kind of news: a name or a return from injury is not enough', () => {
+  const inj = injury('Alisson Santos suffers hamstring injury', 'אליסון סנטוס סובל מקרע בשריר הירך האחורי', ['p5', 't2']);
+  const back = injury('Alisson Santos returns to training after recovering', 'אליסון סנטוס חזר לאימונים אחרי הפציעה', ['p5', 't2'], { published: T + 3600e3 });
+  assert.equal(mergeSameEvent([inj.members, back.members], {}).length, 2);
+  const contract = injury('Alisson Santos signs a new contract at Napoli', 'אליסון סנטוס חתם על חוזה חדש בנאפולי', ['p5', 't2'], { published: T + 3600e3 });
+  assert.equal(mergeSameEvent([inj.members, contract.members], {}).length, 2);
+});
+
+test('Step 3: injury stories: a quote, a hypothetical, a match report, a coach\'s sacking and 40 hours later stay separate', () => {
+  const inj = injury('Haaland suffers knee injury in training', 'האלנד נפצע בברך באימון', ['p9', 't3']);
+  const quote = injury('Nikolic on Haaland: "I would never be happy if an opponent is injured"', 'ניקוליץ על האלנד: לעולם לא אשמח אם יריב נפצע', ['p9', 't3'], { published: T + 3600e3 });
+  const hypo = injury('Who could replace Haaland if he is injured?', 'מי יכול להחליף את האלנד אם הוא ייפצע', ['p9', 't3'], { published: T + 3600e3 });
+  const report = injury('City beat Arsenal 2-1 but Haaland injury worry', 'סיטי ניצחה 2:1 את ארסנל אבל דאגה בגלל הפציעה של האלנד', ['p9', 't3', 't4'], { published: T + 3600e3 });
+  const late = injury('Haaland injury: new scan result', 'פציעת האלנד: תוצאות סריקה חדשות', ['p9', 't3'], { published: T + 40 * 3600e3 });
+  for (const x of [quote, hypo, report, late]) assert.equal(mergeSameEvent([inj.members, x.members], {}).length, 2, x.members[0].title);
+  const sackA = injury('Allegri risks the sack after the loss', 'אלגרי בסיכון לפיטורים אחרי ההפסד', ['p6', 't2']);
+  const sackB = injury('How much would it cost Napoli to sack Allegri?', 'כמה יעלה לנאפולי לפטר את אלגרי', ['p6', 't2'], { published: T + 3600e3 });
+  assert.equal(mergeSameEvent([sackA.members, sackB.members], {}).length, 2); // the editors: separate but related (r026)
+});

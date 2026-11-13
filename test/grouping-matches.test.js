@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clusterItems, headlineFixture, fixtureOf, otherMatch, matchPhase } from '../src/cluster.js';
+import { clusterItems, headlineFixture, fixtureOf, otherMatch, matchPhase, nationalFixture } from '../src/cluster.js';
 import { mergeSameEvent, sameEventStrict, eventPrint } from '../src/merge.js';
 
 const T0 = Date.parse('2026-10-21T10:00:00Z');
@@ -142,4 +142,34 @@ test('nearly the same Hebrew headline from many outlets is one story, even when 
   const fp = (he) => eventPrint([{ ents: ['t131'], title: 'x' }], { title_he: he, about: 'Real Madrid Sevilla' });
   assert.equal(sameEventStrict(fp('ריאל מדריד ניצחה 2:0 את סביליה בליגה הספרדית'), fp('ריאל מדריד ניצחה 3:1 את סביליה בליגה הספרדית'), new Set()), false);
   assert.equal(sameEventStrict(fp('ריאל מדריד ניצחה 2:0 את סביליה בליגה הספרדית'), fp('ריאל מדריד ניצחה 2:0 את סביליה בליגה'), new Set()), true);
+});
+
+// ---------- Step 3: national-team matches (no team tags) ----------
+test('Step 3: a national-team match is read from the two nations a football headline names', () => {
+  assert.equal(nationalFixture('Watch Armenia vs. Cyprus live today: who is broadcasting the match'), 'n:Armenia+Cyprus');
+  assert.equal(nationalFixture('Italy-France: tickets sold for the Nations League match'), 'n:France+Italy');
+  assert.equal(nationalFixture('Israel national team lineup for Kosovo'), 'n:Israel+Kosovo'); // a match word (line-up) with two nations
+  assert.equal(nationalFixture('Women\'s Euro: Israel vs Italy preview'), 'n:Israel+Italy:womens'); // a women's match is another match
+  assert.equal(nationalFixture('Messi and Neymar: Argentina and Brazil legends at Inter Miami'), null); // two nations in a sentence, no match
+  assert.equal(nationalFixture('Georgia man arrested after Spain trip'), null);
+  assert.equal(nationalFixture('Spain 3-0 Italy, Germany 2-1 France'), null); // a round-up names four
+  const f = fixtureOf(art('Who shows Armenia against Cyprus on TV today?'));
+  assert.deepEqual(f, { ents: 'n:Armenia+Cyprus', national: true });
+  assert.equal(otherMatch(f, fixtureOf(art('Who shows England against Croatia on TV today?'))), true);
+  assert.equal(fixtureOf(art('Who shows South Africa against Australia on TV: second Test live', [], 0, { sport: 'cricket' })), null); // football only
+});
+
+test('Step 3: two national-team TV listings with one template are two stories; a preview and a result of one match are two stories', () => {
+  const items = [
+    art('Who shows Armenia against Cyprus live on TV today? Broadcast details for the match', [], 0),
+    art('Who shows England against Croatia live on TV today? Broadcast details for the match', [], 1),
+    art('Israel national team lineup for Kosovo: Gloch starts', [], 2),
+    art('Israel 0-3 Kosovo: the national team loses in Pristina', [], 3),
+    art('Israel national team lineup for Kosovo: Gloch starts tonight', [], 4),
+  ];
+  const groups = clusterItems(items.map((x) => ({ ...x })));
+  const of = (i) => groups.findIndex((g) => g.some((m) => m.id === items[i].id));
+  assert.notEqual(of(0), of(1)); // two different matches
+  assert.notEqual(of(2), of(3)); // the line-up and the result
+  assert.equal(of(2), of(4)); // two line-up reports of one match still join
 });

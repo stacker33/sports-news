@@ -91,8 +91,8 @@ test('grouping evaluation, Step 1: fewer false merges than the grouping before i
   const now = numbers(evaluate({ time: false }));
   // The frozen copy freezes the word grouping only (src/cluster.js); the card merge is always the current one. Before
   // Step 2 this gave 33 correct merges; Step 2's Hebrew-led merge adds one to it (34). Under the editor's decisions.
-  // With the 19 Step 2 review pairs (7 same, 12 different) added: 71 + 3 false, 34 + 7 correct.
-  assert.deepEqual([old.real.falseMerges, old.real.correctMerges, old.shape.biggest[0]], [74, 41, 721]);
+  // With the 19 Step 2 review pairs (7 same, 12 different) added: 71 + 3 false, 34 + 7 correct. Step 3 adds one more (42): r211.
+  assert.deepEqual([old.real.falseMerges, old.real.correctMerges, old.shape.biggest[0]], [74, 42, 721]);
   assert.ok(now.real.falseMerges < old.real.falseMerges / 3, `false merges ${old.real.falseMerges} → ${now.real.falseMerges}`);
   assert.ok(now.real.crossPhaseTogether < old.real.crossPhaseTogether / 3, 'two phases of one match in one story');
   // on the pairs an editor decided, and apart from the ones nobody reviewed

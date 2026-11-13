@@ -69,12 +69,51 @@ export function headlineFixture(title) {
   if (!a.length || !b.length || m[1].split(/\s+/).length > 3 || m[2].replace(SIDE_CUT, '').split(/\s+/).length > 4) return null;
   return [a, b];
 }
-// the match an article names: { ents: 't1+t2' } from its two team tags, or { sides } from the headline
+// Step 3: national teams have no team tags (the radar tags clubs), so a national-team match had no match at all and none of
+// the match checks (a different match, a different phase) applied: "Armenia vs Cyprus: who shows it on TV" and "England -
+// Croatia: who shows it on TV" shared their template and became one story. A national-team match is found from the two
+// nations an English headline names. It only ever blocks: no nation, or more or fewer than two, is "no match" as before.
+const NATIONS = new Map();
+for (const row of [
+  'England', 'Scotland', 'Wales', 'Northern Ireland', 'Republic of Ireland', 'Israel', 'Italy', 'France', 'Germany', 'Spain', 'Portugal',
+  'Netherlands|Holland', 'Belgium', 'Croatia', 'Serbia', 'Greece', 'Turkey|Türkiye|Turkiye', 'Poland', 'Ukraine', 'Denmark', 'Sweden',
+  'Norway', 'Switzerland', 'Austria', 'Czech Republic|Czechia', 'Slovakia', 'Hungary', 'Romania', 'Bulgaria', 'Finland', 'Iceland',
+  'Kosovo', 'Albania', 'Bosnia|Bosnia and Herzegovina|Bosnia-Herzegovina', 'North Macedonia', 'Montenegro', 'Slovenia', 'Armenia',
+  'Cyprus', 'Azerbaijan', 'Kazakhstan', 'Moldova', 'Belarus', 'Lithuania', 'Latvia', 'Estonia', 'Luxembourg', 'Malta', 'Faroe Islands',
+  'Andorra', 'San Marino', 'Gibraltar', 'Liechtenstein', 'Brazil', 'Argentina', 'Uruguay', 'Colombia', 'Chile', 'Peru', 'Ecuador',
+  'Paraguay', 'Bolivia', 'Venezuela', 'Mexico', 'USA|United States|USMNT', 'Canada', 'Costa Rica', 'Panama', 'Jamaica', 'Honduras',
+  'Japan', 'South Korea|Korea Republic', 'Australia', 'Iran', 'Saudi Arabia', 'Qatar', 'Morocco', 'Senegal', 'Egypt', 'Nigeria', 'Ghana',
+  'Cameroon', 'Ivory Coast|Cote d\'Ivoire', 'Algeria', 'Tunisia', 'South Africa', 'DR Congo', 'Mali',
+]) { const names = row.split('|'); for (const n of names) NATIONS.set(n.toLowerCase(), names[0]); }
+const NATION_RE = new RegExp(`(?<![\\p{L}])(${[...NATIONS.keys()].sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\p{L}])`, 'giu');
+// the squad level: a men's, a women's and an U21 match of the same two nations are different matches
+const LEVEL = /\b(women'?s?|ladies|u-?(\d\d)|under[- ]?(\d\d)|futsal|beach)\b/i;
+export function nationalFixture(text) {
+  const t = String(text || '');
+  const found = new Set();
+  const hits = [];
+  for (const m of t.matchAll(NATION_RE)) { found.add(NATIONS.get(m[1].toLowerCase())); hits.push(m); }
+  if (found.size !== 2) return null;
+  // two nations in a sentence are not yet a match: they need a "vs" / dash right between them ("Italy-France",
+  // "Armenia vs. Cyprus") or a match word somewhere (line-up, live, result, where to watch...)
+  const [a, b] = [hits[0], hits.find((m) => NATIONS.get(m[1].toLowerCase()) !== NATIONS.get(hits[0][1].toLowerCase()))];
+  const between = t.slice(a.index + a[0].length, b.index);
+  if (!/^\s*(vs\.?|v|versus|against|x|[-–—])\s*$/i.test(between) && !matchPhase(t)) return null;
+  const lv = t.match(LEVEL);
+  return `n:${[...found].sort().join('+')}${lv ? `:${lv[1].toLowerCase().replace(/[^a-z\d]/g, '')}` : ''}`;
+}
+
+// the match an article names: { ents: 't1+t2' } from its two team tags, or { sides } from the headline, or { ents: 'n:..' }
+// from the two nations the headline names
 export function fixtureOf(it) {
   const teams = [...new Set((it.ents || []).filter((e) => e[0] === 't'))];
   if (teams.length === 2) return { ents: teams.sort().join('+') };
-  const sides = headlineFixture(it.lang === 'en' ? it.title : it.tr?.en || it.title);
-  return sides ? { sides } : null;
+  const text = it.lang === 'en' ? it.title : it.tr?.en || it.title;
+  const sides = headlineFixture(text);
+  if (sides) return { sides };
+  // football only: a cricket Test or a rugby league World Cup also names two nations, and is not one match of one phase
+  const nat = it.sport === 'football' ? nationalFixture(text) : null;
+  return nat ? { ents: nat, national: true } : null;
 }
 // two different matches (unknown = no conflict): different team pairs, or headline sides with nothing in common
 export function otherMatch(a, b) {
@@ -155,7 +194,7 @@ export function clusterItems(items) {
       // enough here. The article joins only when it is a near copy of one of the story's first headlines, or when
       // it is clearly from the same phase as the match story (a result that tags only one of the two teams).
       const matchStory = cl.named > 0 && cl.named * 2 >= core.length;
-      if (matchStory !== !!it._match) {
+      if (matchStory !== !!(it._match && !it._match.national)) { // (a national-team match only blocks: it never makes a story a "match story")
         const samePhase = phase && phase === cl.phase && core.some((m) => similar(m._tok, it._tok));
         if (!samePhase && !core.some((m) => nearCopy(m._tok, it._tok))) continue;
         found = c;
@@ -176,7 +215,7 @@ export function clusterItems(items) {
     if (!cl.sport && it.sportSure && SPORTY.has(it.sport)) cl.sport = it.sport;
     cl.items.push(it);
     if (it._match && cl.fixtures.length < 6) cl.fixtures.push(it._match);
-    if (it._match && cl.items.length <= CORE) cl.named++; // how many of the story's first articles name a match
+    if (it._match && !it._match.national && cl.items.length <= CORE) cl.named++; // how many of the story's first articles name a match
     if (!cl.phase && it._match && phase) cl.phase = phase; // the phase of the first article that names the match and says it
     cl.last = Math.max(cl.last, it.published);
     for (const t of it._tok) {

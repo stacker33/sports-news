@@ -1,18 +1,18 @@
 {
-  "savedFor": "The gate: the current grouping (Step 2: Hebrew-led stories join the foreign reports of the same event), 283 pairs: the 264 of Steps 0 and 1 and the 19 Step 2 review pairs. History: baseline-step0.json, baseline-step1-assistant-labels.json, baseline-step1-editor-labels.json, baseline-step1-final.json.",
+  "savedFor": "The gate: the current grouping (Step 3: injury events, translated stand-ins, national-team matches), 283 pairs. History: baseline-step0.json, baseline-step1-*.json, baseline-step2-final.json.",
   "real": {
     "pairs": 283,
     "missing": 0,
     "same": 72,
     "different": 211,
-    "correctMerges": 38,
-    "missedMerges": 34,
+    "correctMerges": 39,
+    "missedMerges": 33,
     "falseMerges": 18,
     "correctlyApart": 193,
-    "precision": 67.9,
-    "recall": 52.8,
+    "precision": 68.4,
+    "recall": 54.2,
     "mergedByWords": 28,
-    "mergedByCards": 10,
+    "mergedByCards": 11,
     "falseMergesByWords": 17,
     "falseMergesByCards": 1,
     "review": 0,
@@ -61,7 +61,7 @@
       },
       "same-player": {
         "same": 6,
-        "found": 0,
+        "found": 1,
         "different": 24,
         "falseMerges": 0,
         "review": 0,
@@ -98,14 +98,14 @@
     "missing": 0,
     "same": 10,
     "different": 85,
-    "correctMerges": 0,
-    "missedMerges": 10,
+    "correctMerges": 1,
+    "missedMerges": 9,
     "falseMerges": 8,
     "correctlyApart": 77,
-    "precision": 0,
-    "recall": 0,
+    "precision": 11.1,
+    "recall": 10,
     "mergedByWords": 0,
-    "mergedByCards": 0,
+    "mergedByCards": 1,
     "falseMergesByWords": 8,
     "falseMergesByCards": 0,
     "review": 0,
@@ -154,7 +154,7 @@
       },
       "same-player": {
         "same": 4,
-        "found": 0,
+        "found": 1,
         "different": 5,
         "falseMerges": 0,
         "review": 0,
@@ -310,17 +310,17 @@
   },
   "time": {
     "stepHours": 3,
-    "moved": 860,
+    "moved": 865,
     "kept": 51081,
     "movedPct": 1.7,
-    "lostStories": 49,
-    "looksNew": 41,
+    "lostStories": 50,
+    "looksNew": 42,
     "looksNewFresh": 2
   },
   "shape": {
     "articles": 7441,
-    "stories": 1083,
-    "singleArticle": 544,
+    "stories": 1080,
+    "singleArticle": 542,
     "biggest": [
       249,
       225,
@@ -337,9 +337,9 @@
       34,
       33
     ],
-    "over24h": 28,
+    "over24h": 29,
     "wordGroupsOver20h": 33,
     "longestWordGroupH": 35,
-    "joinedByCards": 69
+    "joinedByCards": 72
   }
 }

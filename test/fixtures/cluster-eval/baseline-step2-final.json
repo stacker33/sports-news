@@ -1,0 +1,345 @@
+{
+  "savedFor": "History: the gate after Step 2 (production b41bfe2), 283 pairs. Kept for comparison; not a gate.",
+  "real": {
+    "pairs": 283,
+    "missing": 0,
+    "same": 72,
+    "different": 211,
+    "correctMerges": 38,
+    "missedMerges": 34,
+    "falseMerges": 18,
+    "correctlyApart": 193,
+    "precision": 67.9,
+    "recall": 52.8,
+    "mergedByWords": 28,
+    "mergedByCards": 10,
+    "falseMergesByWords": 17,
+    "falseMergesByCards": 1,
+    "review": 0,
+    "reviewTogether": 0,
+    "crossPhase": 32,
+    "crossPhaseTogether": 2,
+    "samePhase": 15,
+    "followUps": 35,
+    "followUpsTogether": 3,
+    "relatedSeparate": 83,
+    "relatedSeparateTogether": 8,
+    "editorApproved": 95,
+    "unverified": 188,
+    "byGroup": {
+      "multilingual": {
+        "same": 17,
+        "found": 16,
+        "different": 25,
+        "falseMerges": 11,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "big-cluster": {
+        "same": 9,
+        "found": 7,
+        "different": 36,
+        "falseMerges": 2,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "same-subject": {
+        "same": 11,
+        "found": 0,
+        "different": 42,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "hebrew-vs-foreign": {
+        "same": 7,
+        "found": 1,
+        "different": 34,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "same-player": {
+        "same": 6,
+        "found": 0,
+        "different": 24,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "transfer": {
+        "same": 7,
+        "found": 0,
+        "different": 26,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "late-source": {
+        "same": 8,
+        "found": 7,
+        "different": 12,
+        "falseMerges": 5,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "step2-review": {
+        "same": 7,
+        "found": 7,
+        "different": 12,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      }
+    }
+  },
+  "editorApproved": {
+    "pairs": 95,
+    "missing": 0,
+    "same": 10,
+    "different": 85,
+    "correctMerges": 0,
+    "missedMerges": 10,
+    "falseMerges": 8,
+    "correctlyApart": 77,
+    "precision": 0,
+    "recall": 0,
+    "mergedByWords": 0,
+    "mergedByCards": 0,
+    "falseMergesByWords": 8,
+    "falseMergesByCards": 0,
+    "review": 0,
+    "reviewTogether": 0,
+    "crossPhase": 32,
+    "crossPhaseTogether": 2,
+    "samePhase": 15,
+    "followUps": 35,
+    "followUpsTogether": 3,
+    "relatedSeparate": 83,
+    "relatedSeparateTogether": 8,
+    "editorApproved": 95,
+    "unverified": 0,
+    "byGroup": {
+      "multilingual": {
+        "same": 0,
+        "found": 0,
+        "different": 12,
+        "falseMerges": 5,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "big-cluster": {
+        "same": 1,
+        "found": 0,
+        "different": 25,
+        "falseMerges": 2,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "same-subject": {
+        "same": 5,
+        "found": 0,
+        "different": 21,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "hebrew-vs-foreign": {
+        "same": 0,
+        "found": 0,
+        "different": 14,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "same-player": {
+        "same": 4,
+        "found": 0,
+        "different": 5,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "transfer": {
+        "same": 0,
+        "found": 0,
+        "different": 5,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "late-source": {
+        "same": 0,
+        "found": 0,
+        "different": 3,
+        "falseMerges": 1,
+        "review": 0,
+        "reviewTogether": 0
+      }
+    }
+  },
+  "unreviewed": {
+    "pairs": 188,
+    "missing": 0,
+    "same": 62,
+    "different": 126,
+    "correctMerges": 38,
+    "missedMerges": 24,
+    "falseMerges": 10,
+    "correctlyApart": 116,
+    "precision": 79.2,
+    "recall": 61.3,
+    "mergedByWords": 28,
+    "mergedByCards": 10,
+    "falseMergesByWords": 9,
+    "falseMergesByCards": 1,
+    "review": 0,
+    "reviewTogether": 0,
+    "crossPhase": 0,
+    "crossPhaseTogether": 0,
+    "samePhase": 0,
+    "followUps": 0,
+    "followUpsTogether": 0,
+    "relatedSeparate": 0,
+    "relatedSeparateTogether": 0,
+    "editorApproved": 0,
+    "unverified": 188,
+    "byGroup": {
+      "multilingual": {
+        "same": 17,
+        "found": 16,
+        "different": 13,
+        "falseMerges": 6,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "big-cluster": {
+        "same": 8,
+        "found": 7,
+        "different": 11,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "same-subject": {
+        "same": 6,
+        "found": 0,
+        "different": 21,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "hebrew-vs-foreign": {
+        "same": 7,
+        "found": 1,
+        "different": 20,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "same-player": {
+        "same": 2,
+        "found": 0,
+        "different": 19,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "transfer": {
+        "same": 7,
+        "found": 0,
+        "different": 21,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "late-source": {
+        "same": 8,
+        "found": 7,
+        "different": 9,
+        "falseMerges": 4,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "step2-review": {
+        "same": 7,
+        "found": 7,
+        "different": 12,
+        "falseMerges": 0,
+        "review": 0,
+        "reviewTogether": 0
+      }
+    }
+  },
+  "synthetic": {
+    "pairs": 24,
+    "missing": 0,
+    "same": 12,
+    "different": 12,
+    "correctMerges": 12,
+    "missedMerges": 0,
+    "falseMerges": 1,
+    "correctlyApart": 11,
+    "precision": 92.3,
+    "recall": 100,
+    "mergedByWords": 12,
+    "mergedByCards": 0,
+    "falseMergesByWords": 1,
+    "falseMergesByCards": 0,
+    "review": 0,
+    "reviewTogether": 0,
+    "crossPhase": 3,
+    "crossPhaseTogether": 0,
+    "samePhase": 2,
+    "followUps": 1,
+    "followUpsTogether": 1,
+    "relatedSeparate": 0,
+    "relatedSeparateTogether": 0,
+    "editorApproved": 0,
+    "unverified": 24,
+    "byGroup": {
+      "synthetic": {
+        "same": 12,
+        "found": 12,
+        "different": 12,
+        "falseMerges": 1,
+        "review": 0,
+        "reviewTogether": 0
+      }
+    }
+  },
+  "time": {
+    "stepHours": 3,
+    "moved": 860,
+    "kept": 51081,
+    "movedPct": 1.7,
+    "lostStories": 49,
+    "looksNew": 41,
+    "looksNewFresh": 2
+  },
+  "shape": {
+    "articles": 7441,
+    "stories": 1083,
+    "singleArticle": 544,
+    "biggest": [
+      249,
+      225,
+      198,
+      192,
+      190
+    ],
+    "over100Articles": 15,
+    "over50Outlets": 15,
+    "longestSpansH": [
+      38,
+      35,
+      34,
+      34,
+      33
+    ],
+    "over24h": 28,
+    "wordGroupsOver20h": 33,
+    "longestWordGroupH": 35,
+    "joinedByCards": 69
+  }
+}
