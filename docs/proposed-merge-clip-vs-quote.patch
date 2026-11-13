@@ -1,0 +1,33 @@
+diff --git a/src/merge.js b/src/merge.js
+index 0d39f3c..c9ba5be 100644
+--- a/src/merge.js
++++ b/src/merge.js
+@@ -35,9 +35,20 @@ function sportOf(members) {
+   return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0];
+ }
+ 
++// A goal / video clip ("Goal: A. Griezmann vs. D.C. United, 15'") and a quote with a named speaker
++// ("Ojeda: “Griezmann makes football easier”") are separate events, even about the same player and match
++// (the editors' rule, 2026-11-13). They may be linked later; they must not merge automatically.
++const CLIP = /^\W*(goal|video|watch|clip|highlights?)\b/i;
++const SPOKEN = /^[^:“"«]{2,45}:\s*[“"«]/;
++const enOf = (m) => String(m.lang === 'en' ? m.title : m.tr?.en || m.title);
++const mostly = (members, re) => members.length > 0 && members.filter((m) => re.test(enOf(m))).length * 2 > members.length;
++
+ export function eventPrint(members, card) {
+   const he = card?.title_he || '';
++  const first = members.slice(0, 6);
+   return {
++    clip: mostly(first, CLIP),
++    spoken: mostly(first, SPOKEN),
+     ids: [...new Set(members.flatMap((m) => (m.ents || []).filter((id) => /^[tp]/.test(id))))],
+     words: words(he),
+     scores: [...new Set([he, ...members.slice(0, 6).map((m) => m.title)].flatMap(scoresIn))],
+@@ -67,6 +78,7 @@ export function sameEventStrict(a, b, rare) {
+   const allJac = allInter / Math.max(1, new Set([...A, ...B]).size);
+   const scoresClash = (a.heScores || []).length && (b.heScores || []).length && !a.heScores.some((x) => b.heScores.includes(x));
+   const nearSameHeadline = allJac >= 0.7 && A.size >= 4 && B.size >= 4 && !scoresClash;
++  if (((a.clip && b.spoken) || (b.clip && a.spoken)) && !sameScore && !sameNum) return false; // a clip and a quote
+   return grounded && (nearSameHeadline || (shared >= 2 && (jac >= 0.25 || sameScore || sameNum)) || (inter >= 2 && jac >= 0.3) || ((sameScore || sameNum) && (shared >= 1 || sameAbout)));
+ }
+ 

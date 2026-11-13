@@ -4,6 +4,8 @@
 > also has a `policy` label under the rules a Sport5 editor approved, the scores use it, and the gate file
 > `baseline.json` holds the numbers after Step 1. The numbers below are in `baseline-step0.json` and still
 > reproduce from the first labels.
+> Since 13 November 2026 95 pairs carry an editor's decision (`editorDecision`, `editor-decisions.json`); the other 169
+> are the assistant's labels and stay marked unverified. See `docs/cluster-step1-final.md`.
 
 Step 0 of the grouping plan. This measures how the radar groups articles into stories **today**, before any
 change, so that every later change can be judged on the same data.

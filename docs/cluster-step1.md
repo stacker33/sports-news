@@ -1,6 +1,11 @@
 # Grouping, Step 1: stop wrong merges and mixed-topic blobs
 
 Status: implemented and committed locally on 12 November 2026. **Not pushed, not deployed.**
+
+> **Update, 13 November 2026.** A Sport5 editor reviewed the 95 uncertain or changed pairs and approved all of them
+> (`docs/cluster-step1-final.md`). The numbers in this file were measured under the assistant's labels. The final numbers,
+> under the editor's decisions, the deployment-safety investigation and the deployment plan are in the final report.
+> Where this file says no label was confirmed by an editor, 95 of the 264 now are.
 Only one production file changed: `src/cluster.js`.
 
 Step 1 does two things:

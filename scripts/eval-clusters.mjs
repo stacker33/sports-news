@@ -64,15 +64,21 @@ export function runGrouping(items, cards = {}, cluster = clusterItems) {
 
 const pct = (n, d) => (d ? Math.round((1000 * n) / d) / 10 : null);
 
-// pairs: [{ id, a, b, label, policy, relation, phaseA, phaseB, group, editor }]. field: 'policy' (the approved
-// rules) or 'label' (the first reading). A pair whose article is not in the data is "missing", never a miss.
-export function scorePairs(pairs, run, { field = 'policy' } = {}) {
+// What a pair must do. An editor's decision wins: MERGE = one story; SEPARATE_BUT_RELATED and SEPARATE both mean
+// "must not merge" (a related story is linked later, never merged automatically). Without one, the assistant's
+// policy label stands (unverified).
+export const finalLabel = (p) => (p.editorDecision ? (p.editorDecision === 'MERGE' ? 'same' : 'different') : p.policy);
+
+// pairs: [{ id, a, b, label, policy, editorDecision, relation, phaseA, phaseB, group, editor }]. field: 'final'
+// (the editor's decision, else the policy), 'policy' (the assistant's reading under the approved rules) or 'label'
+// (the first reading). A pair whose article is not in the data is "missing", never a miss.
+export function scorePairs(pairs, run, { field = 'final' } = {}) {
   const rows = pairs.map((p) => {
     const present = run.storyOf.has(p.a) && run.storyOf.has(p.b);
     const together = present && run.storyOf.get(p.a) === run.storyOf.get(p.b);
     // where they were joined: by the word grouping, or only by the language-model card merge
     const stage = !together ? null : run.baseOf.get(p.a) === run.baseOf.get(p.b) ? 'words' : 'cards';
-    return { ...p, want: p[field] ?? p.label, present, together, stage };
+    return { ...p, want: field === 'final' ? finalLabel(p) : p[field] ?? p.label, verified: !!p.editorDecision, present, together, stage };
   });
   const live = rows.filter((r) => r.present);
   const of = (want) => live.filter((r) => r.want === want);
@@ -84,6 +90,8 @@ export function scorePairs(pairs, run, { field = 'policy' } = {}) {
   const phased = live.filter((r) => r.relation === 'same-match' && r.phaseA && r.phaseB && r.phaseA !== 'unknown' && r.phaseB !== 'unknown');
   const crossPhase = phased.filter((r) => r.phaseA !== r.phaseB);
   const followUps = diff.filter((r) => r.relation === 'follow-up');
+  // pairs the editor ruled "separate but related": they must stay two stories even though they are linked
+  const sbr = live.filter((r) => r.editorDecision === 'SEPARATE_BUT_RELATED');
   const byGroup = {};
   for (const r of live) {
     const g = (byGroup[r.group] ||= { same: 0, found: 0, different: 0, falseMerges: 0, review: 0, reviewTogether: 0 });
@@ -119,7 +127,10 @@ export function scorePairs(pairs, run, { field = 'policy' } = {}) {
     // a separate, related story (a signing after the talks, a reaction to a quote) joined to the first one
     followUps: followUps.length,
     followUpsTogether: n(followUps, (r) => r.together),
-    editorConfirmed: n(rows, (r) => r.editor === 'confirmed'),
+    relatedSeparate: sbr.length,
+    relatedSeparateTogether: n(sbr, (r) => r.together),
+    editorApproved: n(rows, (r) => r.verified),
+    unverified: n(rows, (r) => !r.verified),
     byGroup,
   };
   // the first reading's extra kinds (same-match, related), for the Step 0 history
@@ -212,6 +223,9 @@ export function evaluate({ dir = DIR, cluster = clusterItems, time = true } = {}
   return {
     corpus, run, groupingMs,
     real: scorePairs(pairs, run),
+    // the same pairs split by who decided: an editor (95), or the assistant only (169, unverified)
+    editorApproved: scorePairs(pairs.filter((p) => p.editorDecision), run),
+    unreviewed: scorePairs(pairs.filter((p) => !p.editorDecision), run),
     firstLabels: scorePairs(pairs, run, { field: 'label' }),
     synthetic: scorePairs(syn.pairs, synRun),
     time: time ? replayOverTime(corpus, { cluster }) : null,
@@ -222,7 +236,7 @@ export function evaluate({ dir = DIR, cluster = clusterItems, time = true } = {}
 // the numbers kept as the baseline (no article text, nothing that changes between two runs)
 export function numbers(e) {
   const pick = ({ rows: _r, ...rest }) => rest;
-  return { real: pick(e.real), synthetic: pick(e.synthetic), ...(e.time ? { time: { ...e.time, steps: undefined, ids: undefined } } : {}), shape: e.shape };
+  return { real: pick(e.real), editorApproved: pick(e.editorApproved), unreviewed: pick(e.unreviewed), synthetic: pick(e.synthetic), ...(e.time ? { time: { ...e.time, steps: undefined, ids: undefined } } : {}), shape: e.shape };
 }
 
 // A change must not put more "different" pairs in one story, and must not lose correct merges
@@ -231,6 +245,11 @@ export function regressions(now, base) {
   if (!base) return out;
   if (now.real.falseMerges > base.real.falseMerges) out.push(`false merges ${base.real.falseMerges} → ${now.real.falseMerges}`);
   if (now.real.correctMerges < base.real.correctMerges) out.push(`correct merges ${base.real.correctMerges} → ${now.real.correctMerges}`);
+  if (now.editorApproved && base.editorApproved) {
+    if (now.editorApproved.falseMerges > base.editorApproved.falseMerges) out.push(`editor-approved false merges ${base.editorApproved.falseMerges} → ${now.editorApproved.falseMerges}`);
+    if (now.editorApproved.correctMerges < base.editorApproved.correctMerges) out.push(`editor-approved correct merges ${base.editorApproved.correctMerges} → ${now.editorApproved.correctMerges}`);
+    if (now.editorApproved.relatedSeparateTogether > base.editorApproved.relatedSeparateTogether) out.push(`related stories merged ${base.editorApproved.relatedSeparateTogether} → ${now.editorApproved.relatedSeparateTogether}`);
+  }
   if (now.synthetic.falseMerges > base.synthetic.falseMerges) out.push(`synthetic false merges ${base.synthetic.falseMerges} → ${now.synthetic.falseMerges}`);
   if (now.synthetic.correctMerges < base.synthetic.correctMerges) out.push(`synthetic correct merges ${base.synthetic.correctMerges} → ${now.synthetic.correctMerges}`);
   return out;
@@ -274,7 +293,11 @@ export function compareReport(c) {
   L.push(row('correct merges', a.real.correctMerges, b.real.correctMerges));
   L.push(row(`two phases of one match in one story (of ${b.real.crossPhase})`, a.real.crossPhaseTogether, b.real.crossPhaseTogether));
   L.push(row(`separate follow-ups joined (of ${b.real.followUps})`, a.real.followUpsTogether, b.real.followUpsTogether));
-  L.push(row(`"review" pairs in one story (of ${b.real.review}, not scored)`, a.real.reviewTogether, b.real.reviewTogether));
+  L.push(row(`"separate but related" in one story (of ${b.real.relatedSeparate})`, a.real.relatedSeparateTogether, b.real.relatedSeparateTogether));
+  L.push(row(`editor-approved pairs: false merges (of ${b.editorApproved.different})`, a.editorApproved.falseMerges, b.editorApproved.falseMerges));
+  L.push(row(`editor-approved pairs: missed merges (of ${b.editorApproved.same})`, a.editorApproved.missedMerges, b.editorApproved.missedMerges));
+  L.push(row(`unreviewed pairs: false merges (of ${b.unreviewed.different})`, a.unreviewed.falseMerges, b.unreviewed.falseMerges));
+  L.push(row(`unreviewed pairs: missed merges (of ${b.unreviewed.same})`, a.unreviewed.missedMerges, b.unreviewed.missedMerges));
   L.push(row(`synthetic: false merges (of ${b.synthetic.different})`, a.synthetic.falseMerges, b.synthetic.falseMerges));
   L.push(row(`synthetic: missed merges (of ${b.synthetic.same})`, a.synthetic.missedMerges, b.synthetic.missedMerges));
   L.push(row('stories', a.shape.stories, b.shape.stories));
@@ -307,15 +330,19 @@ export function report(e, base, { misses = false } = {}) {
   const d = (now, was) => (base && was !== undefined && was !== now ? ` (baseline ${was})` : '');
   const b = base?.real || {};
   const L = [];
-  L.push(`Real pairs: ${r.pairs} (${r.same} same, ${r.different} different, ${r.review} need a person; ${r.missing} not in the data)`);
-  L.push(`  labels confirmed by an editor: ${r.editorConfirmed} of ${r.pairs} (the rules are editor-approved; the labels are the assistant's)`);
+  const ea = e.editorApproved, un = e.unreviewed;
+  L.push(`Real pairs: ${r.pairs} (${r.same} must merge, ${r.different} must not; ${r.review} undecided; ${r.missing} not in the data)`);
+  L.push(`  decided by a Sport5 editor: ${r.editorApproved} of ${r.pairs}; not reviewed (the assistant's labels, unverified): ${r.unverified}`);
   L.push(`  precision  ${r.precision}%${d(r.precision, b.precision)}   of the scored pairs the radar joined, the share that belong together`);
   L.push(`  recall     ${r.recall}%${d(r.recall, b.recall)}   of the pairs that belong together, the share the radar joined`);
   L.push(`  false merges   ${r.falseMerges} of ${r.different}${d(r.falseMerges, b.falseMerges)} (${r.falseMergesByWords} by the word grouping, ${r.falseMergesByCards} by the card merge)`);
   L.push(`  missed merges  ${r.missedMerges} of ${r.same}${d(r.missedMerges, b.missedMerges)}`);
   L.push(`  correct merges ${r.correctMerges}${d(r.correctMerges, b.correctMerges)}: ${r.mergedByWords} by the word grouping, ${r.mergedByCards} by the card merge`);
   L.push(`  two phases of one match in one story: ${r.crossPhaseTogether} of ${r.crossPhase}; separate follow-ups joined: ${r.followUpsTogether} of ${r.followUps}`);
-  L.push(`  not scored: ${r.reviewTogether} of the ${r.review} "review" pairs are in one story`);
+  L.push(`  "separate but related" pairs joined into one story: ${r.relatedSeparateTogether} of ${r.relatedSeparate}`);
+  const part = (n, x) => `${n}: ${x.pairs} pairs · precision ${x.precision}% · recall ${x.recall}% · false merges ${x.falseMerges} of ${x.different} · missed merges ${x.missedMerges} of ${x.same}`;
+  L.push(`  ${part('EDITOR-APPROVED', ea)}`);
+  L.push(`  ${part('UNREVIEWED (unverified)', un)}`);
   L.push('By group:');
   for (const [g, x] of Object.entries(r.byGroup)) L.push(`  ${g.padEnd(20)} same ${x.found}/${x.same} joined · different ${x.falseMerges}/${x.different} wrongly joined · review ${x.reviewTogether}/${x.review} joined`);
   L.push(`Synthetic pairs (invented, scored apart): ${s.pairs} · false merges ${s.falseMerges} of ${s.different} · missed merges ${s.missedMerges} of ${s.same}`);
@@ -340,16 +367,16 @@ export function reviewCsv(e) {
   const by = new Map(e.corpus.items.map((i) => [i.id, i]));
   const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const head = (id) => { const i = by.get(id); return `[${i.lang}] ${i.publisher}: ${i.title}${i.en && i.lang !== 'en' ? ` (${i.en})` : ''}`; };
-  const order = { review: 0, different: 1, same: 2 };
-  const changed = (r) => (r.label === r.policy ? 1 : 0);
+  // the 95 pairs an editor decided come first (their decision is final), then the 169 nobody reviewed yet
+  const order = { SEPARATE_BUT_RELATED: 0, MERGE: 1, SEPARATE: 2 };
   const rows = [...e.real.rows]
-    .sort((x, y) => order[x.policy] - order[y.policy] || changed(x) - changed(y) || (x.id < y.id ? -1 : 1))
+    .sort((x, y) => (x.verified === y.verified ? 0 : x.verified ? -1 : 1) || (order[x.editorDecision] ?? 9) - (order[y.editorDecision] ?? 9) || (x.id < y.id ? -1 : 1))
     .map((r) => [
-      r.id, r.policy === 'review' ? 'NEEDS YOUR DECISION' : r.policy, r.policyNote || r.note || '', r.relation || '',
-      r.phaseA ? `${r.phaseA} / ${r.phaseB}` : '', head(r.a), head(r.b), r.together ? 'one story' : 'separate', r.label, r.group, '', '',
+      r.id, r.verified ? 'EDITOR-APPROVED' : 'UNVERIFIED (assistant label only)', r.editorDecision || '', r.policy, r.label,
+      r.policyNote || r.note || '', r.relation || '', r.phaseA ? `${r.phaseA} / ${r.phaseB}` : '', head(r.a), head(r.b), r.together ? 'one story' : 'separate', r.group, '', '',
     ].map(q).join(','));
   const NL = '\r\n'; // Excel line ends
-  return '﻿' + 'pair,label under the approved rules,why,relation,match phases (A / B),article A,article B,radar today,first label (Step 0),group,EDITOR: same / different,EDITOR: note' + NL + rows.join(NL) + NL;
+  return '﻿' + 'pair,status,editor decision,assistant policy label,first label (Step 0),why,relation,match phases (A / B),article A,article B,radar today,group,EDITOR (unreviewed pairs): same / different,EDITOR: note' + NL + rows.join(NL) + NL;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -1,0 +1,391 @@
+{
+ "about": [
+  "The 95 decisions a Sport5 editor approved on 2026-11-13, for the pairs in pairs.json that were marked \"needs review\" (25) or whose label the approved rules changed (70).",
+  "Source: the review document the editor was given (docs/cluster-editor-review.html). The editor reported in chat that all 95 decisions match the recommendations in it. No separate export file or per-pair notes were provided.",
+  "MERGE = one story. SEPARATE_BUT_RELATED = different events with a real editorial link: two stories, never merged automatically. SEPARATE = independent stories. For the grouping evaluation both separate kinds count as pairs that must not merge.",
+  "The 169 other pairs were not reviewed by an editor: their labels are the assistant's and stay marked unverified."
+ ],
+ "approvedAt": "2026-11-13",
+ "decisions": [
+  {
+   "id": "r001",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r004",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r007",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r010",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r019",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r024",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r026",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r027",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r028",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r029",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r032",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r043",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r046",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r047",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r050",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r051",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r054",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r055",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r056",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r061",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r062",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r064",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r065",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r069",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r070",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r072",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r073",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r076",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r078",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r082",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r083",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r084",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r085",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r086",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r090",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r092",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r094",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r095",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r100",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r104",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r105",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r111",
+   "decision": "SEPARATE"
+  },
+  {
+   "id": "r113",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r114",
+   "decision": "SEPARATE"
+  },
+  {
+   "id": "r115",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r116",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r119",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r120",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r122",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r125",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r128",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r129",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r131",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r132",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r133",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r140",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r141",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r144",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r146",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r147",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r151",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r152",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r153",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r157",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r161",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r166",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r167",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r170",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r175",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r176",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r177",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r178",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r179",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r180",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r185",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r186",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r189",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r200",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r205",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r208",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r211",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r212",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r214",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r222",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r226",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r228",
+   "decision": "MERGE"
+  },
+  {
+   "id": "r232",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r245",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r249",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r252",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r258",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r265",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r277",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r289",
+   "decision": "SEPARATE_BUT_RELATED"
+  },
+  {
+   "id": "r292",
+   "decision": "SEPARATE_BUT_RELATED"
+  }
+ ]
+}

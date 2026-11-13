@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { telegramPost, mainPage, MAIN_TOP } from '../src/telegram.js';
+import { telegramPost, mainPage, MAIN_TOP, GROUPING } from '../src/telegram.js';
 
 const now = Date.parse('2026-10-24T10:00:00Z'); // 13:00 in Israel: not quiet hours, not the morning briefing
 const min = 60e3;
@@ -44,7 +44,7 @@ async function run(stories, prev) {
     process.env = env;
   }
 }
-const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', recent: [] };
+const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', grouping: 2, recent: [] };
 
 test('the channel posts what is in the main page top 10, in its order; not what is below it', async () => {
   // 12 distinct stories: the top 10 (by the page's order) can go, the last two can't
@@ -69,6 +69,16 @@ test('a story older than 3 hours is not posted even in the top; switching to the
   assert.equal(sw.posted, 0);
   assert.equal(sw.tg.rule, 'main-top');
   assert.equal((await run([fresh], sw.tg)).posted, 0); // marked: not posted later either
+});
+
+test('the first run after the grouping changed posts nothing and marks what is on the page; the next run is normal', async () => {
+  const a = story('מכבי חיפה ניצחה בדרבי', { ed: 90, age: 20 });
+  const sw = await run([a], { ...ready, grouping: undefined }); // saved by the radar before the grouping changed
+  assert.equal(sw.posted, 0);
+  assert.equal(sw.tg.grouping, GROUPING);
+  assert.equal((await run([a], sw.tg)).posted, 0); // marked: not posted later either
+  const b = story('ריאל מדריד הפסידה בבית', { ed: 85, age: 15 }); // a story that appears after the switch
+  assert.equal((await run([a, b], sw.tg)).posted, 1);
 });
 
 test('at night (01:00–06:00 in Israel) stories still go out, silently; by day with a sound', async () => {

@@ -1,13 +1,17 @@
 ```
 BEFORE (frozen pre-Step-1 grouping) → NOW, same data, editor-approved rules
-  precision %                                                  34.4 →     66.7
-  recall %                                                     55.9 →     50.8
-  false merges (of 180 "different")                              63 →       15
-  missed merges (of 59 "same")                                   26 →       29
+  precision %                                                  31.7 →     61.2
+  recall %                                                     50.8 →     46.2
+  false merges (of 199 "different")                              71 →       19
+  missed merges (of 65 "same")                                   32 →       35
   correct merges                                                 33 →       30
   two phases of one match in one story (of 32)                   16 →        2
-  separate follow-ups joined (of 28)                             10 →        3
-  "review" pairs in one story (of 25, not scored)                 8 →        4
+  separate follow-ups joined (of 35)                             11 →        4
+  "separate but related" in one story (of 83)                    38 →        9
+  editor-approved pairs: false merges (of 85)                    38 →        9
+  editor-approved pairs: missed merges (of 10)                    9 →       10
+  unreviewed pairs: false merges (of 114)                        33 →       10
+  unreviewed pairs: missed merges (of 55)                        23 →       25
   synthetic: false merges (of 12)                                 4 →        1
   synthetic: missed merges (of 12)                                0 →        0
   stories                                                       349 →     1091
@@ -22,10 +26,10 @@ BEFORE (frozen pre-Step-1 grouping) → NOW, same data, editor-approved rules
   over time: stories that lost their id                          71 →       49
   over time: stories that look new again                         12 →       41
     of them young enough for Telegram (under 3h)                  0 →        2
-  one grouping run (ms, this machine)                           325 →      467
+  one grouping run (ms, this machine)                           353 →      761
 The switch itself (old stories, then one run of the new grouping): 4450 of 7441 articles change story id (59.8%), 2 stories lose their id, 339 look new (6 of them under 3 hours old).
 
-FALSE MERGES FIXED (different, were in one story, now apart): 49
+FALSE MERGES FIXED (different, were in one story, now apart): 53
   r001 multilingual (two separate pre-match press conferences (Hoeness, Simeone))
      [de] BILD: VfB Stuttgart against Atletico: Hoeneß ennobles Simeone before a direct duel
      [es] El Desmarque: Simeone responds to Cuti Romero's injury and the competition between Johnny Cardoso and Hjulmand
@@ -53,6 +57,9 @@ FALSE MERGES FIXED (different, were in one story, now apart): 49
   r027 multilingual (a possible trade vs. a piece on why the club will not release the player)
      [en] ClutchPoints: NBA rumors: Kings eyeing Grizzlies trade after Ben Simmons’ season-ending injury
      [de] kicker: Why the Kings won't release Simmons despite his injury
+  r029 multilingual (a statistics page (phase unclear) vs. a preview)
+     [fr] Eurosport: Deportivo Cali - Junior Statistics: Football Scores & Results
+     [es] Noticias Coopercom: With no margin for error, Junior seeks to survive against Deportivo Cali
   r032 multilingual (City's team news vs. the AEK coach's press conference)
      [en] Yahoo Sports: A picture emerges of which Manchester City players are available for AEK Athens clash
      [el] Sportal: Live streaming: Nikolic's press conference ahead of Manchester City - AEK
@@ -62,6 +69,9 @@ FALSE MERGES FIXED (different, were in one story, now apart): 49
   r042 multilingual (a disciplinary case about the fans vs. the match itself)
      [nl] Eindhovens Dagblad: Misconduct Ajax opponent Hajduk Split gets a tail: fans charged for anti-Semitic and Nazi slogans
      [en] TOD: Watch Hajduk Split vs Ajax
+  r046 big-cluster (the result report vs. the losing coach's post-match quote: does a reaction belong in the report's story?)
+     [he] הארץ: ריאל מדריד הביסה את סביליה 1:4 ושמרה על מאזן מושלם בברנבאו
+     [es] Marca: García Plaza: "Maybe they didn't want there to be more points distance for the Classic if we won"
   r047 big-cluster (line-up vs. result)
      [he] ONE: דיומנדה ואנדריק ב-11 של מוריניו מול סביליה
      [sr] Sportski žurnal: Real convincingly beat Sevilla, two goals from Mbappe
@@ -92,6 +102,9 @@ FALSE MERGES FIXED (different, were in one story, now apart): 49
   r061 big-cluster (the coach's future after the defeat vs. a match discussion page)
      [en] Yahoo: Crystal Palace left with 'no choice' but to sack Pierre Sage - 'You can't survive that'
      [nl] VoetbalPrimeur: Join the conversation on VP: Brighton – Crystal Palace
+  r062 big-cluster (fans' say after the game vs. a goal clip; unclear if the clip ran during or after the game)
+     [en] BBC: Brighton 5-0 Crystal Palace: Have your say
+     [en] Sports Mole: Watch Brighton's Diego Gomez score 51m halfway line goal in Crystal Palace M23 derby
   r064 big-cluster (live score vs. the result)
      [he] וואלה ספורט: חי בספורט1: נוטינגהאם פורסט - ארסנל 1:0 (מחצית 2)
      [el] Novasports: Nottingham Forest-Arsenal 0-1: Redemption in the 80′ with Madueke!
@@ -125,6 +138,9 @@ FALSE MERGES FIXED (different, were in one story, now apart): 49
   r078 big-cluster (a TV listing vs. the club president's interview)
      [tr] Yeni Şafak: At what time and on which channel is the Trabzonspor-Beşiktaş match? Where to watch TS BJK derby without passw
      [tr] A Spor: Trabzonspor President Ertuğrul Doğan spoke to A Spor! We will beat Beşiktaş - Aspor
+  r082 big-cluster (the result report vs. a next-day analysis)
+     [it] Lifestyleblog.it: Udinese-Lecce 0-3, Di Francesco conquers Bluenergy: Gaspar and N'Dri on inactive ball, Siebert closes on the c
+     [it] TuttoMercatoWeb: The ugliest Udinese of the three-year period: Lecce plays and has fun at home in Friuli
   r083 big-cluster (how the debut went vs. the official line-ups)
      [it] DAZN: How Alaba's debut as a starter went in Udinese-Lecce: 45 minutes of nightmare, then the change at half-time
      [it] 11contro11: Udinese-Lecce, the official lineups
@@ -192,19 +208,7 @@ CORRECT MERGES LOST (same, were in one story, now apart): 3
 
 CORRECT MERGES GAINED (same, were apart, now in one story): 0
 
-"REVIEW" PAIRS THAT CHANGED (not scored): 4
-  r029 multilingual (a statistics page (phase unclear) vs. a preview)
-     [fr] Eurosport: Deportivo Cali - Junior Statistics: Football Scores & Results
-     [es] Noticias Coopercom: With no margin for error, Junior seeks to survive against Deportivo Cali
-  r046 big-cluster (the result report vs. the losing coach's post-match quote: does a reaction belong in the report's story?)
-     [he] הארץ: ריאל מדריד הביסה את סביליה 1:4 ושמרה על מאזן מושלם בברנבאו
-     [es] Marca: García Plaza: "Maybe they didn't want there to be more points distance for the Classic if we won"
-  r062 big-cluster (fans' say after the game vs. a goal clip; unclear if the clip ran during or after the game)
-     [en] BBC: Brighton 5-0 Crystal Palace: Have your say
-     [en] Sports Mole: Watch Brighton's Diego Gomez score 51m halfway line goal in Crystal Palace M23 derby
-  r082 big-cluster (the result report vs. a next-day analysis)
-     [it] Lifestyleblog.it: Udinese-Lecce 0-3, Di Francesco conquers Bluenergy: Gaspar and N'Dri on inactive ball, Siebert closes on the c
-     [it] TuttoMercatoWeb: The ugliest Udinese of the three-year period: Lecce plays and has fun at home in Friuli
+"REVIEW" PAIRS THAT CHANGED (not scored): 0
 
 SYNTHETIC PAIRS THAT CHANGED: 3
   s20 synthetic (the preview and the result of one match (different phases))

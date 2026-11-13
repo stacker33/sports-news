@@ -45,7 +45,7 @@ test('live events go to the channel once each; what is already in the data when 
     if (String(url).includes('/sendMessage')) sent.push(JSON.parse(opts.body));
     return { ok: true, json: async () => ({ ok: true, result: {} }) };
   };
-  const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', recent: [] };
+  const ready = { chatOk: true, chatFor: '@test', sent: {}, rule: 'main-top', grouping: 2, recent: [] };
   const post = (gi, prev) => telegramPost([], { athletes, cards: {}, gameInfo: gi, siteUrl: 'https://x.test/' }, prev, noon);
   try {
     const first = await post(game({ 'Oscar Gloukh': { goals: ["10'"] } }), ready); // the first run with this feature

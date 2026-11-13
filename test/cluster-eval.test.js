@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluate, numbers, regressions, loadCorpus, loadPairs, loadSynthetic, loadBaseline, loadBefore, scorePairs, runGrouping } from '../scripts/eval-clusters.mjs';
+import { readFileSync } from 'node:fs';
+import { evaluate, numbers, regressions, loadCorpus, loadPairs, loadSynthetic, loadBaseline, loadBefore, scorePairs, runGrouping, finalLabel } from '../scripts/eval-clusters.mjs';
 
 const FIRST = ['same', 'different', 'same-match', 'related'];
 const POLICY = ['same', 'different', 'review'];
@@ -19,11 +20,28 @@ test('grouping evaluation: the data is whole (every labelled article exists, lab
     assert.ok(POLICY.includes(p.policy), p.id);
     assert.equal(p.by, 'assistant', p.id); // the first label: read and decided by the assistant
     assert.equal(p.policyBy, 'assistant', p.id); // the approved rules, applied to this pair by the assistant
-    assert.ok([null, 'confirmed', 'corrected'].includes(p.editor), p.id); // an editor's review, when there is one
+    assert.ok([null, 'confirmed', 'corrected', 'decided'].includes(p.editor), p.id); // an editor's review, when there is one
+    // an editor's decision comes with its status; a pair nobody reviewed has neither
+    assert.equal(!!p.editorDecision, p.editor !== null, p.id);
+    if (p.editorDecision) assert.ok(['MERGE', 'SEPARATE_BUT_RELATED', 'SEPARATE'].includes(p.editorDecision), p.id);
     // a label the rules changed, or a case for a person, says why
     if (p.policy !== p.label) assert.ok(p.policyNote, p.id);
     if (p.phaseA) assert.ok(['pre_match', 'live_match', 'post_match', 'unknown'].includes(p.phaseA) && ['pre_match', 'live_match', 'post_match', 'unknown'].includes(p.phaseB), p.id);
   }
+  // the 95 editor decisions: exactly the pairs that were "review" or whose label the rules changed
+  const decided = pairs.filter((p) => p.editorDecision);
+  assert.equal(decided.length, 95);
+  assert.deepEqual(['MERGE', 'SEPARATE_BUT_RELATED', 'SEPARATE'].map((d) => count(decided, (p) => p.editorDecision === d)), [10, 83, 2]);
+  for (const p of pairs) assert.equal(!!p.editorDecision, p.policy === 'review' || p.policy !== p.label, p.id);
+  assert.equal(count(pairs, (p) => p.policy === 'review'), 25); // the assistant's policy label is kept: those 25 stay "review" there
+  assert.equal(count(decided, (p) => p.editor === 'corrected'), 1); // r153
+  // the file of decisions and the pairs agree
+  const file = JSON.parse(readFileSync(new URL('./fixtures/cluster-eval/editor-decisions.json', import.meta.url), 'utf8'));
+  assert.equal(file.decisions.length, 95);
+  for (const d of file.decisions) assert.equal(pairs.find((p) => p.id === d.id).editorDecision, d.decision, d.id);
+  // what each decision means for the score: both separate kinds must not merge, only MERGE must
+  assert.deepEqual(['MERGE', 'SEPARATE_BUT_RELATED', 'SEPARATE'].map((d) => finalLabel({ editorDecision: d, policy: 'review' })), ['same', 'different', 'different']);
+  assert.equal(finalLabel({ policy: 'same' }), 'same'); // unreviewed: the assistant's label, unverified
   // the first reading of Step 0 is kept as it was
   assert.deepEqual(FIRST.map((l) => count(pairs, (p) => p.label === l)), [57, 114, 53, 40]);
   // the approved rules: same-match and related pairs were classified one by one, never all one way
@@ -66,9 +84,13 @@ test('grouping evaluation, Step 1: fewer false merges than the grouping before i
   const old = numbers(evaluate({ cluster: await loadBefore(), time: false }));
   const now = numbers(evaluate({ time: false }));
   // the frozen copy still gives the numbers measured before Step 1
-  assert.deepEqual([old.real.falseMerges, old.real.correctMerges, old.shape.biggest[0]], [63, 33, 721]);
+  assert.deepEqual([old.real.falseMerges, old.real.correctMerges, old.shape.biggest[0]], [71, 33, 721]); // under the editor's decisions
   assert.ok(now.real.falseMerges < old.real.falseMerges / 3, `false merges ${old.real.falseMerges} → ${now.real.falseMerges}`);
   assert.ok(now.real.crossPhaseTogether < old.real.crossPhaseTogether / 3, 'two phases of one match in one story');
+  // on the pairs an editor decided, and apart from the ones nobody reviewed
+  assert.ok(now.editorApproved.falseMerges < old.editorApproved.falseMerges / 3, `editor-approved false merges ${old.editorApproved.falseMerges} → ${now.editorApproved.falseMerges}`);
+  assert.ok(now.unreviewed.falseMerges < old.unreviewed.falseMerges / 2, `unreviewed false merges ${old.unreviewed.falseMerges} → ${now.unreviewed.falseMerges}`);
+  assert.ok(now.editorApproved.relatedSeparateTogether < old.editorApproved.relatedSeparateTogether / 3, 'related stories merged');
   assert.ok(now.synthetic.falseMerges < old.synthetic.falseMerges);
   assert.equal(now.synthetic.missedMerges, 0);
   // not at the price of the correct merges: at most 3 of the 33 are lost
@@ -86,9 +108,11 @@ test('grouping evaluation: the score counts what it says', () => {
     { id: 'x4', a: 'a2', b: 'a4', policy: 'different' }, // apart: right
     { id: 'x5', a: 'a1', b: 'zz', policy: 'same' }, // an article that is not in the data: not counted
     { id: 'x6', a: 'a1', b: 'a2', policy: 'review' }, // for a person to decide: not counted, reported apart
+    { id: 'x7', a: 'a3', b: 'a4', policy: 'review', editorDecision: 'SEPARATE_BUT_RELATED' }, // the editor decided it: must not merge
   ], runGrouping(items));
-  assert.deepEqual([s.correctMerges, s.missedMerges, s.falseMerges, s.correctlyApart, s.missing], [1, 1, 1, 1, 1]);
+  assert.deepEqual([s.correctMerges, s.missedMerges, s.falseMerges, s.correctlyApart, s.missing], [1, 1, 2, 1, 1]);
   assert.deepEqual([s.review, s.reviewTogether], [1, 1]);
-  assert.equal(s.precision, 50);
+  assert.deepEqual([s.relatedSeparate, s.relatedSeparateTogether, s.editorApproved, s.unverified], [1, 1, 1, 6]);
+  assert.equal(s.precision, 33.3);
   assert.equal(s.recall, 50);
 });

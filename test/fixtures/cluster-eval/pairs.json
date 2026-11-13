@@ -6,7 +6,8 @@
   "Pairs were picked by a seeded script from candidates, then every candidate was read; 29 unclear or junk candidates were dropped. The set is a probe of hard cases, not a random sample of the radar: its percentages say how the code does on these cases, not on a normal day.",
   "policy: the label under the clustering rules a Sport5 editor approved on 2026-11-12 (docs/cluster-eval-baseline.md, 'The editorial rules'). same = one story; different = separate stories; review = the headlines are not enough to decide, a person must. The rules were approved by an editor; applying them to each pair was done by the assistant (policyBy), and no pair has been confirmed by an editor (editor is still null). 'label' keeps the first reading and is never overwritten.",
   "relation: same-match = both articles are about one match (they stay related even when they are separate stories); follow-up = one is a later development of the other's affair. phaseA / phaseB: pre_match | live_match | post_match | unknown, for same-match pairs. policyNote: why.",
-  "The scores use policy. Pairs with policy \"review\" are never counted as right or wrong; they are reported on their own."
+  "The scores use policy. Pairs with policy \"review\" are never counted as right or wrong; they are reported on their own.",
+  "editorDecision: the decision a Sport5 editor approved on 2026-11-13 (editor-decisions.json): MERGE | SEPARATE_BUT_RELATED | SEPARATE. editor: confirmed (the decision matches the policy label), corrected (it differs), decided (the pair was 'review' and the editor decided it), null (not reviewed by an editor: the labels are the assistant's and unverified). The scores use editorDecision when there is one, else policy. label and policy are never overwritten."
  ],
  "pairs": [
   {
@@ -27,13 +28,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "pre_match",
    "policyNote": "two separate pre-match press conferences (Hoeness, Simeone)",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r002",
@@ -53,11 +56,13 @@
    "label": "related",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "fitness tests for three players, then the squad list that shows the outcome: an update or a new event?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r006",
@@ -77,13 +82,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "pre_match",
    "policyNote": "live coverage vs. the line-up announcement",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r008",
@@ -114,11 +121,13 @@
    "label": "related",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "the league's statement vs. an independent reaction to it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r011",
@@ -215,11 +224,13 @@
    "label": "related",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a broadcast of the championships vs. the medal table",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r020",
@@ -272,13 +283,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "pre_match",
    "policyNote": "live coverage vs. a TV listing before the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r025",
@@ -298,11 +311,13 @@
    "label": "related",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "the coach skips training vs. a later piece on the cost of sacking him",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r027",
@@ -311,11 +326,13 @@
    "label": "related",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a possible trade vs. a piece on why the club will not release the player",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r028",
@@ -324,13 +341,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "unknown",
    "phaseB": "unknown",
    "policyNote": "two match pages; the headlines do not show the phase",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r029",
@@ -339,13 +358,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "unknown",
    "phaseB": "pre_match",
    "policyNote": "a statistics page (phase unclear) vs. a preview",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r030",
@@ -376,13 +397,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "pre_match",
    "policyNote": "City's team news vs. the AEK coach's press conference",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r033",
@@ -502,13 +525,15 @@
    "label": "same-match",
    "group": "multilingual",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "pre_match",
    "policyNote": "result vs. preview",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r046",
@@ -517,13 +542,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "the result report vs. the losing coach's post-match quote: does a reaction belong in the report's story?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r047",
@@ -532,13 +559,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "line-up vs. result",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r048",
@@ -569,11 +598,13 @@
    "label": "related",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a pundit's comment the next day vs. the match result",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r051",
@@ -582,13 +613,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "a post-match exchange (Spalletti / Bremer) vs. the result report",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r054",
@@ -597,13 +630,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "pre_match",
    "policyNote": "a pundit after the game vs. the confirmed line-up",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r055",
@@ -612,13 +647,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "live_match",
    "policyNote": "preview vs. live round-up",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r056",
@@ -627,13 +664,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "live_match",
    "policyNote": "line-ups vs. live score",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r058",
@@ -665,11 +704,13 @@
    "group": "big-cluster",
    "note": "the coach's future after the match vs. the match",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "the coach's future after the defeat vs. a match discussion page",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r062",
@@ -678,13 +719,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "unknown",
    "policyNote": "fans' say after the game vs. a goal clip; unclear if the clip ran during or after the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r064",
@@ -693,13 +736,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "live score vs. the result",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r065",
@@ -708,13 +753,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "same",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "live_match",
    "policyNote": "two live blogs of the same match",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r068",
@@ -734,11 +781,13 @@
    "label": "related",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a live game vs. a squad return announced the day before",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r070",
@@ -747,13 +796,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "confirmed line-up vs. \"as it happened\" after the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r071",
@@ -773,13 +824,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "pre_match",
    "policyNote": "away-fans ticket news vs. a preview",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r073",
@@ -788,13 +841,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "live_match",
    "policyNote": "prediction vs. live page",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r074",
@@ -825,13 +880,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "pre_match",
    "policyNote": "who scored vs. planned changes before the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r077",
@@ -852,13 +909,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "pre_match",
    "policyNote": "a TV listing vs. the club president's interview",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r080",
@@ -889,13 +948,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "the result report vs. a next-day analysis",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r083",
@@ -904,13 +965,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "pre_match",
    "policyNote": "how the debut went vs. the official line-ups",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r084",
@@ -919,13 +982,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "live score vs. a player's praise after the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r085",
@@ -934,13 +999,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "live_match",
    "policyNote": "the penalty moments in pictures vs. a live blog",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r086",
@@ -949,13 +1016,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "live_match",
    "policyNote": "the result vs. a live blog",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r087",
@@ -998,13 +1067,15 @@
    "label": "same-match",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "a TV / streaming listing vs. the result",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r091",
@@ -1024,11 +1095,13 @@
    "label": "related",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a coach's remark about his rival vs. injury news of the same club",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r093",
@@ -1048,11 +1121,13 @@
    "label": "related",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a surprise call-up vs. the injuries that caused it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r095",
@@ -1061,11 +1136,13 @@
    "label": "related",
    "group": "big-cluster",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a surprise call-up vs. the injuries that caused it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r096",
@@ -1107,13 +1184,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "named in the starting eleven vs. how the debut went",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r101",
@@ -1155,13 +1234,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "a goal during the game vs. a player's quote after it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r105",
@@ -1170,11 +1251,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a red card vs. a team-mate's reaction the next day",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r106",
@@ -1228,11 +1311,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "two separate analysis pieces about the same club",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r113",
@@ -1241,11 +1326,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a live game vs. the coach's remark after it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r114",
@@ -1254,11 +1341,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "two separate opinion pieces about a club in crisis",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r115",
@@ -1267,13 +1356,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "line-up news vs. the coach after the win",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r116",
@@ -1282,13 +1373,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "an incident in the game (celebration in the referee's face) vs. the same player's quote after it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r117",
@@ -1320,11 +1413,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "two features on the same goalkeeper on the same day; unclear if they report one thing",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r120",
@@ -1333,11 +1428,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "two separate pieces about \"robbery\" remarks",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r122",
@@ -1346,13 +1443,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "team news vs. the goals of the match",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r123",
@@ -1372,13 +1471,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "same",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "live_match",
    "policyNote": "two live updates of the same basketball game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r126",
@@ -1410,11 +1511,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a player's quotes vs. a piece about his statistics",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r129",
@@ -1423,13 +1526,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "two different people's post-match quotes",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r131",
@@ -1438,11 +1543,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "two remarks by Pedri minutes apart; probably one interview, the headlines do not say",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r132",
@@ -1451,11 +1558,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a line-up vs. a former player's comment the next day",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r133",
@@ -1464,13 +1573,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "a match report that mentions the controversy vs. the coach's quote about it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r134",
@@ -1545,13 +1656,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "live vs. result",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r141",
@@ -1560,11 +1673,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a preview vs. the opposing coach's press conference",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r142",
@@ -1596,13 +1711,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "unknown",
    "policyNote": "team news; the second headline may be before or after the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r145",
@@ -1623,11 +1740,13 @@
    "group": "same-subject",
    "note": "injury, then the diagnosis",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "same",
    "relation": "follow-up",
    "policyNote": "an injury, then the doctors' diagnosis of that injury (the editor's example: update the same story)",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r147",
@@ -1636,13 +1755,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "unknown",
    "phaseB": "unknown",
    "policyNote": "the published times do not fit the phases the headlines suggest",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r148",
@@ -1673,13 +1794,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "a head-to-head page vs. a quote after the win",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r152",
@@ -1688,13 +1811,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "live vs. a quote after the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r153",
@@ -1703,13 +1828,15 @@
    "label": "same-match",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "corrected",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "pre_match",
    "phaseB": "post_match",
    "policyNote": "in the squad vs. a missed chance in the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r154",
@@ -1740,11 +1867,13 @@
    "label": "related",
    "group": "same-subject",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "an analysis of a player vs. his message to the fans the next day",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r158",
@@ -1786,13 +1915,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "live_match",
    "policyNote": "result vs. live",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r162",
@@ -1845,13 +1976,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "pre_match",
    "policyNote": "result vs. a TV listing",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r167",
@@ -1860,13 +1993,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "live_match",
    "policyNote": "result vs. a live blog",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r169",
@@ -1886,11 +2021,13 @@
    "label": "related",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "a speculative piece about a tactical change vs. the line-up that may confirm it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r171",
@@ -1943,13 +2080,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "pre_match",
    "policyNote": "live vs. \"live from 3 pm\" before the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r176",
@@ -1958,13 +2097,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "live_match",
    "policyNote": "a Hebrew live item for two matches vs. a live blog of one of them",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r177",
@@ -1973,13 +2114,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "live vs. the final result",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r178",
@@ -1988,11 +2131,13 @@
    "label": "same",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "\"agreed with Red Star\" in the morning, \"signed\" in the afternoon: talks, or the completed signing?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r179",
@@ -2001,11 +2146,13 @@
    "label": "same",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "a morning piece on the deal vs. \"signed\" in the afternoon: talks, or the completed signing?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r180",
@@ -2014,11 +2161,13 @@
    "label": "related",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "reactions to a goal vs. a separate analysis",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r181",
@@ -2072,11 +2221,13 @@
    "label": "related",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a report on a punishment vs. a player's remark about the situation",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r186",
@@ -2085,11 +2236,13 @@
    "label": "related",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "a next-morning feature about the coach vs. his post-match quote",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r187",
@@ -2120,11 +2273,13 @@
    "label": "related",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a report on a punishment vs. a player's remark about the situation",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r190",
@@ -2233,13 +2388,15 @@
    "label": "same-match",
    "group": "hebrew-vs-foreign",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "unknown",
    "policyNote": "the win vs. a goal clip that may have run during the game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r202",
@@ -2282,11 +2439,13 @@
    "label": "related",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "a fitness doubt, then \"available\": an update of one injury story or a new event?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r206",
@@ -2318,13 +2477,15 @@
    "label": "same-match",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "two different players' post-match quotes",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r209",
@@ -2356,11 +2517,13 @@
    "group": "same-player",
    "note": "reports of an injury, then the club's statement",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "same",
    "relation": "follow-up",
    "policyNote": "reports of an injury, then the club's medical statement on it (the editor's example: update the same story)",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r212",
@@ -2369,11 +2532,13 @@
    "label": "related",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a match report vs. a separate injury worry from that match",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r213",
@@ -2393,11 +2558,13 @@
    "label": "related",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "two pieces from what may be one press conference",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r215",
@@ -2484,11 +2651,13 @@
    "label": "related",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "doubts about a player vs. a pundit's verdict after the next game",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r223",
@@ -2530,13 +2699,15 @@
    "label": "same-match",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "pre_match",
    "policyNote": "substituted after 45 minutes vs. back in the starting eleven",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r227",
@@ -2556,11 +2727,13 @@
    "label": "related",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "an English and a Hebrew piece that may be the same post-match interview",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "MERGE",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r229",
@@ -2602,13 +2775,15 @@
    "label": "same-match",
    "group": "same-player",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "a live blog vs. the same game \"re-experienced\" after the defeat",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r233",
@@ -2740,11 +2915,13 @@
    "label": "related",
    "group": "transfer",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "two pieces a day apart about the same coach's job being at risk: one affair or two events?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r246",
@@ -2786,11 +2963,13 @@
    "label": "related",
    "group": "transfer",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "the coach at risk vs. an analysis of his contract",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r250",
@@ -2822,11 +3001,13 @@
    "group": "transfer",
    "note": "the club rejects his demands, then an agreement the next day",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "follow-up",
    "policyNote": "the club rejects the demands, then an agreement the next day: more of the same talks, or a new event?",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r253",
@@ -2891,11 +3072,13 @@
    "group": "transfer",
    "note": "expected to sign, then signed",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "expected to sign, then the signing (the editor's example: a separate, related story)",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r259",
@@ -2959,11 +3142,13 @@
    "label": "related",
    "group": "transfer",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "two separate opinion pieces about a player's contract",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r266",
@@ -3083,13 +3268,15 @@
    "label": "same-match",
    "group": "late-source",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "same-match",
    "phaseA": "live_match",
    "phaseB": "post_match",
    "policyNote": "a real-time page vs. an anecdote from half-time told afterwards",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r279",
@@ -3188,11 +3375,13 @@
    "label": "related",
    "group": "late-source",
    "by": "assistant",
-   "editor": null,
+   "editor": "confirmed",
    "policy": "different",
    "relation": "follow-up",
    "policyNote": "a goal clip during the game vs. a team-mate's quote after it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   },
   {
    "id": "r290",
@@ -3223,13 +3412,15 @@
    "label": "same-match",
    "group": "late-source",
    "by": "assistant",
-   "editor": null,
+   "editor": "decided",
    "policy": "review",
    "relation": "same-match",
    "phaseA": "post_match",
    "phaseB": "post_match",
    "policyNote": "an analysis of the win vs. a player's comment on it",
-   "policyBy": "assistant"
+   "policyBy": "assistant",
+   "editorDecision": "SEPARATE_BUT_RELATED",
+   "editorAt": "2026-11-13"
   }
  ]
 }

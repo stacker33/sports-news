@@ -18,6 +18,11 @@ const PER_RUN = 4;
 const PER_HOUR = 12;
 const PER_HOUR_NIGHT = 4;
 export const PER_DAY = 250;
+// The version of the way articles are grouped into stories (docs/cluster-step1.md). When it changes, stories that
+// already exist get new ids, so the first run after the change posts nothing: what is on the page is marked as
+// sent, exactly as at the switch to the main-page rule (one quiet run, then normal). To undo: set it back to the
+// value the radar had saved (1: the value before this existed counts as "not set").
+export const GROUPING = 2;
 const QUIET = [1, 6]; // 01:00–05:59 Israel time: alerts still go out, but silently (no sound / vibration)
 // competitions the editors follow (tag ids from src/entities.js)
 const BRIEF_HOUR = 6; // the morning editor starts at 6
@@ -201,7 +206,7 @@ async function send(token, chat, text, preview, silent = false) {
 export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl, translate }, prev = {}, now = Date.now()) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chat = process.env.TELEGRAM_CHAT;
-  const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, rule: prev.rule, lastPost: prev.lastPost || null, error: null };
+  const st = { sent: { ...(prev.sent || {}) }, hour: (prev.hour || []).filter((t) => now - t < 3600e3), day: prev.day, dayCount: prev.dayCount || 0, briefDay: prev.briefDay, rule: prev.rule, grouping: prev.grouping, lastPost: prev.lastPost || null, error: null };
   for (const [k, t] of Object.entries(st.sent)) if (now - t > 3 * 864e5) delete st.sent[k];
   st.recent = (prev.recent || []).filter((r) => now - r.at < RECENT_H * 3600e3); // what was posted: fingerprints
   if (!token || !chat) return { tg: { ...st, error: 'no TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT' }, posted: 0 };
@@ -257,8 +262,9 @@ export async function telegramPost(stories, { athletes, cards, gameInfo, siteUrl
       posted++;
     }
     // 🔔 alerts
-    const switching = prev.rule !== 'main-top';
+    const switching = prev.rule !== 'main-top' || prev.grouping !== GROUPING; // the rule changed, or the grouping did
     st.rule = 'main-top';
+    st.grouping = GROUPING;
     if (firstRun || switching) fresh.forEach((s) => (st.sent[keyOf.get(s)] = now)); // first run / the switch to the main-page rule: no flood
     else {
       const silent = il.hour >= QUIET[0] && il.hour < QUIET[1]; // at night: posted without a sound
