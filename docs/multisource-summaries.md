@@ -70,7 +70,7 @@ multi-source summary (up to a few hundred KB at most).
 Behaviour when Gemini fails: the request throws, the earlier summary stays untouched, the error and the 30 minute cooldown are recorded, nothing is invented
 (tested with a 429). The deterministic fallback is the story's own source list that the card already shows.
 
-## What the automated tests cover (16 tests in `test/storysum.test.js`, mutation-checked) and what they do not
+## What the automated tests cover (24 tests in `test/storysum.test.js`, mutation-checked) and what they do not
 
 Covered: selection (dedupe, budget, official kept, copies, large cluster), validation of citations, numbers, kinds and conflicts, refresh decisions, throttle
 and idempotence, the real model path with a mocked provider (one request, sources recorded, a second run asks nothing, a redundant outlet asks nothing, a new
@@ -117,3 +117,37 @@ still UNVERIFIED. What was done instead:
   the first 39 articles), Alisson Santos (refresh at the return/relapse news), Kulusevski (refresh at his return), Sergio Ramos / Getafe (refresh when
   Getafe's interest appeared), Allegri (one refresh as the sack talk grew), Man City and Courtois had too few separate articles to replay. No clearly
   meaningful development was missed in these; two refreshes are debatable (an older fee quoted in a feature, a return from injury).
+
+## Quality pass after the real-model review (2026-11-14)
+
+The real run (3 requests, HTTP 429, 200, 429; 5 of 12 stories summarised: the strong model hit its quota and the fallback answered once) showed problems that
+are fixed here. No request count changed; the pass makes fewer requests, never more. Live Gemini was not run again.
+
+1. **Irrelevant sources never reach a model.** The first filter looked for "frequent words", which a second match's 11 template pages also are.
+   The story's FOCUS is now learned from its own tagged articles (the clubs / players most carry, and the words that name them); a source is about
+   the story only if it carries a focus tag or names a focus word, and an "X vs Y" headline must name the focus on both sides (that removes
+   "Real Madrid Castilla vs Antequera", which carries the Real Madrid tag). Regression tests on the exact saved stories: Fiorentina - Como (no
+   Pau - Leicester rugby, no court hearing), Parma - Torino (no Rodez - Montpellier), Real Madrid - Sevilla (no Castilla - Antequera). The same cleaning
+   now applies to the older-format input and to the card request (both were unfiltered before), and to the refresh signature (a stray amount on an
+   unrelated page no longer triggers a refresh).
+2. **Mixed stories fall back.** If fewer than 3 sources are about the focus, no club / player is common to the tagged sources, or the sources are about two
+   kinds of event in similar numbers (injury and suspension of one player: at least 30% each of 5 or more classified sources), the story is not summarised
+   as one account: an earlier summary stays untouched and none is made up (the headline / card flow is unchanged). One event with several facets (an injury,
+   its scan, its timeline) is not mixed. Conservative: it can leave a legitimate big story without a new summary.
+3. **Hebrew wording and names.** The summary prompt (every story) now says: plain literal Hebrew, desk terms for common situations (a heel assist is
+   "בישל בעקב", line-ups are "הרכבים"), never turn a headline phrase into a person or a role, and for names: the "Hebrew names" line exactly; a name that is
+   not in it is written in Latin letters as the Latin-script outlets spell it, never transliterated by sound from a Greek / Cyrillic / Japanese headline,
+   never given an invented Hebrew spelling. Nothing is normalised after the fact: no reliable rule exists, and Hebrew names are not invented here.
+   Checked only by a test that the rules are in the prompt; whether the model follows them needs the next real run.
+4. **Information selection.** The prompt now requires the summary to carry every separate development that two or more sources report (the Monfils
+   retirement next to the divorce), one short sentence each, most important first, and nothing that is not in its own claims; and not to join different
+   events. The retirement sources stay in the selection (tested). It cannot force the model to include them.
+5. **Stricter support for numbers.** A number must be in the cited text, and what has a unit (an amount, a length of time including days, a contract year,
+   a score) must match as the same typed fact: "30 days" is not supported by "30 years old", "30 million" not by "50m". Still not a check that the sentence
+   is true: a claim whose digits and unit appear but whose meaning is wrong passes.
+6. **Budget.** Unchanged: one summary request per run, cards as before. Mixed stories add none; the fallback to the light model on a 429 is the existing
+   behaviour (and costs a second HTTP request in that run).
+
+Remaining limits: untranslated sources with no tags cannot be judged and stay; "focus" needs tags on most of the story's sources (a story without tags falls
+back to the frequent-word filter); a pile whose second event is bigger than the real one can make the focus wrong; the two-kinds rule knows four kinds
+(match, sanction, injury, transfer).

@@ -22,7 +22,7 @@ const SEP = /(?<=\d)[,.](?=\d{3}\b)/g; // 1,000,000 → 1000000
 // money: €40m, 40 million euros, $12.5M, 25 מיליון יורו
 const MONEY = /(?:[€$£]\s?(\d+(?:[.,]\d+)?)\s?(m|k|million|billion|bn|מיליון|מיליארד|אלף)?)|(?:(\d+(?:[.,]\d+)?)\s?(m|k|million|billion|bn|מיליון|מיליארד|אלף)(?![\p{L}\d]))/giu;
 const UNIT = { m: 1e6, million: 1e6, 'מיליון': 1e6, k: 1e3, 'אלף': 1e3, billion: 1e9, bn: 1e9, 'מיליארד': 1e9 };
-const DURATION = /(\d{1,3})\s?(weeks?|months?|years?|games?|matches|שבועות|חודשים|שנים|משחקים)(?![\p{L}\d])/giu;
+const DURATION = /(\d{1,3})\s?(weeks?|months?|years?|games?|matches|days?|שבועות|חודשים|שנים|משחקים|ימים|יום)(?![\p{L}\d])/giu;
 // a year only when it is the end of a contract ("until 2030"): 2026 in a headline is just the season
 const YEAR = /(?:until|through|till|to the end of|expires?(?: in)?|עד)\s+(?:the end of\s+)?(?:june\s+)?(20[2-3]\d)\b/gi;
 const SCORE = /(?<![\d./:])(\d{1,2})\s?[-–:]\s?(\d{1,2})(?![\d/])/g;
@@ -36,7 +36,7 @@ export function factsOf(text) {
     const u = UNIT[(m[2] || m[4] || '').toLowerCase()] || 1;
     if (n * u >= 1000) out.money.add(`m:${Math.round(n * u)}`);
   }
-  for (const m of t.matchAll(DURATION)) out.dur.add(`d:${m[1]}:${m[2].toLowerCase().replace(/s$/, '').replace(/^(weeks?|שבועות)$/, 'week').replace(/^(months?|חודשים)$/, 'month').replace(/^(years?|שנים)$/, 'year').replace(/^(games?|matches|משחקים)$/, 'game')}`);
+  for (const m of t.matchAll(DURATION)) out.dur.add(`d:${m[1]}:${m[2].toLowerCase().replace(/s$/, '').replace(/^(weeks?|שבועות)$/, 'week').replace(/^(months?|חודשים)$/, 'month').replace(/^(years?|שנים)$/, 'year').replace(/^(games?|matches|משחקים)$/, 'game').replace(/^(days?|ימים|יום)$/, 'day')}`);
   for (const m of t.matchAll(YEAR)) out.year.add(`y:${m[1]}`);
   for (const m of t.matchAll(SCORE)) out.score.add(`s:${[m[1], m[2]].sort().join('-')}`);
   for (const m of t.matchAll(/\d+(?:[.,]\d+)?/g)) out.digits.add(m[0].replace(',', '.'));
@@ -87,27 +87,78 @@ function perOutlet(members, descOf) {
   return [...by.values()];
 }
 
-// A story is sometimes a pile: template pages and other matches share a few words with it ("Pau - Leicester" and a court hearing
-// inside "Fiorentina vs Como"). A source that shares no club / player tag and no frequent word with the rest of the story is not
-// about it and is not sent to the model. Only for 6+ outlets; a source with no tag and no English text cannot be judged and stays.
-function offTopic(cands) {
-  const out = new Set();
-  if (cands.length < 6) return out;
-  const idCount = new Map(), wCount = new Map();
-  for (const c of cands) {
-    for (const id of new Set((c.m.ents || []).filter((e) => /^[tp]/.test(e)))) idCount.set(id, (idCount.get(id) || 0) + 1);
-    for (const w of toks(textOf(c.m))) wCount.set(w, (wCount.get(w) || 0) + 1);
-  }
-  const need = Math.max(2, Math.ceil(cands.length * 0.25));
+// A story is sometimes a pile: template pages of another match, other sports and unrelated pages sit inside it ("Pau - Leicester" and a
+// court hearing inside "Fiorentina vs Como", eleven Rodez - Montpellier pages inside "Parma - Torino", "Real Madrid Castilla vs Antequera"
+// inside "Real Madrid vs Sevilla"). The story's FOCUS is learned from its own tagged articles: the clubs / players most of them carry, and
+// the words that name them (from the headlines of the articles that carry the tag). A source is about the story when it carries a focus
+// tag or names a focus word; a headline "X vs Y" must name the focus on both sides. Everything else is not sent to the model.
+// Only for 6+ outlets. A source with no tag and no English text cannot be judged and stays.
+const SPORT_KIND = [
+  ['match', (t) => MATCHY.test(t)],
+  ['sanction', (t) => /\b(suspen\w*|banned?|fined?|sanction\w*|punish\w*|disciplin\w*)\b/i.test(t)],
+  ['injury', (t) => INJURY.test(t)],
+  ['transfer', (t) => /\b(transfers?|signing|signs?|signed|contract|loan|fee|bid|agree[sd]?|deal|extends?|release clause)\b/i.test(t)],
+];
+export const kindOf = (t) => (SPORT_KIND.find(([, f]) => f(t)) || [])[0] || null;
+
+// "Real Madrid Castilla vs Antequera de Primera Federación: where to watch" -> the words of the two sides (before the first colon / comma)
+function sidesOf(text) {
+  const head = String(text || '').split(/[:|,(]/)[0];
+  const m = head.match(/^(.{2,60}?)\s+(?:vs\.?|v\.?|x|versus|contra|-|–|—)\s+(.{2,70})$/i);
+  return m ? [[...toks(m[1])], [...toks(m[2])]] : null;
+}
+
+function relevance(cands) {
+  const off = new Set();
+  const res = { off, mixed: false, why: '' };
+  if (cands.length < 6) return res;
+  const tagsOf = (c) => (c.m.ents || []).filter((e) => /^[tp]/.test(e));
+  const idCount = new Map();
+  for (const c of cands) for (const id of new Set(tagsOf(c))) idCount.set(id, (idCount.get(id) || 0) + 1);
+  const need = Math.max(2, Math.ceil(cands.length * 0.4));
   const topIds = new Set([...idCount].filter(([, n]) => n >= need).map(([id]) => id));
-  const topW = new Set([...wCount].filter(([w, n]) => n >= need && w.length > 3 && !GENERIC.has(w)).map(([w]) => w));
-  cands.forEach((c, i) => {
-    const ids = (c.m.ents || []).filter((e) => /^[tp]/.test(e));
-    const sharesWord = [...toks(textOf(c.m))].some((w) => topW.has(w));
-    if (ids.length) { if (topIds.size && !ids.some((id) => topIds.has(id))) out.add(i); return; } // a tagged source about other clubs / players
-    if ((c.m.lang === 'en' || c.m.tr?.en) && topW.size && !sharesWord) out.add(i);
-  });
-  return out;
+  // the words that name the focus: in at least 40% of the headlines of the articles that carry a focus tag
+  const carriers = cands.filter((c) => tagsOf(c).some((id) => topIds.has(id)));
+  const wc = new Map();
+  for (const c of carriers) for (const w of toks(textOf(c.m))) if (w.length > 3 && !GENERIC.has(w)) wc.set(w, (wc.get(w) || 0) + 1);
+  const names = new Set([...wc].filter(([, n]) => n >= Math.max(2, Math.ceil(carriers.length * 0.4))).map(([w]) => w));
+  const mentions = (c) => [...toks(textOf(c.m))].some((w) => names.has(w));
+  if (topIds.size && names.size) {
+    cands.forEach((c, i) => {
+      const ids = tagsOf(c);
+      const text = textOf(c.m);
+      const onFocus = ids.some((id) => topIds.has(id)) || mentions(c);
+      let bad = !onFocus;
+      // "X vs Y" where one side is not the focus: another match that shares a club (Real Madrid Castilla vs Antequera)
+      const sides = sidesOf(text);
+      if (!bad && sides && topIds.size >= 2) {
+        const hit = sides.map((side) => side.some((w) => names.has(w)));
+        if (!(hit[0] && hit[1])) bad = true;
+      }
+      if (bad && !ids.length && !(c.m.lang === 'en' || c.m.tr?.en)) bad = false; // cannot be judged
+      if (bad) off.add(i);
+    });
+  } else {
+    // no tags to anchor on: only the frequent non-generic words
+    const wCount = new Map();
+    for (const c of cands) for (const w of toks(textOf(c.m))) wCount.set(w, (wCount.get(w) || 0) + 1);
+    const top = new Set([...wCount].filter(([w, n]) => n >= Math.max(2, Math.ceil(cands.length * 0.25)) && w.length > 3 && !GENERIC.has(w)).map(([w]) => w));
+    if (top.size) cands.forEach((c, i) => { if ((c.m.lang === 'en' || c.m.tr?.en) && ![...toks(textOf(c.m))].some((w) => top.has(w))) off.add(i); });
+  }
+  // too mixed to tell one story: most of the sources are off the focus, or there is no focus at all among tagged sources, or the sources are
+  // about two different kinds of event (an injury and a sanction of one player) in similar numbers
+  const on = cands.filter((_, i) => !off.has(i));
+  const tagged = cands.filter((c) => tagsOf(c).length).length;
+  if (on.length < 3) { res.mixed = true; res.why = 'fewer than 3 sources are about the focus'; }
+  else if (tagged >= cands.length * 0.5 && !topIds.size) { res.mixed = true; res.why = 'no club or player is common to the sources'; }
+  else {
+    const kinds = new Map();
+    for (const c of on) { const k = kindOf(textOf(c.m)); if (k) kinds.set(k, (kinds.get(k) || 0) + 1); }
+    const total = [...kinds.values()].reduce((x, y) => x + y, 0);
+    const top2 = [...kinds].sort((x, y) => y[1] - x[1]).slice(0, 2);
+    if (total >= 5 && top2.length === 2 && top2[1][1] >= total * 0.3 && !(top2.some(([k]) => k === 'match') && top2.length === 2 && top2.every(([k]) => k === 'match' || k === 'transfer') && false)) { res.mixed = true; res.why = `two kinds of event: ${top2.map((x) => x.join(' ')).join(', ')}`; }
+  }
+  return res;
 }
 
 // sums: the radar's cache of fetched page descriptions { [articleId]: { text } }.
@@ -115,7 +166,9 @@ function offTopic(cands) {
 export function selectSources(members, sums = {}, { max = MAX_SOURCES, budget = CHAR_BUDGET } = {}) {
   const descOf = (m) => shorten(m.summary || '', m.title) || sums[m.id]?.text || '';
   const cands = perOutlet(members, descOf).map((m) => ({ m, desc: descOf(m), tk: toks(m.title), f: factsOf(`${textOf(m)} ${descOf(m)}`), official: !!m.official, reporter: !!m.reporter }));
-  const off = offTopic(cands);
+  const rel = relevance(cands);
+  const off = rel.off;
+  const offKeys = new Set([...off].map((i) => pubKey(cands[i].m.publisher)));
   for (const i of [...off].sort((a, b) => b - a)) cands.splice(i, 1);
   cands.sort((a, b) => a.m.published - b.m.published || (a.m.id < b.m.id ? -1 : 1));
   // copies: the same headline (or the same description) from another outlet adds nothing; the earliest is the original candidate
@@ -149,8 +202,11 @@ export function selectSources(members, sums = {}, { max = MAX_SOURCES, budget = 
   }
   chosen.sort((a, b) => a.m.published - b.m.published || (a.m.id < b.m.id ? -1 : 1));
   const sel = chosen.map((c, i) => ({ sid: `S${i + 1}`, m: c.m, desc: c.desc, official: c.official, reporter: c.reporter, ...(c.copies ? { copyOf: c.copies } : {}) }));
-  return { sel, total: cands.length + off.size, omitted: kept.length - chosen.length, copies, offTopic: off.size };
+  return { sel, total: cands.length + off.size, omitted: kept.length - chosen.length, copies, offTopic: off.size, offKeys, mixed: rel.mixed, mixedWhy: rel.why };
 }
+
+// the story's articles without those of the outlets whose source was found off the story's focus
+export const relevantMembers = (members, selection) => (selection.offKeys.size ? members.filter((m) => !selection.offKeys.has(pubKey(m.publisher))) : members);
 
 // the text of the sources, as the model gets it
 export function sourcesBlock(selection) {
@@ -168,6 +224,7 @@ Stories whose input has a "Sources:" list (S1, S2, … with a stable id each) ha
 - "claims": 2–4 objects {"he":"<one important fact in Hebrew>","src":["S1","S3"],"kind":"official"|"reported"|"rumor"|"analysis"}. "src" lists ONLY ids given above whose text really says it. kind "official" only when one of those sources is marked official (or the club/league itself announced it); a rumor, a "linked with", "could", "interested" or "according to X" is "rumor" or "reported", never a confirmed fact. Keep the attribution in the sentence ("לפי הדיווח של …"). Numbers, dates, fees, contract lengths only exactly as the cited source says.
 - "added": 0–3 objects {"src":"S2","he":"<a detail ONLY this source (or very few) adds to the others>"}.
 - "conflicts": [] unless two ids clearly state DIFFERENT values for the same thing (a fee, a contract length, an injury time-out, a score) or one denies what another reported: {"topic_he":"…","positions":[{"src":"S1","he":"…"},{"src":"S2","he":"…"}]}. Different wording of the same fact is not a conflict. When unsure, [].
+The summary must carry every separate development that two or more sources report (for example a retirement announced days before a divorce): one short sentence each, most important first; leave out minor details, and never put into the summary something that is not in your own claims. Do not join different events into one account: if the sources describe different events (an injury and a suspension, two matches), write only about the one most of them describe.
 Never cite an id that is not listed, never invent an outlet or a quotation, and say nothing the listed texts do not support. "summary_he" for such a story is 2–4 Hebrew sentences that combine the reports and keep who-said-what where it matters.`;
 
 // ---------- checking the answer ----------
@@ -181,9 +238,15 @@ export function validateRich(raw, selection) {
   const text = (sid) => `${by.get(sid) ? textOf(by.get(sid).m) : ''} ${by.get(sid)?.m.title || ''} ${by.get(sid)?.desc || ''}`;
   const dropped = { claims: 0, added: 0, conflicts: 0, reasons: [] };
   const drop = (kind, why) => { dropped[kind]++; dropped.reasons.push(`${kind}:${why}`); };
+  // A number is supported when its digits are in the cited text AND, for what has a unit (an amount, a length of time, a contract year, a
+  // score), the same TYPED fact is: "30 days" needs "30 days" (or "30 ימים") in a cited source, not a 30 that means something else. This
+  // is still not a check that the sentence is true.
   const supported = (he, sids) => {
     const have = new Set(sids.flatMap((s) => digitsIn(text(s))));
-    return digitsIn(he).every((d) => have.has(d));
+    if (!digitsIn(he).every((d) => have.has(d))) return false;
+    const want = factsOf(he);
+    const got = sids.map((s) => factsOf(text(s)));
+    return ['money', 'dur', 'year', 'score'].every((k) => [...want[k]].every((x) => got.some((g) => g[k].has(x))));
   };
   const ids = (v) => [...new Set((Array.isArray(v) ? v : [v]).filter((x) => typeof x === 'string' && by.has(x)))];
   const claims = [];

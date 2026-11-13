@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { selectSources, sourcesBlock, factsOf, validateRich, numericConflicts, withNumericConflicts, signature, shouldRefresh, refreshReasons, richForUi, richRecord, stageOf, denies, MAX_SOURCES, REFRESH_MIN_MS } from '../src/storysum.js';
+import { relevantMembers, RICH_ADDON, selectSources, sourcesBlock, factsOf, validateRich, numericConflicts, withNumericConflicts, signature, shouldRefresh, refreshReasons, richForUi, richRecord, stageOf, denies, MAX_SOURCES, REFRESH_MIN_MS } from '../src/storysum.js';
 import { aiSummaries } from '../src/ai.js';
 
 const T = Date.parse('2026-11-14T10:00:00Z');
@@ -309,4 +309,112 @@ test('a pile: sources about other clubs, other sports or nothing in common are n
   assert.equal(sel.total, 8);
   // a small story is never filtered
   assert.equal(selectSources(members.slice(0, 5), {}).offTopic, 0);
+});
+
+// ---------- the review sheet's findings (2026-11-14): regression cases from real saved stories ----------
+async function fixtureStory(re) {
+  const { readFileSync } = await import('node:fs');
+  const { gunzipSync } = await import('node:zlib');
+  const fx = JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/summaries/stories.json.gz', import.meta.url))).toString('utf8'));
+  return fx.stories.find((s) => re.test(s.title)).members.map((m) => ({ ...m }));
+}
+const sentTitles = (sel) => sel.sel.map((x) => `${x.m.title} ${x.m.tr?.en || ''}`);
+
+test('review sheet 1: Fiorentina - Como never gets the rugby match or the court hearing', async () => {
+  const members = await fixtureStory(/Fiorentina vs Como compositions/);
+  assert.ok(members.some((m) => /Pau - Leicester/.test(m.title)) && members.some((m) => /הארכת מעצר/.test(m.title))); // they are in the story
+  const sel = selectSources(members, {});
+  assert.ok(!sentTitles(sel).some((t) => /Pau - Leicester|הארכת מעצר|detention|Leicester/i.test(t)));
+  assert.ok(sel.sel.filter((x) => /Fiorentina|Como/i.test(`${x.m.title} ${x.m.tr?.en}`)).length >= 5);
+  assert.ok(!relevantMembers(members, sel).some((m) => /Pau - Leicester|הארכת מעצר/.test(m.title))); // nor the plain (old) input
+});
+
+test('review sheet 2: Parma - Torino never gets Rodez - Montpellier', async () => {
+  const members = await fixtureStory(/Parma-Torino, le probabili formazioni/);
+  assert.ok(members.filter((m) => /Rodez|MHSC|Montpellier/i.test(m.title)).length >= 8); // a whole second match is in the story
+  const sel = selectSources(members, {});
+  assert.ok(!sentTitles(sel).some((t) => /Rodez|Montpellier|MHSC|Paillade/i.test(t)));
+  assert.ok(!relevantMembers(members, sel).some((m) => /Rodez|Montpellier|MHSC/i.test(m.title)));
+  assert.ok(sel.sel.every((x) => /Parma|Torino|Turin|PAR vs TOR/i.test(`${x.m.title} ${x.m.tr?.en}`)));
+});
+
+test('review sheet 3: Real Madrid - Sevilla never gets Real Madrid Castilla - Antequera', async () => {
+  const members = await fixtureStory(/Tarleton/);
+  assert.ok(members.some((m) => /Castilla/.test(m.title)));
+  const sel = selectSources(members, {});
+  assert.ok(!sentTitles(sel).some((t) => /Castilla|Antequera/i.test(t)));
+  assert.ok(!relevantMembers(members, sel).some((m) => /Castilla/.test(m.title)));
+  assert.ok(sel.sel.filter((x) => /Sevilla|Seville|Séville|Sevilha/i.test(`${x.m.title} ${x.m.tr?.en}`)).length >= 5);
+});
+
+test('review sheet 4: the Monfils retirement stays among the sources and the prompt asks for every shared development', async () => {
+  const members = await fixtureStory(/Svitolina annonce la fin/);
+  const sel = selectSources(members, {});
+  assert.ok(sentTitles(sel).concat(sel.sel.map((x) => x.desc)).some((t) => /retraite|despedida|cariera|retirement|karijer/i.test(t)));
+  assert.match(RICH_ADDON, /every separate development that two or more sources report/);
+  assert.match(RICH_ADDON, /Do not join different events/);
+});
+
+test('mixed stories: one player, two kinds of event, is not summarised as one account; the earlier summary stays and none is made up', async () => {
+  process.env.AI_API_KEY = 'test';
+  const members = [
+    ...['Smith suffers hamstring injury in training', 'Smith injury: scan result awaited', 'Smith ruled out after hamstring injury', 'Club confirm Smith injury', 'Smith injured, doctors say'].map((t, i) => art(`Inj${i}`, t, { ents: ['p1', 't1'] })),
+    ...['Smith suspended for three games', 'Smith fined and suspended by the league', 'Smith ban confirmed by disciplinary panel', 'League punishes Smith with a suspension', 'Smith sanction announced'].map((t, i) => art(`San${i}`, t, { ents: ['p1', 't1'] })),
+  ];
+  const sel = selectSources(members, {});
+  assert.equal(sel.mixed, true);
+  assert.match(sel.mixedWhy, /two kinds of event/);
+  const s = story(members);
+  const key = [...members].sort((a, b) => a.published - b.published)[0].id;
+  const prev = { res: { [key]: { v: 4, title_he: 'כותרת קיימת', summary_he: 'סיכום קיים', summary_en: 'existing', facts: [], n: 4, at: T } } };
+  const calls = mockModel(() => ({ stories: [] }));
+  try {
+    const r = await aiSummaries([s], {}, prev, T + 3600e3);
+    assert.equal(calls.filter((c) => c.kind === 'summary').length, 0);
+    assert.equal(r.ai.res[key].summary_he, 'סיכום קיים');
+    assert.equal(s.ai.he.sum, 'סיכום קיים');
+    // with no earlier summary nothing is invented either
+    const r2 = await aiSummaries([story(members)], {}, {}, T + 3600e3);
+    assert.equal(Object.keys(r2.ai.res).length, 0);
+  } finally { globalThis.fetch = realFetch; }
+  // one event with all its facets is not mixed
+  const one = ['Smith ruled out with hamstring injury', 'Smith hamstring injury confirmed by the club', 'Smith injury: out for six weeks', 'Smith injured in training, scan awaited', 'Smith to miss weeks with injury', 'Doctors diagnose Smith injury'].map((t, i) => art(`One${i}`, t, { ents: ['p1', 't1'] }));
+  assert.equal(selectSources(one, {}).mixed, false);
+});
+
+test('a claim number is supported only by the same kind of fact: "30 days" is not "30 years old"', () => {
+  const a = art('Daily', 'Smith, 30 years old, signs for the club in a €50m deal');
+  const sel = selectSources([a, art('B', 'Smith to join the club'), art('C', 'Smith move to the club agreed')], {});
+  const sid = sel.sel.find((x) => x.m.publisher === 'Daily').sid;
+  const { rich, dropped } = validateRich({ claims: [{ he: 'סמית הושעה ל-30 ימים', src: [sid], kind: 'reported' }, { he: 'סמית בן 30', src: [sid], kind: 'reported' }, { he: 'העסקה בהיקף 50 מיליון יורו', src: [sid], kind: 'reported' }, { he: 'העסקה בהיקף 30 מיליון יורו', src: [sid], kind: 'reported' }] }, sel);
+  assert.deepEqual(rich.claims.map((c) => c.he), ['סמית בן 30', 'העסקה בהיקף 50 מיליון יורו']);
+  assert.equal(dropped.claims, 2);
+});
+
+test('the summary prompt carries the Hebrew wording and name rules (for stories of any size)', async () => {
+  process.env.AI_API_KEY = 'test';
+  const s = story([art('Solo', 'Kostoulas heel assist for Brighton against Palace', { summary: 'The Greek forward set up the third goal with a backheel in the first ten minutes of the game.' })]);
+  const calls = mockModel((kind) => (kind === 'summary' ? { stories: [] } : { items: [], titles: [] }));
+  try {
+    await aiSummaries([s], {}, {}, T + 3600e3);
+    const c = calls.find((x) => x.kind === 'summary');
+    assert.match(c.system, /בישל בעקב/);
+    assert.match(c.system, /NEVER transliterate it by sound/);
+    assert.match(c.system, /Never turn a phrase of a headline into a person or a role/);
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test('the plain (older-format) input of a story is cleaned too: a story whose good sources collapse to one still never sends the other match', async () => {
+  process.env.AI_API_KEY = 'test';
+  const same = ['A', 'B', 'C', 'D', 'E', 'F'].map((p) => art(p, 'Fiorentina against Como: confirmed line-ups from the stadium', { ents: ['t1', 't2'] }));
+  const stray = art('G', 'Pau - Leicester rugby champions cup live from the stadium', { ents: ['c-x'], published: T + 99 * 60e3 });
+  const s = story([...same, stray]);
+  const calls = mockModel((kind) => (kind === 'summary' ? { stories: [] } : { items: [], titles: [] }));
+  try {
+    await aiSummaries([s], {}, {}, T + 3600e3);
+    const c = calls.find((x) => x.kind === 'summary');
+    assert.ok(c, 'a summary was requested');
+    assert.doesNotMatch(c.user, /Leicester/);
+    assert.match(c.user, /Fiorentina/);
+  } finally { globalThis.fetch = realFetch; }
 });

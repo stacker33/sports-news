@@ -16,7 +16,7 @@
 // - Answers are checked: text with Arabic letters, Latin / Greek / Cyrillic letters glued to Hebrew ("המffמן"), no
 //   Hebrew, or an empty field is rejected and retried later.
 
-import { RICH_MIN_SOURCES, RICH_ADDON, selectSources, sourcesBlock, validateRich, withNumericConflicts, signature, shouldRefresh, richRecord, richForUi } from './storysum.js';
+import { RICH_MIN_SOURCES, RICH_ADDON, relevantMembers, selectSources, sourcesBlock, validateRich, withNumericConflicts, signature, shouldRefresh, richRecord, richForUi } from './storysum.js';
 
 const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/$/, '');
 const ENDPOINT = `${BASE_URL}/chat/completions`;
@@ -62,6 +62,10 @@ Examples of headlines:
 - "Navaro besan nakon poraza od FMP-a: Nismo bili ovde da igramo prijateljsku utakmicu" → "נבארו זועם אחרי ההפסד ל-FMP: ״לא באנו לשחק משחק ידידות״"
 - "Gonçalo Ramos partilha publicação: «O estatuto de ser o melhor!»" → "גונסאלו ראמוס בפוסט: ״המעמד של להיות הטוב ביותר״"
 - "Southwest Notes: Harris, Jerome, Rockets, Mavs, Pelicans" → "עדכוני הדרום-מערב: האריס, ג'רום, יוסטון, דאלאס וניו אורלינס"
+Hebrew wording of the match and the people (plain and literal; never invent a figure of speech):
+- Say it the way a Sport5 desk would, in simple words: a heel assist is "בישל בעקב", line-ups are "הרכבים" ("ההרכבים הצפויים" for probable ones), a live page is "סיקור חי", a big win is described as big only if a source says so — never use a metaphor the sources do not use.
+- Never turn a phrase of a headline into a person or a role ("המפקד על המגרש"): when a phrase is unclear, leave it out. For a line-up or preview story say who plays whom, when and where, who starts, and nothing more.
+- Names: use the "Hebrew names" line exactly. A person or club that is NOT in that line: write the name in Latin letters as the Latin-script outlets spell it (Babis Kostoulas), and NEVER transliterate it by sound from a Greek, Cyrillic, Japanese or other-script headline or invent a Hebrew spelling for it. A world star or a big club that has a well known Israeli spelling may use it.
 Return JSON: {"stories":[{"id":"…","title_he":"…","summary_he":"…","summary_en":"…","facts_he":["…"],"quotes_he":[{"who":"…","he":"…"}]}]} with every id you were given.`;
 
 const HEAD_SYSTEM = `${STYLE}
@@ -221,6 +225,11 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   for (const k of ['res', 'heads']) for (const [key, r] of Object.entries(st[k])) if (now - r.at > KEEP_DAYS * 864e5) delete st[k][key];
 
   const keyOf = new Map(stories.map((s) => [s, storyKey(s)]));
+  // The sources of a multi-outlet story are first cleaned (src/storysum.js): pages of another match or sport are never sent to a model
+  // (summaries or cards), and a story whose sources are too mixed to be one development is left as it is (its earlier summary stays).
+  const sels = new Map();
+  const selOf = (s) => sels.get(s) || sels.set(s, selectSources(s._members, sums)).get(s);
+  const cleanMembers = (s) => (s.sourceCount >= RICH_MIN_SOURCES ? relevantMembers(s._members, selOf(s)) : s._members);
   const token = process.env.AI_API_KEY;
   if (!token) st.error = 'no AI_API_KEY secret';
   const room = () => token && st.used < DAILY_CAP && st.hourly.length < PER_HOUR && !(st.cooldownUntil > now);
@@ -299,7 +308,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     const batch = pending.splice(0, CARDS_PER_REQUEST);
     cday.used++;
     try {
-      const out = await callModel(token, FALLBACK, DESK_SYSTEM, batch.map((s, i) => `### id: ${i}\n${storyInput(s, sums, heName)}`).join('\n\n'));
+      const out = await callModel(token, FALLBACK, DESK_SYSTEM, batch.map((s, i) => `### id: ${i}\n${storyInput({ ...s, _members: cleanMembers(s) }, sums, heName)}`).join('\n\n'));
       cday.tokens = (cday.tokens || 0) + (lastUsage?.total_tokens || 0); // for the daily usage / cost estimate
       for (const r of out.items || out.stories || []) {
         const s = batch[Number(String(r.id).replace(/\D/g, ''))];
@@ -335,20 +344,21 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
       const need = stories
         .filter((s) => now - s.first < 18 * 3600e3)
         .filter((s) => {
+          if (s.sourceCount >= RICH_MIN_SOURCES && selOf(s).mixed) return false;
           const r = st.res[keyOf.get(s)];
           if (!r || r.v !== VERSION) { why.set(s, { prio: 0, why: ['new'] }); return true; }
           if (s.sourceCount < RICH_MIN_SOURCES) return false;
           if (!r.rv) { why.set(s, { prio: 1, why: ['upgrade'] }); return true; }
-          const d = shouldRefresh(r, s._members, sums, now);
+          const d = shouldRefresh(r, cleanMembers(s), sums, now);
           if (d.go) why.set(s, { prio: 0, why: d.why });
           return d.go;
         })
         .sort((a, b) => why.get(a).prio - why.get(b).prio || b.score - a.score) // most important first — world and Israeli alike
         .slice(0, PER_REQUEST);
       const sel = new Map(); // story → its chosen sources (multi-outlet stories)
-      for (const s of need) if (s.sourceCount >= RICH_MIN_SOURCES) { const x = selectSources(s._members, sums); if (x.sel.length >= 2) sel.set(s, x); }
+      for (const s of need) if (s.sourceCount >= RICH_MIN_SOURCES) { const x = selOf(s); if (x.sel.length >= 2) sel.set(s, x); }
       if (need.length) {
-        const out = await call(SYSTEM + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput(s, sums, heName)}`).join('\n\n'), true);
+        const out = await call(SYSTEM + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput({ ...s, _members: cleanMembers(s) }, sums, heName)}`).join('\n\n'), true);
         for (const r of out.stories || []) for (const k of ['title_he', 'summary_he', 'summary_en']) if (r[k]) r[k] = clean(r[k]);
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
@@ -373,7 +383,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
           }
           st.res[keyOf.get(s)] = {
             v: VERSION, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, ...(quotes.length ? { quotes } : {}), n: s.sourceCount, at: now,
-            ...(s.sourceCount >= RICH_MIN_SOURCES ? { rv: RICH_VERSION, sig: signature(s._members, sums), rich, refreshes: w.why[0] === 'new' || w.why[0] === 'upgrade' ? old?.refreshes || [] : [...(old?.refreshes || []), now] } : {}),
+            ...(s.sourceCount >= RICH_MIN_SOURCES ? { rv: RICH_VERSION, sig: signature(cleanMembers(s), sums), rich, refreshes: w.why[0] === 'new' || w.why[0] === 'upgrade' ? old?.refreshes || [] : [...(old?.refreshes || []), now] } : {}),
           };
           done++;
         }
