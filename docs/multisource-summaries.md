@@ -151,3 +151,19 @@ are fixed here. No request count changed; the pass makes fewer requests, never m
 Remaining limits: untranslated sources with no tags cannot be judged and stay; "focus" needs tags on most of the story's sources (a story without tags falls
 back to the frequent-word filter); a pile whose second event is bigger than the real one can make the focus wrong; the two-kinds rule knows four kinds
 (match, sanction, injury, transfer).
+
+## Model availability (2026-11-14, after a real run with 503 / 404 / 429)
+
+No code in the radar changed. Findings from the existing configuration and diagnostics, without any further request:
+
+- The three models are the defaults of `src/ai.js`: main `gemini-flash-latest` (503 = overloaded, the model exists), backup `gemini-2.5-flash` (404 = not found
+  for this API version / project), light `gemini-flash-lite-latest` (429 = quota, the model exists). The collect workflow sets only `AI_BASE_URL`, `AI_MODEL`
+  and `AI_DAILY_CAP` (repository variables, not readable from here), so the backup and the light model are always the defaults.
+- The 404 is not new: the radar's own saved state from 2026-10-19 already has `altOff: true`, which `ai.js` sets only when the backup answered 404/400. So
+  `gemini-2.5-flash` is unavailable to this project in production too, and the radar already stopped asking for it. The review script started from an empty
+  state and asked for it every time; it now starts with `altOff` set (`--try-alt` asks anyway).
+- The 429 on the light model is probably shared quota: the review uses the same key as the radar, which on 2026-10-19 used 358 of 400 summary requests and 277
+  card requests (all on the light model) and about 2.5M tokens. A real review competes with production for the same free quota; the radar's day is exhausted
+  for hours at a time. The model cannot be shown to be "available" or "out of quota" without an authenticated request.
+- `scripts/check-gemini-models.mjs` is the one safe diagnostic: a single read-only "list models" request (no generation, no tokens), key in a header, never printed.
+  It says whether each configured model is listed for this key and supports generateContent.

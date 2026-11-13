@@ -24,7 +24,7 @@ import { join, dirname } from 'node:path';
 
 // Strict arguments: "--n" with no number used to become NaN (nothing selected, an empty sheet written, "planned at most NaN").
 const args = process.argv.slice(2);
-const KNOWN = ['--yes', '--mock', '--check', '--n', '--out'];
+const KNOWN = ['--yes', '--mock', '--check', '--n', '--out', '--try-alt'];
 const die = (msg) => { console.error(msg); process.exit(2); };
 for (let i = 0; i < args.length; i++) {
   const name = args[i].split('=')[0];
@@ -124,7 +124,9 @@ globalThis.fetch = async (url, init) => {
 // the radar only summarises stories under 18 hours old: for this review every story is treated as one hour old
 const now = Date.now();
 for (const s of stories) s.first = now - 3600e3;
-let st = { cls: { day: new Date(now).toISOString().slice(0, 10), used: 1e9 } }; // today's card budget marked spent: no card requests
+// The backup strong model (gemini-2.5-flash) answered 404 (not found for this project) in the radar's own saved state (altOff) and in the
+// first real review run: it is skipped here unless --try-alt, so a known 404 does not spend a request. The radar does the same through altOff.
+let st = { cls: { day: new Date(now).toISOString().slice(0, 10), used: 1e9 }, ...(flag('--try-alt') ? {} : { altOff: true }) }; // today's card budget marked spent: no card requests
 const errors = [];
 for (let i = 0; i < stories.length; i += 5) {
   const batch = stories.slice(i, i + 5);
