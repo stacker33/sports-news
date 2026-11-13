@@ -16,6 +16,8 @@
 // - Answers are checked: text with Arabic letters, Latin / Greek / Cyrillic letters glued to Hebrew ("המffמן"), no
 //   Hebrew, or an empty field is rejected and retried later.
 
+import { RICH_MIN_SOURCES, RICH_ADDON, selectSources, sourcesBlock, validateRich, withNumericConflicts, signature, shouldRefresh, richRecord, richForUi } from './storysum.js';
+
 const BASE_URL = (process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/$/, '');
 const ENDPOINT = `${BASE_URL}/chat/completions`;
 const MODEL = process.env.AI_MODEL || 'gemini-flash-latest';
@@ -35,6 +37,7 @@ export const aiCap = () => DAILY_CAP;
 let lastUsage = null; // tokens of the last call (for metering)
 const KEEP_DAYS = 3;
 const VERSION = 4; // results from older prompts are redone gradually, most important first
+const RICH_VERSION = 1; // multi-source summaries (src/storysum.js); a v4 summary of a story with 3+ outlets is upgraded once, after the new ones
 
 const STYLE = `You are a senior editor at an Israeli sports news website (like Sport5 or ONE). You write in natural, fluent, idiomatic Hebrew — the way an Israeli sports journalist writes, never word-for-word translation.
 Style rules:
@@ -138,7 +141,7 @@ function namesLine(s, heName) {
 }
 
 // What we send for one story: up to 6 distinct headlines (with outlet + language) and the best descriptions
-function storyInput(s, sums, heName) {
+export function storyInput(s, sums, heName) {
   const seen = new Set();
   const heads = [];
   for (const m of [...s._members].sort((a, b) => b.weight - a.weight)) {
@@ -152,6 +155,11 @@ function storyInput(s, sums, heName) {
     .slice(0, 3)
     .map((t) => clip(t, 320));
   return `Main headline: ${clip(s.title, 200)}\nHeadlines:\n${heads.join('\n')}${descs.length ? `\nDescriptions:\n${descs.join('\n')}` : ''}${namesLine(s, heName)}`;
+}
+
+// Input of a multi-outlet story: the headline, the names, and the chosen sources with their stable ids (src/storysum.js)
+function richInput(s, selection, heName) {
+  return `Main headline: ${clip(s.title, 200)}\nSources (${selection.sel.length} of ${selection.total} outlets; headlines and feed descriptions only):\n${sourcesBlock(selection)}${namesLine(s, heName)}`;
 }
 
 // The story's earliest article: stays the same while the lead article changes
@@ -320,16 +328,27 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
   try {
     // 1) summaries: new / grown stories, and results from older prompts
     if (room()) {
+      // Who needs a (new) summary: stories without one, results of an older prompt, and stories whose facts moved (a new
+      // official source, a new amount, a status step, a denial: src/storysum.js). More outlets alone is no reason.
+      // Then, last, the earlier summaries of stories that now have 3+ outlets, once (they get the multi-source form).
+      const why = new Map();
       const need = stories
         .filter((s) => now - s.first < 18 * 3600e3)
         .filter((s) => {
           const r = st.res[keyOf.get(s)];
-          return !r || r.v !== VERSION || (s.sourceCount >= r.n * 2 && s.sourceCount >= r.n + 3 && now - r.at > 3600e3);
+          if (!r || r.v !== VERSION) { why.set(s, { prio: 0, why: ['new'] }); return true; }
+          if (s.sourceCount < RICH_MIN_SOURCES) return false;
+          if (!r.rv) { why.set(s, { prio: 1, why: ['upgrade'] }); return true; }
+          const d = shouldRefresh(r, s._members, sums, now);
+          if (d.go) why.set(s, { prio: 0, why: d.why });
+          return d.go;
         })
-        .sort((a, b) => b.score - a.score) // most important first — world and Israeli alike
+        .sort((a, b) => why.get(a).prio - why.get(b).prio || b.score - a.score) // most important first — world and Israeli alike
         .slice(0, PER_REQUEST);
+      const sel = new Map(); // story → its chosen sources (multi-outlet stories)
+      for (const s of need) if (s.sourceCount >= RICH_MIN_SOURCES) { const x = selectSources(s._members, sums); if (x.sel.length >= 2) sel.set(s, x); }
       if (need.length) {
-        const out = await call(SYSTEM + style, need.map((s, i) => `### id: s${i}\n${storyInput(s, sums, heName)}`).join('\n\n'), true);
+        const out = await call(SYSTEM + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput(s, sums, heName)}`).join('\n\n'), true);
         for (const r of out.stories || []) for (const k of ['title_he', 'summary_he', 'summary_en']) if (r[k]) r[k] = clean(r[k]);
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
@@ -339,7 +358,23 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
             .filter((q) => q && goodHe(q.he) && typeof q.who === 'string' && q.who.trim())
             .slice(0, 2)
             .map((q) => ({ who: clip(q.who.trim(), 60), he: clip(q.he.trim().replace(/^[״"']+|[״"']+$/g, ''), 300) }));
-          st.res[keyOf.get(s)] = { v: VERSION, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, ...(quotes.length ? { quotes } : {}), n: s.sourceCount, at: now };
+          const old = st.res[keyOf.get(s)];
+          const w = why.get(s);
+          let rich = null;
+          if (sel.has(s)) {
+            // checked against the sources it was given: invalid citations, numbers the cited text doesn't have, conflicts without evidence are dropped
+            const { rich: v, dropped } = validateRich(r, sel.get(s));
+            rich = richRecord(withNumericConflicts(v, sel.get(s)), sel.get(s), now, w.why);
+            st.rich = { ...(st.rich?.day === day ? st.rich : { day, stories: 0, claims: 0, droppedClaims: 0, droppedOther: 0 }) };
+            st.rich.stories++;
+            st.rich.claims += rich.claims.length;
+            st.rich.droppedClaims += dropped.claims;
+            st.rich.droppedOther += dropped.added + dropped.conflicts;
+          }
+          st.res[keyOf.get(s)] = {
+            v: VERSION, title_he: clip(r.title_he, 220), summary_he: clip(r.summary_he, 600), summary_en: clip(r.summary_en, 600), facts, ...(quotes.length ? { quotes } : {}), n: s.sourceCount, at: now,
+            ...(s.sourceCount >= RICH_MIN_SOURCES ? { rv: RICH_VERSION, sig: signature(s._members, sums), rich, refreshes: w.why[0] === 'new' || w.why[0] === 'upgrade' ? old?.refreshes || [] : [...(old?.refreshes || []), now] } : {}),
+          };
           done++;
         }
       }
@@ -371,7 +406,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     const r = st.res[keyOf.get(s)];
     const h = st.heads[keyOf.get(s)];
     const c = st.desk[keyOf.get(s)];
-    if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he, ...(r.facts?.length ? { facts: r.facts } : {}), ...(r.quotes?.length ? { quotes: r.quotes } : {}) }, en: { sum: r.summary_en } };
+    if (r) s.ai = { he: { title: r.title_he, sum: r.summary_he, ...(r.facts?.length ? { facts: r.facts } : {}), ...(r.quotes?.length ? { quotes: r.quotes } : {}), ...(richForUi(r) ? { rich: richForUi(r) } : {}) }, en: { sum: r.summary_en } };
     else if (c?.title_he) s.ai = { he: { title: c.title_he, ...(c.sum_he ? { sum: c.sum_he } : {}) } };
     else if (h) s.ai = { he: { title: h.title_he } };
   }

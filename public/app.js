@@ -805,12 +805,32 @@ function embedCode(s) {
 }
 const embedBtn = (s) => (embedCode(s) ? `<button type="button" class="embed-btn" title="${esc(t().x2.embed)}" aria-label="${esc(t().x2.embed)}">&lt;/&gt;</button>` : '');
 
+// Multi-source details (src/storysum.js), Hebrew UI only and only when the summary has them: who reported what, what each outlet
+// added, contradictions between outlets, and what the summary was based on. A story with one outlet never has them.
+const RICH_KIND = { official: 'רשמי', reported: 'דיווח', rumor: 'שמועה', analysis: 'ניתוח' };
+function richHtml(s) {
+  const r = state.ui === 'he' ? s.ai?.he?.rich : null;
+  if (!r) return '';
+  const names = (a) => (a || []).map(esc).join(', ');
+  const claims = (r.claims || []).map((c) => '<span class="c-fact" dir="auto">' + esc(c.t) + ' <i class="rk rk-' + esc(c.k) + '">' + (RICH_KIND[c.k] || '') + '</i> <span class="rs">(' + names(c.s) + ')</span></span>').join('');
+  const added = (r.added || []).map((a) => '<span class="c-fact" dir="auto">' + esc(a.t) + ' <span class="rs">(' + esc(a.s) + ')</span></span>').join('');
+  const conf = (r.conflicts || []).map((k) => '<div class="c-conf" dir="auto"><b>' + esc(k.t) + '</b>' + (k.p || []).map((p) => '<span>' + esc(p.s) + ': ' + esc(p.t) + '</span>').join('') + '</div>').join('');
+  const b = r.basis || {};
+  const note = 'מבוסס על כותרות ותיאורי RSS בלבד (' + (b.heads || 0) + ' מקורות מתוך ' + (b.outlets || 0) + (b.descs ? ', ' + b.descs + ' עם תיאור' : '') + '), לא על קריאת הכתבות המלאות' + (r.why ? ' · עודכן: ' + esc(r.why) : '');
+  const srcs = (r.sources || []).map((x) => (x.l ? '<a href="' + esc(x.l) + '" target="_blank" rel="noopener noreferrer">' + esc(x.n) + '</a>' : esc(x.n)) + (x.o ? ' (רשמי)' : '')).join(' · ');
+  return '<div class="c-rich">' +
+    (claims ? '<div class="c-facts"><span class="c-facts-h">מי דיווח מה</span>' + claims + '</div>' : '') +
+    (added ? '<div class="c-facts"><span class="c-facts-h">פרטים נוספים</span>' + added + '</div>' : '') +
+    (conf ? '<div class="c-facts"><span class="c-facts-h">סתירות בין הדיווחים</span>' + conf + '</div>' : '') +
+    '<p class="c-note">' + note + '</p>' + (srcs ? '<p class="c-note c-srcs">מקורות: ' + srcs + '</p>' : '') + '</div>';
+}
+
 // 2–3 sentence summary by the language model, shown in full
 function aiSummaryHtml(s) {
   const text = s.ai?.[state.ui]?.sum;
   if (!text) return '';
   const facts = state.ui === 'he' ? s.ai.he.facts || [] : [];
-  return `<p class="ai-sum" dir="auto">${esc(text)}</p><p class="ai-note">${esc(t().aiNote)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}${quotesHtml(s)}`;
+  return `<p class="ai-sum" dir="auto">${esc(text)}</p><p class="ai-note">${esc(t().aiNote)}</p>${facts.length ? `<ul class="facts" dir="auto">${facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}${quotesHtml(s)}${richHtml(s)}`;
 }
 // Machine translation of the shown headline (for the bubble), if the headline isn't Hebrew/English
 function translationOf(s, d) {
@@ -1181,6 +1201,7 @@ function cardHtmlV2(s, fresh) {
         ${aiSum ? `<p class="c-note">${esc(L.aiNote)}</p>` : ''}
         ${facts.length ? `<div class="c-facts"><span class="c-facts-h">${he ? 'עובדות מפתח' : 'Key facts'}</span>${facts.map((f) => `<span class="c-fact" dir="auto">${esc(f)}</span>`).join('')}</div>` : ''}
         ${quotes.map((q, i) => `<div class="c-quote"><span class="c-q-ic">${icon('quote', 15)}</span><span class="c-q-t"><b>״${esc(q.he)}״</b> <span>— ${esc(q.who)}</span></span><button type="button" class="quote-copy" data-q="${i}">${icon('copy', 15)}${he ? 'העתקת ציטוט' : 'Copy quote'}</button></div>`).join('')}
+        ${aiSum ? richHtml(s) : ''}
         <button type="button" class="c-less">${he ? 'פחות' : 'Less'}</button>
       </div>`
     : '';
