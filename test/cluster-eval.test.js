@@ -43,7 +43,13 @@ test('grouping evaluation: the data is whole (every labelled article exists, lab
   assert.deepEqual(['MERGE', 'SEPARATE_BUT_RELATED', 'SEPARATE'].map((d) => finalLabel({ editorDecision: d, policy: 'review' })), ['same', 'different', 'different']);
   assert.equal(finalLabel({ policy: 'same' }), 'same'); // unreviewed: the assistant's label, unverified
   // the first reading of Step 0 is kept as it was
-  assert.deepEqual(FIRST.map((l) => count(pairs, (p) => p.label === l)), [57, 114, 53, 40]);
+  // (the 264 pairs of Step 0 / Step 1; the Step 2 review pairs are a separate group, unverified, below)
+  const original = pairs.filter((p) => p.group !== 'step2-review');
+  assert.equal(original.length, 264);
+  assert.deepEqual(FIRST.map((l) => count(original, (p) => p.label === l)), [57, 114, 53, 40]);
+  const step2 = pairs.filter((p) => p.group === 'step2-review');
+  assert.equal(step2.length, 19);
+  for (const p of step2) assert.ok(!p.editorDecision && p.editor === null && p.by === 'assistant' && p.label === p.policy && ['same', 'different'].includes(p.label), p.id); // unverified
   // the approved rules: same-match and related pairs were classified one by one, never all one way
   const moved = pairs.filter((p) => p.label === 'same-match' || p.label === 'related');
   for (const l of POLICY) assert.ok(count(moved, (p) => p.policy === l) > 0, l);
@@ -83,8 +89,10 @@ test('grouping evaluation: runs with no network, gives the same numbers every ti
 test('grouping evaluation, Step 1: fewer false merges than the grouping before it, on the same data', async () => {
   const old = numbers(evaluate({ cluster: await loadBefore(), time: false }));
   const now = numbers(evaluate({ time: false }));
-  // the frozen copy still gives the numbers measured before Step 1
-  assert.deepEqual([old.real.falseMerges, old.real.correctMerges, old.shape.biggest[0]], [71, 33, 721]); // under the editor's decisions
+  // The frozen copy freezes the word grouping only (src/cluster.js); the card merge is always the current one. Before
+  // Step 2 this gave 33 correct merges; Step 2's Hebrew-led merge adds one to it (34). Under the editor's decisions.
+  // With the 19 Step 2 review pairs (7 same, 12 different) added: 71 + 3 false, 34 + 7 correct.
+  assert.deepEqual([old.real.falseMerges, old.real.correctMerges, old.shape.biggest[0]], [74, 41, 721]);
   assert.ok(now.real.falseMerges < old.real.falseMerges / 3, `false merges ${old.real.falseMerges} → ${now.real.falseMerges}`);
   assert.ok(now.real.crossPhaseTogether < old.real.crossPhaseTogether / 3, 'two phases of one match in one story');
   // on the pairs an editor decided, and apart from the ones nobody reviewed

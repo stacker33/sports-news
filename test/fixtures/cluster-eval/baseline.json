@@ -1,18 +1,18 @@
 {
-  "savedFor": "The gate: the current grouping (Step 1 plus the Griezmann clip-vs-quote patch, ee2f8b3) scored under the editor decisions of 2026-11-13. History: baseline-step0.json (Step 0, first labels), baseline-step1-assistant-labels.json (Step 1, the assistant labels), baseline-step1-editor-labels.json (Step 1 before the patch, editor decisions).",
+  "savedFor": "The gate: the current grouping (Step 2: Hebrew-led stories join the foreign reports of the same event), 283 pairs: the 264 of Steps 0 and 1 and the 19 Step 2 review pairs. History: baseline-step0.json, baseline-step1-assistant-labels.json, baseline-step1-editor-labels.json, baseline-step1-final.json.",
   "real": {
-    "pairs": 264,
+    "pairs": 283,
     "missing": 0,
-    "same": 65,
-    "different": 199,
-    "correctMerges": 30,
-    "missedMerges": 35,
+    "same": 72,
+    "different": 211,
+    "correctMerges": 38,
+    "missedMerges": 34,
     "falseMerges": 18,
-    "correctlyApart": 181,
-    "precision": 62.5,
-    "recall": 46.2,
+    "correctlyApart": 193,
+    "precision": 67.9,
+    "recall": 52.8,
     "mergedByWords": 28,
-    "mergedByCards": 2,
+    "mergedByCards": 10,
     "falseMergesByWords": 17,
     "falseMergesByCards": 1,
     "review": 0,
@@ -25,7 +25,7 @@
     "relatedSeparate": 83,
     "relatedSeparateTogether": 8,
     "editorApproved": 95,
-    "unverified": 169,
+    "unverified": 188,
     "byGroup": {
       "multilingual": {
         "same": 17,
@@ -53,7 +53,7 @@
       },
       "hebrew-vs-foreign": {
         "same": 7,
-        "found": 0,
+        "found": 1,
         "different": 34,
         "falseMerges": 0,
         "review": 0,
@@ -80,6 +80,14 @@
         "found": 7,
         "different": 12,
         "falseMerges": 5,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "step2-review": {
+        "same": 7,
+        "found": 7,
+        "different": 12,
+        "falseMerges": 0,
         "review": 0,
         "reviewTogether": 0
       }
@@ -171,18 +179,18 @@
     }
   },
   "unreviewed": {
-    "pairs": 169,
+    "pairs": 188,
     "missing": 0,
-    "same": 55,
-    "different": 114,
-    "correctMerges": 30,
-    "missedMerges": 25,
+    "same": 62,
+    "different": 126,
+    "correctMerges": 38,
+    "missedMerges": 24,
     "falseMerges": 10,
-    "correctlyApart": 104,
-    "precision": 75,
-    "recall": 54.5,
+    "correctlyApart": 116,
+    "precision": 79.2,
+    "recall": 61.3,
     "mergedByWords": 28,
-    "mergedByCards": 2,
+    "mergedByCards": 10,
     "falseMergesByWords": 9,
     "falseMergesByCards": 1,
     "review": 0,
@@ -195,7 +203,7 @@
     "relatedSeparate": 0,
     "relatedSeparateTogether": 0,
     "editorApproved": 0,
-    "unverified": 169,
+    "unverified": 188,
     "byGroup": {
       "multilingual": {
         "same": 17,
@@ -223,7 +231,7 @@
       },
       "hebrew-vs-foreign": {
         "same": 7,
-        "found": 0,
+        "found": 1,
         "different": 20,
         "falseMerges": 0,
         "review": 0,
@@ -250,6 +258,14 @@
         "found": 7,
         "different": 9,
         "falseMerges": 4,
+        "review": 0,
+        "reviewTogether": 0
+      },
+      "step2-review": {
+        "same": 7,
+        "found": 7,
+        "different": 12,
+        "falseMerges": 0,
         "review": 0,
         "reviewTogether": 0
       }
@@ -294,7 +310,7 @@
   },
   "time": {
     "stepHours": 3,
-    "moved": 865,
+    "moved": 860,
     "kept": 51081,
     "movedPct": 1.7,
     "lostStories": 49,
@@ -303,8 +319,8 @@
   },
   "shape": {
     "articles": 7441,
-    "stories": 1092,
-    "singleArticle": 548,
+    "stories": 1083,
+    "singleArticle": 544,
     "biggest": [
       249,
       225,
@@ -312,18 +328,18 @@
       192,
       190
     ],
-    "over100Articles": 14,
-    "over50Outlets": 13,
+    "over100Articles": 15,
+    "over50Outlets": 15,
     "longestSpansH": [
+      38,
       35,
       34,
       34,
-      33,
       33
     ],
     "over24h": 28,
     "wordGroupsOver20h": 33,
     "longestWordGroupH": 35,
-    "joinedByCards": 60
+    "joinedByCards": 69
   }
 }

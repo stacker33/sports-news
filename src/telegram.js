@@ -18,11 +18,12 @@ const PER_RUN = 4;
 const PER_HOUR = 12;
 const PER_HOUR_NIGHT = 4;
 export const PER_DAY = 250;
-// The version of the way articles are grouped into stories (docs/cluster-step1.md). When it changes, stories that
+// The version of the way articles are grouped into stories (2: Step 1, docs/cluster-step1.md; 3: Step 2, Hebrew-led
+// stories join the foreign reports of the same event, docs/cluster-step2.md). When it changes, stories that
 // already exist get new ids, so the first run after the change posts nothing: what is on the page is marked as
 // sent, exactly as at the switch to the main-page rule (one quiet run, then normal). To undo: set it back to the
 // value the radar had saved (1: the value before this existed counts as "not set").
-export const GROUPING = 2;
+export const GROUPING = 3;
 const QUIET = [1, 6]; // 01:00–05:59 Israel time: alerts still go out, but silently (no sound / vibration)
 // competitions the editors follow (tag ids from src/entities.js)
 const BRIEF_HOUR = 6; // the morning editor starts at 6
