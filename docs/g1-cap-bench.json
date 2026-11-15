@@ -1,0 +1,146 @@
+{
+ "state": "C:/Users/avrah/sports-radar-backups/2026-10-20-prerelease/state.json",
+ "runs": 13,
+ "replayed": [
+  {
+   "at": "2026-10-19T21:09:40.000Z",
+   "eligible": 9014,
+   "israeli": 500,
+   "scoredInMs": 818,
+   "heapUsedDeltaMB": 21,
+   "rssMB": 292,
+   "selectionMs": 810,
+   "overlapWithLegacy": 928,
+   "added": 272,
+   "dropped": 272,
+   "recallNewestTop300": {
+    "legacy": 87.7,
+    "g1": 100
+   },
+   "recallDefaultTop300": {
+    "legacy": 94,
+    "g1": 100
+   },
+   "recallEditorialTop120": {
+    "legacy": 100,
+    "g1": 100
+   }
+  },
+  {
+   "at": "2026-10-19T21:14:40.000Z",
+   "eligible": 9015,
+   "scoredInMs": 693,
+   "selectionMs": 683,
+   "overlapWithLegacy": 932
+  },
+  {
+   "at": "2026-10-19T21:19:40.000Z",
+   "eligible": 9081,
+   "scoredInMs": 691,
+   "selectionMs": 679,
+   "overlapWithLegacy": 931
+  },
+  {
+   "at": "2026-10-19T21:24:40.000Z",
+   "eligible": 9091,
+   "scoredInMs": 665,
+   "selectionMs": 657,
+   "overlapWithLegacy": 936
+  },
+  {
+   "at": "2026-10-19T21:29:40.000Z",
+   "eligible": 9072,
+   "scoredInMs": 631,
+   "selectionMs": 624,
+   "overlapWithLegacy": 936
+  },
+  {
+   "at": "2026-10-19T21:34:40.000Z",
+   "eligible": 9075,
+   "scoredInMs": 669,
+   "selectionMs": 660,
+   "overlapWithLegacy": 937
+  },
+  {
+   "at": "2026-10-19T21:39:40.000Z",
+   "eligible": 9087,
+   "scoredInMs": 656,
+   "selectionMs": 647,
+   "overlapWithLegacy": 941
+  },
+  {
+   "at": "2026-10-19T21:44:40.000Z",
+   "eligible": 9095,
+   "scoredInMs": 668,
+   "selectionMs": 659,
+   "overlapWithLegacy": 941
+  },
+  {
+   "at": "2026-10-19T21:49:40.000Z",
+   "eligible": 9081,
+   "scoredInMs": 890,
+   "selectionMs": 877,
+   "overlapWithLegacy": 938
+  },
+  {
+   "at": "2026-10-19T21:54:40.000Z",
+   "eligible": 9078,
+   "scoredInMs": 664,
+   "selectionMs": 654,
+   "overlapWithLegacy": 944
+  },
+  {
+   "at": "2026-10-19T21:59:40.000Z",
+   "eligible": 9070,
+   "scoredInMs": 649,
+   "selectionMs": 643,
+   "overlapWithLegacy": 942
+  },
+  {
+   "at": "2026-10-19T22:04:40.000Z",
+   "eligible": 9038,
+   "scoredInMs": 676,
+   "selectionMs": 661,
+   "overlapWithLegacy": 946
+  },
+  {
+   "at": "2026-10-19T22:09:40.000Z",
+   "eligible": 9011,
+   "israeli": 493,
+   "scoredInMs": 645,
+   "heapUsedDeltaMB": 27,
+   "rssMB": 472,
+   "selectionMs": 637,
+   "overlapWithLegacy": 945,
+   "added": 255,
+   "dropped": 255,
+   "recallNewestTop300": {
+    "legacy": 91,
+    "g1": 99.7
+   },
+   "recallDefaultTop300": {
+    "legacy": 95.3,
+    "g1": 100
+   },
+   "recallEditorialTop120": {
+    "legacy": 100,
+    "g1": 100
+   }
+  }
+ ],
+ "churn": {
+  "note": "Jaccard overlap of the published sets of consecutive 5-minute runs (1.0 = identical)",
+  "legacy": 0.9716,
+  "g1WithKeepBonus": 0.978,
+  "g1WithoutBonus": 0.9767,
+  "minLegacy": 0.9591836734693877,
+  "minG1WithBonus": 0.9688269073010665,
+  "minG1WithoutBonus": 0.9672131147540983
+ },
+ "cost": {
+  "scoredStories": 9095,
+  "medianScoringMs": 668,
+  "maxScoringMs": 890,
+  "peakRssMB": 472
+ }
+}

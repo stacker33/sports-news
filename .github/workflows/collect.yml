@@ -131,6 +131,8 @@ jobs:
           AI_DAILY_CAP: ${{ vars.AI_DAILY_CAP }}
           # multi-source summaries (src/storysum.js): OFF unless this repository variable is 1 / true / on; delete it or set 0 to turn them off again
           AI_RICH_SUMMARIES: ${{ vars.AI_RICH_SUMMARIES }}
+          # editorial-aware 1,200-story cap (src/capselect.js, docs/g1-cap.md): OFF unless this repository variable is shadow (log only) or 1 / true / on
+          CAP_G1: ${{ vars.CAP_G1 }}
           # Telegram channel (src/telegram.js): bot token as a secret, channel ("@name") as a repository variable
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT: ${{ vars.TELEGRAM_CHAT }}

@@ -52,6 +52,7 @@ import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candi
 import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
+import { capG1Mode, capStories, applyCap, pinInto } from './capselect.js';
 import { loadStateStrict, stateAgeNote, survivorDiagnostic, StateError } from './statecheck.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -87,13 +88,7 @@ async function writeJson(path, data) {
   await rename(tmp, path);
 }
 
-// Keep at most `max` stories (sorted newest first): Israeli-angle stories first, then the newest; order kept
-export function capStories(stories, max) {
-  if (stories.length <= max) return stories;
-  const keep = new Set(stories.filter((s) => s.israel || s.abroad || s.watchIsrael).slice(0, max));
-  for (const s of stories) if (keep.size < max) keep.add(s);
-  return stories.filter((s) => keep.has(s));
-}
+export { capStories }; // moved to src/capselect.js (with the optional editorial-aware selection, CAP_G1)
 
 // force = fetch every source regardless of its interval (used after editing the athlete list)
 export async function collect({ log = console.log, force = false } = {}) {
@@ -464,10 +459,6 @@ export async function collect({ log = console.log, force = false } = {}) {
     .sort((a, b) => b.latest - a.latest);
   // The cap keeps the newest stories, but an Israeli-angle story inside the 36-hour window is never cut for space
   // (found by the evaluation set: a day-old Spanish story about Roy Revivo was dropped for space)
-  stories.splice(0, stories.length, ...capStories(stories, MAX_STORIES));
-
-  // Sport5 coverage, second check: same-day Sport5 article about the same thing worded differently
-  const s5probable = sport5Probable(stories, items, tokens);
   // Source roles, evidence, truthful coverage, views and the editorial rank (src/roles.js, src/rank.js).
   // Votes come from the previous run's feedback (loaded later in this run).
   const s5check = sport5Check(meta, now);
@@ -475,6 +466,31 @@ export async function collect({ log = console.log, force = false } = {}) {
   loadRankVocabulary(join(ROOT, 'config', 'vocabulary.json')); // the editors' keyword list for news value
   const heOf = new Map(athletes.filter((a) => a.name_he).map((a) => [a.name, a.name_he]));
   const heName = (n) => heOf.get(n) || n;
+  // CAP_G1 = off (default) | shadow | on (src/capselect.js). Off: the cap is exactly what it always was. The editorial score used
+  // to choose the stories is the radar's own editorialRank, computed here from the same inputs as in the loop below.
+  const capMode = capG1Mode();
+  const editorialScoreOf = (s) => {
+    const { roles: _roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
+    return editorialRank({ ...s, ev, cov: storyCoverage(s, s5check, ev) }, { now, cfg: rankCfg, votes: state.feedback?.votes?.[s.id], heName }).score;
+  };
+  let cap;
+  try {
+    cap = applyCap(stories, { mode: capMode, max: MAX_STORIES, now, scoreOf: editorialScoreOf, prevKept: new Set(state.capKept?.ids || []) });
+  } catch (e) {
+    // never let the new selection stop a run: fall back to the legacy cap
+    log(`[cap-g1] failed, the legacy cap is used: ${String(e.message || e).slice(0, 120)}`);
+    cap = applyCap(stories, { mode: 'off', max: MAX_STORIES, now });
+  }
+  if (cap.stats) log(`[cap-g1] ${capMode}: ${JSON.stringify(cap.stats)}`);
+  stories.splice(0, stories.length, ...cap.union);
+  // `core` is what the legacy cap would publish (Telegram, summaries, translations, brief, trends, source report read it, so a
+  // story that only the editorial-aware cap admits is display-only); `published` is what the data files hold (the brief's stories
+  // are added to it after the brief is made). With the flag off all three are the same list.
+  const core = cap.core;
+  let published = cap.published;
+
+  // Sport5 coverage, second check: same-day Sport5 article about the same thing worded differently
+  const s5probable = sport5Probable(stories, items, tokens);
   for (const s of stories) {
     const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
     for (const x of s.sources) if (roles[x.link]) [x.o, x.r] = roles[x.link];
@@ -499,20 +515,20 @@ export async function collect({ log = console.log, force = false } = {}) {
   // quality numbers for the watchlist page (src/metrics.js): measured, never fed back into collection
   const rejectedNow = [...rejected.values()];
   const quality = {
-    queries: queryMetrics(stories, new Set(watchCandidates.map((c) => c.id)), rejectedNow),
+    queries: queryMetrics(core, new Set(watchCandidates.map((c) => c.id)), rejectedNow),
     delay: discoveryDelay(items),
-    usefulness: usefulness(state.feedback?.votes, stories),
-    low: lowRankReasons(stories, rejectedNow),
+    usefulness: usefulness(state.feedback?.votes, core),
+    low: lowRankReasons(core, rejectedNow),
   };
 
   // Summaries: feed descriptions + article pages, most important stories first (Israeli / abroad, then popular & fresh)
   const sums = state.sums || {};
-  const priority = [...stories]
+  const priority = [...core]
     .filter((s) => now - s.first < 18 * 3600e3)
     .sort((a, b) => b.score - a.score); // most important first — world and Israeli alike
-  const summarized = await fillSummaries([...priority, ...stories.filter((s) => !priority.includes(s))], sums, { now }).catch(() => 0);
+  const summarized = await fillSummaries([...priority, ...core.filter((s) => !priority.includes(s))], sums, { now }).catch(() => 0);
   // foreign-language summaries → Hebrew + English (cached with the summary)
-  const needTr = stories.filter((s) => s.sum && s.sum.lang !== 'he' && s.sum.lang !== 'en' && !(sums[s.sum.id]?.he && sums[s.sum.id]?.en));
+  const needTr = core.filter((s) => s.sum && s.sum.lang !== 'he' && s.sum.lang !== 'en' && !(sums[s.sum.id]?.he && sums[s.sum.id]?.en));
   const byLang = new Map();
   for (const s of needTr.slice(0, 150)) (byLang.get(s.sum.lang) || byLang.set(s.sum.lang, []).get(s.sum.lang)).push(s);
   for (const [lang, list] of byLang) {
@@ -535,18 +551,18 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   // today's Sport5 homepage headlines: the style the editors write in
   const styleHeads = items.filter((i) => i.sourceId === 'sport5-home' && i.title.length > 20).sort((a, b) => b.published - a.published).slice(0, 10).map((i) => i.title);
-  const { ai, done: aiDone } = await aiSummaries(stories, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
+  const { ai, done: aiDone } = await aiSummaries(core, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
-  const { tg, posted: tgPosted } = await telegramPost(stories, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
+  const { tg, posted: tgPosted } = await telegramPost(core, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
   // 🔥 trends panel (sports only) + news searches for sports trends we have no story on yet
   const isAbroad = (text) => ctx.matchers.players(' ' + String(text).toLowerCase() + ' ').length > 0;
-  const trends = trendBoard(signals, stories, isAbroad, athletes, now);
+  const trends = trendBoard(signals, core, isAbroad, athletes, now);
   const trendSearch = nextTrendSearches(trends, state.trendSearch, now);
   // ☀️ the morning's list, pinned on the site until noon
-  const brief = morningBrief(stories, state.brief, now);
+  const brief = morningBrief(core, state.brief, now);
   // Weekly source report to the admin (src/sourcereport.js): yesterday's tally once a day (while the stories still
   // have their articles), the report on Sunday; sent with the other admin messages below
-  const { srcReport, message: srcMsg } = sourceReportStep(now, state.srcReport, { stories, items, nameOf: (id) => srcById.get(id)?.name, votes: state.feedback?.votes });
+  const { srcReport, message: srcMsg } = sourceReportStep(now, state.srcReport, { stories: core, items, nameOf: (id) => srcById.get(id)?.name, votes: state.feedback?.votes });
   const shownIds = new Set(); // articles in a published story (for the save-time trim)
   for (const s of stories) {
     for (const m of s._members) shownIds.add(m.id);
@@ -600,13 +616,15 @@ export async function collect({ log = console.log, force = false } = {}) {
   };
   // First screen: the newest 300 + everything Israeli / Israelis abroad + the night summary's stories (they're from
   // the night, so mostly not among the newest: the summary card waited for the second file); the rest loads right after
-  const byNew = [...stories].sort((a, b) => b.first - a.first);
+  // the brief names stories from `core`: they must be in the files (G1 keeps the total at the cap by dropping its lowest-ranked others)
+  if (capMode === 'on' && cap.ranked) published = pinInto(cap, brief?.ids || [], MAX_STORIES);
+  const byNew = [...published].sort((a, b) => b.first - a.first);
   const briefIds = new Set(brief?.ids || []);
-  const firstIds = new Set([...byNew.slice(0, 300), ...stories.filter((s) => s.israel || s.abroad || briefIds.has(s.id))].map((s) => s.id));
+  const firstIds = new Set([...byNew.slice(0, 300), ...published.filter((s) => s.israel || s.abroad || briefIds.has(s.id))].map((s) => s.id));
   const head = { generatedAt: now, tookMs: Date.now() - started, sources: { total: sources.length, ok: okCount, fetched: due.length } };
   // The watchlist page's data: every entry with its state, every query with why it exists, its schedule and its value
   const hitsBy = {};
-  for (const s of stories) for (const h of s.watch || []) hitsBy[h.id] = (hitsBy[h.id] || 0) + 1;
+  for (const s of published) for (const h of s.watch || []) hitsBy[h.id] = (hitsBy[h.id] || 0) + 1;
   const deferredBy = new Map(watchPlan.deferred.map((d) => [d.id, d]));
   const ranIds = new Set(watchRun.map((c) => c.id));
   await writeJson(join(DATA, 'watch.json'), {
@@ -629,24 +647,24 @@ export async function collect({ log = console.log, force = false } = {}) {
     // temporary "follow in the radar" searches (an active collection subscription, unlike a saved display topic)
     follows: Object.entries(state.userSearch || {}).map(([q, t]) => ({ q, since: t.since, topic: !!t.topic, expires: t.since + (t.topic ? TOPIC_DAYS * 864e5 : FOLLOW_HOURS * 3600e3) })),
     overrides: await loadOverrides(ROOT), // the current editor decisions (the page starts its draft from these)
-    hits: stories.filter((s) => s.watch).length,
+    hits: published.filter((s) => s.watch).length,
     quality: { ...quality, queries: undefined },
   });
   // the previous publish (restored from the Actions cache by the workflow), for the "what changed" file below
   const prevFirst = await readJson(join(DATA, 'news.json'), null);
   const prevMore = await readJson(join(DATA, 'news-more.json'), null);
-  const moreOut = { generatedAt: now, stories: stories.filter((s) => !firstIds.has(s.id)).map(slim) };
+  const moreOut = { generatedAt: now, stories: published.filter((s) => !firstIds.has(s.id)).map(slim) };
   await writeJson(join(DATA, 'news-more.json'), moreOut);
   const firstOut = {
     ...head,
-    more: stories.length - firstIds.size, // how many stories news-more.json holds
+    more: published.length - firstIds.size, // how many stories news-more.json holds
     rivals: rivals.games,
     gameInfo: gameInfo.games,
     ...(brief ? { brief } : {}),
     trends,
     wikiAthletes: wiki.athletes || {},
     mail: mailEnabled(), // the page sends ✉️ through the radar's mailbox (otherwise it opens the editor's mail program)
-    stories: stories.filter((s) => firstIds.has(s.id)).map(slim),
+    stories: published.filter((s) => firstIds.has(s.id)).map(slim),
   };
   await writeJson(join(DATA, 'news.json'), firstOut);
   // What changed since the previous publish (src/delta.js): an open tab downloads this (~130 KB) instead of the full
@@ -724,16 +742,16 @@ export async function collect({ log = console.log, force = false } = {}) {
     athletes: { waiting: count(userAthletesSt.list, 'pending'), approved: count(userAthletesSt.list, 'approved'), queue: (userAthletesSt.queue || []).length, error: userAthletesSt.error || null },
     votes: Object.keys(feedback.votes || {}).length,
   });
-  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, selfAlerts, srcReport, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
+  await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ...(cap.keptIds ? { capKept: { at: now, ids: cap.keptIds } } : {}), ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, selfAlerts, srcReport, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
 
   log(
-    `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${stories.length} stories · ${Date.now() - started}ms`
+    `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${published.length} stories · ${Date.now() - started}ms`
   );
   log(
     `   Sport5: +${s5probable} probably covered · Telegram: ${tgPosted} posted · reports forwarded: ${reportsSent}${tg.error ? ` (${tg.error})` : ''} · AI summaries: ${aiDone} new, ${ai.used || 0} requests today${ai.error ? ` (error: ${ai.error})` : ''} · ${Object.keys(corrections.byLink).length} corrected articles (${fixesAdded} new) · sport decided by: ${Object.entries(why).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')}`
   );
   results.forEach((r, i) => !r.ok && log(`   ✗ ${due[i].id}: ${String(r.error?.message || r.error).slice(0, 100)}`));
-  return { stories: stories.length, fresh };
+  return { stories: published.length, fresh };
 }
 
 // Ranking boosts from real-world attention:
