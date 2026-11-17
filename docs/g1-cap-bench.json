@@ -6,10 +6,10 @@
    "at": "2026-10-19T21:09:40.000Z",
    "eligible": 9014,
    "israeli": 500,
-   "scoredInMs": 818,
-   "heapUsedDeltaMB": 21,
-   "rssMB": 292,
-   "selectionMs": 810,
+   "scoredInMs": 842,
+   "heapUsedDeltaMB": 22,
+   "rssMB": 293,
+   "selectionMs": 833,
    "overlapWithLegacy": 928,
    "added": 272,
    "dropped": 272,
@@ -29,88 +29,88 @@
   {
    "at": "2026-10-19T21:14:40.000Z",
    "eligible": 9015,
-   "scoredInMs": 693,
-   "selectionMs": 683,
+   "scoredInMs": 672,
+   "selectionMs": 665,
    "overlapWithLegacy": 932
   },
   {
    "at": "2026-10-19T21:19:40.000Z",
    "eligible": 9081,
-   "scoredInMs": 691,
-   "selectionMs": 679,
+   "scoredInMs": 650,
+   "selectionMs": 643,
    "overlapWithLegacy": 931
   },
   {
    "at": "2026-10-19T21:24:40.000Z",
    "eligible": 9091,
-   "scoredInMs": 665,
-   "selectionMs": 657,
+   "scoredInMs": 673,
+   "selectionMs": 664,
    "overlapWithLegacy": 936
   },
   {
    "at": "2026-10-19T21:29:40.000Z",
    "eligible": 9072,
-   "scoredInMs": 631,
-   "selectionMs": 624,
+   "scoredInMs": 655,
+   "selectionMs": 645,
    "overlapWithLegacy": 936
   },
   {
    "at": "2026-10-19T21:34:40.000Z",
    "eligible": 9075,
-   "scoredInMs": 669,
-   "selectionMs": 660,
+   "scoredInMs": 676,
+   "selectionMs": 666,
    "overlapWithLegacy": 937
   },
   {
    "at": "2026-10-19T21:39:40.000Z",
    "eligible": 9087,
-   "scoredInMs": 656,
-   "selectionMs": 647,
+   "scoredInMs": 671,
+   "selectionMs": 663,
    "overlapWithLegacy": 941
   },
   {
    "at": "2026-10-19T21:44:40.000Z",
    "eligible": 9095,
-   "scoredInMs": 668,
-   "selectionMs": 659,
+   "scoredInMs": 652,
+   "selectionMs": 642,
    "overlapWithLegacy": 941
   },
   {
    "at": "2026-10-19T21:49:40.000Z",
    "eligible": 9081,
-   "scoredInMs": 890,
-   "selectionMs": 877,
+   "scoredInMs": 670,
+   "selectionMs": 662,
    "overlapWithLegacy": 938
   },
   {
    "at": "2026-10-19T21:54:40.000Z",
    "eligible": 9078,
    "scoredInMs": 664,
-   "selectionMs": 654,
+   "selectionMs": 657,
    "overlapWithLegacy": 944
   },
   {
    "at": "2026-10-19T21:59:40.000Z",
    "eligible": 9070,
-   "scoredInMs": 649,
-   "selectionMs": 643,
+   "scoredInMs": 656,
+   "selectionMs": 649,
    "overlapWithLegacy": 942
   },
   {
    "at": "2026-10-19T22:04:40.000Z",
    "eligible": 9038,
-   "scoredInMs": 676,
-   "selectionMs": 661,
+   "scoredInMs": 660,
+   "selectionMs": 652,
    "overlapWithLegacy": 946
   },
   {
    "at": "2026-10-19T22:09:40.000Z",
    "eligible": 9011,
    "israeli": 493,
-   "scoredInMs": 645,
+   "scoredInMs": 669,
    "heapUsedDeltaMB": 27,
-   "rssMB": 472,
-   "selectionMs": 637,
+   "rssMB": 475,
+   "selectionMs": 662,
    "overlapWithLegacy": 945,
    "added": 255,
    "dropped": 255,
@@ -137,10 +137,17 @@
   "minG1WithBonus": 0.9688269073010665,
   "minG1WithoutBonus": 0.9672131147540983
  },
+ "identity": {
+  "note": "runs in which the published list (off, shadow) and the list Telegram / summaries read (on) are exactly the legacy list: same stories, same order",
+  "runs": 13,
+  "offSameAsLegacy": 13,
+  "shadowSameAsLegacy": 13,
+  "coreSameAsLegacyWhenOn": 13
+ },
  "cost": {
   "scoredStories": 9095,
-  "medianScoringMs": 668,
-  "maxScoringMs": 890,
-  "peakRssMB": 472
+  "medianScoringMs": 669,
+  "maxScoringMs": 842,
+  "peakRssMB": 475
  }
 }

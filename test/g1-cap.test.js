@@ -174,3 +174,98 @@ test('the wiring in collect.js: notifications, summaries, translations, brief, t
   // the saved state is unchanged when the flag is off
   assert.ok(src.includes('...(cap.keptIds ? { capKept:'));
 });
+
+// ---------- Telegram access and the flag modes (final check before deployment) ----------
+import { telegramPinIds, TG_PIN_HOURS, TG_PIN_MAX } from '../src/capselect.js';
+
+test('flag off and shadow publish exactly the legacy list, with the same objects in the same order, and off never scores anything', () => {
+  const stories = day();
+  const legacy = capStories(stories, 1200);
+  let calls = 0;
+  const spy = (s) => { calls++; return s._ed; };
+  const off = applyCap(stories, { mode: 'off', max: 1200, now: NOW, scoreOf: spy });
+  assert.equal(calls, 0, 'off computes no editorial score');
+  const shadow = applyCap(stories, { mode: 'shadow', max: 1200, now: NOW, scoreOf: spy });
+  for (const r of [off, shadow]) {
+    assert.equal(r.published.length, legacy.length);
+    assert.ok(r.published.every((s, i) => s === legacy[i]), 'same story objects, same order');
+    assert.ok(r.core.every((s, i) => s === legacy[i]) && r.union.every((s, i) => s === legacy[i]));
+  }
+  assert.equal(shadow.stats.g1, 1200); // shadow still reports what G1 would do
+  assert.ok(shadow.keptIds.length === 1200);
+});
+
+test('model calls: the list the summaries / translations / Telegram read is the legacy list in off, shadow and on', () => {
+  const stories = day();
+  const legacyIds = ids(capStories(stories, 1200));
+  for (const mode of ['off', 'shadow', 'on']) assert.deepEqual(ids(applyCap(stories, { mode, max: 1200, now: NOW, scoreOf }).core), legacyIds, mode);
+  const src = readFileSync(new URL('../src/collect.js', import.meta.url), 'utf8');
+  // every call that can reach Gemini, a translator or Telegram takes `core`
+  for (const call of ['aiSummaries(core,', 'fillSummaries([...priority, ...core.filter', 'const needTr = core.filter', 'telegramPost(core,', 'translateTexts(']) assert.ok(src.includes(call), call);
+  assert.ok(!/aiSummaries\(stories|fillSummaries\(\[\.\.\.priority, \.\.\.stories|telegramPost\(stories/.test(src));
+});
+
+test('telegramPinIds: only the last 12 hours, only stories still eligible, newest post first, at most 60', () => {
+  const stories = Array.from({ length: 100 }, (_, i) => story({ id: `t${String(i).padStart(3, '0')}` }));
+  const keyOf = (s) => `k-${s.id}`;
+  const sent = {};
+  stories.forEach((s, i) => { sent[keyOf(s)] = NOW - i * 5 * 60e3; }); // posted 0, 5, 10 ... minutes ago
+  sent['k-gone'] = NOW - 60e3; // posted, but no longer an eligible story: nothing to keep
+  sent[keyOf(stories[99])] = NOW - 13 * H; // too old
+  const pins = telegramPinIds(stories, sent, keyOf, NOW);
+  assert.equal(TG_PIN_HOURS, 12);
+  assert.equal(pins.length, TG_PIN_MAX);
+  assert.equal(pins[0], 't000'); // the most recent post first
+  assert.ok(!pins.includes('t099') && !pins.includes('gone'));
+  assert.deepEqual(telegramPinIds(stories, {}, keyOf, NOW), []);
+  assert.deepEqual(telegramPinIds(stories, undefined, keyOf, NOW), []);
+  assert.deepEqual(telegramPinIds(stories.slice(0, 3), { 'k-t000': NOW + 10 * 60e3 }, keyOf, NOW), [], 'a post time in the future is ignored');
+});
+
+test('a story posted to Telegram that G1 would not keep stays in the published files; the total stays 1,200 and Israeli stories stay', () => {
+  const stories = day();
+  const g = applyCap(stories, { mode: 'on', max: 1200, now: NOW, scoreOf });
+  // legacy-list stories G1 dropped: fresh, low-value; Telegram "posted" five of them
+  const dropped = g.core.filter((s) => !g.published.includes(s) && !s.israel).slice(0, 5);
+  assert.equal(dropped.length, 5);
+  const keyOf = (s) => `key-${s.id}`;
+  const sent = Object.fromEntries(dropped.map((s, i) => [keyOf(s), NOW - (i + 1) * 20 * 60e3]));
+  const pins = telegramPinIds(g.union, sent, keyOf, NOW);
+  assert.deepEqual(pins.slice().sort(), dropped.map((s) => s.id).sort());
+  const out = pinInto(g, pins, 1200);
+  assert.equal(out.length, 1200);
+  assert.ok(dropped.every((s) => out.includes(s)));
+  assert.ok(g.published.filter((s) => s.israel).every((s) => out.includes(s)));
+  // the brief and Telegram pins together
+  const more = pinInto(g, [...pins, ...g.core.filter((s) => !g.published.includes(s) && !s.israel).slice(5, 8).map((s) => s.id)], 1200);
+  assert.equal(more.length, 1200);
+  // without the pin the posted stories would have been absent
+  assert.ok(dropped.every((s) => !g.published.includes(s)));
+});
+
+test('the wiring: Telegram pins are computed from the channel\'s own memory before the members are deleted, only when the flag is on', () => {
+  const src = readFileSync(new URL('../src/collect.js', import.meta.url), 'utf8');
+  assert.ok(src.includes("const tgPins = capMode === 'on' ? telegramPinIds(stories, tg.sent, (s) => s._members.map((m) => m.id), now, { core: new Set(core) }) : [];"));
+  assert.ok(src.includes('pinInto(cap, [...(brief?.ids || []), ...tgPins], MAX_STORIES)'));
+  assert.ok(src.indexOf('const tgPins') < src.indexOf('delete s._members'), 'the story keys need _members');
+});
+
+test('telegramPinIds finds a posted story even when a late older article changed its key (any article id of the story counts)', () => {
+  const s1 = { ...story({ id: 'x1' }), _members: [{ id: 'older-late-article' }, { id: 'posted-under-this' }] };
+  const s2 = { ...story({ id: 'x2' }), _members: [{ id: 'unrelated' }] };
+  const sent = { 'posted-under-this': NOW - 2 * H, unrelated: NOW - 20 * H };
+  assert.deepEqual(telegramPinIds([s1, s2], sent, (s) => s._members.map((m) => m.id), NOW), ['x1']);
+});
+
+test('retention: a story posted 12 to 36 hours ago stays only while the old cap would still publish it; beyond 36 h, never; the cap is 60', () => {
+  const mk = (id) => ({ ...story({ id }), _members: [{ id: `m-${id}` }] });
+  const a = mk('a'), b = mk('b'), c = mk('c');
+  const sent = { 'm-a': NOW - 20 * H, 'm-b': NOW - 20 * H, 'm-c': NOW - 40 * H };
+  const keysOf = (s) => s._members.map((m) => m.id);
+  assert.deepEqual(telegramPinIds([a, b, c], sent, keysOf, NOW, { core: new Set([a, c]) }), ['a']); // a: in the old cap's list; b: not; c: too old
+  assert.deepEqual(telegramPinIds([a, b, c], sent, keysOf, NOW), [], 'without the old list only the last 12 hours count');
+  assert.deepEqual(telegramPinIds([a], { 'm-a': NOW - 11 * H }, keysOf, NOW), ['a']);
+  const many = Array.from({ length: 80 }, (_, i) => mk(`z${i}`));
+  const sentMany = Object.fromEntries(many.map((s, i) => [`m-${s.id}`, NOW - i * 60e3]));
+  assert.equal(telegramPinIds(many, sentMany, keysOf, NOW, { core: new Set(many) }).length, TG_PIN_MAX);
+});

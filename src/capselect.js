@@ -118,3 +118,31 @@ export function pinInto(result, ids, max) {
   const out = result.union.filter((s) => (result.g1Set.has(s) && !victims.has(s)) || add.has(s));
   return out;
 }
+
+// Stories the Telegram channel posted recently must stay reachable on the site (the alert links to the source article and to the
+// site, and an editor looks the story up there). Bounded: only the last TG_PIN_HOURS hours of posts, at most TG_PIN_MAX stories,
+// newest first, and only stories that are still eligible this run (older ones are not kept alive). They are added to the published
+// list by `pinInto`, which gives up the same number of the lowest-ranked non-Israeli stories, so the cap stays at 1,200.
+// sent = state.tg.sent ({ storyKey: postedAt }); keysOf(story) = the keys the story may be filed under: Telegram files a story under its
+// earliest article, and a late-indexed older article can change that, so the caller passes every article id of the story and the
+// newest matching post time counts (a string is accepted for a single key)
+// Retention rule (both bounds are hard):
+//   - a story posted in the last TG_PIN_HOURS (12, the channel's own memory of what it posted) stays, while it is eligible;
+//   - a story posted in the last TG_PIN_CORE_HOURS (36, the story window) also stays while the OLD cap would still publish it (it is
+//     in `core`), so G1 never hides a posted story the old cap still showed;
+//   - at most TG_PIN_MAX stories, the most recently posted first.
+export const TG_PIN_HOURS = 12;
+export const TG_PIN_CORE_HOURS = 36;
+export const TG_PIN_MAX = 60;
+export function telegramPinIds(stories, sent, keysOf, now, { hours = TG_PIN_HOURS, core = null, coreHours = TG_PIN_CORE_HOURS, max = TG_PIN_MAX } = {}) {
+  const out = [];
+  if (!sent) return out;
+  for (const s of stories) {
+    const keys = keysOf(s);
+    let t = 0;
+    for (const k of typeof keys === 'string' ? [keys] : keys) if (sent[k] > t) t = sent[k];
+    const window = core && core.has(s) ? coreHours : hours;
+    if (t && now - t < window * 3600e3 && t <= now + 60e3) out.push({ id: s.id, t });
+  }
+  return out.sort((a, b) => b.t - a.t || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)).slice(0, max).map((x) => x.id);
+}

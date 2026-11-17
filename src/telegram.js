@@ -74,7 +74,7 @@ const AI_WAIT_MS = 15 * 60000;
 const needsVerdict = (s, now) =>
   (s.sport === 'football' || s.sport === 'basketball') && !s.aiDesk && !(s.israel || s.abroad || s.watchIsrael) && !(s.langs || []).includes('he') && now - s.first < AI_WAIT_MS;
 const isHe = (t) => /[א-ת]/.test(t || '');
-const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
+export const storyKey = (s) => [...s._members].sort((a, b) => a.published - b.published || (a.id < b.id ? -1 : 1))[0].id;
 
 function alertText(s, siteUrl, heName = new Map()) {
   const who = s.athletes?.length ? `👤 ${s.athletes.map((n) => heName.get(n) || n).join(', ')}\n` : '';

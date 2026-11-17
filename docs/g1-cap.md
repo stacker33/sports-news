@@ -20,9 +20,33 @@ Selection with the flag on:
 4. **Little churn**: a story the previous run published gets a +0.02 bonus in the mix (`KEEP_BONUS`), remembered as `state.capKept.ids` (written only when the flag is not off).
 5. The published list keeps the legacy order (newest last article first), so the files and the front end's tie-breaks look the same.
 
-What reads what (`src/collect.js`): the **legacy list** (`core`) still goes to Telegram, the summaries and their translations, the morning brief, the trends board, the source report and the diagnostics, so a story that only G1 admits is display-only: **no Telegram post, no Gemini call, no brief place**. The **published list** goes to `news.json` / `news-more.json`. The brief's stories are added to the published list if G1 did not keep them, and the same number of the lowest-ranked non-Israeli G1 stories are given up, so the total stays exactly 1,200. A failure in the new code falls back to the legacy cap and logs `[cap-g1] failed`.
+What reads what (`src/collect.js`): the **legacy list** (`core`) still goes to Telegram, the summaries and their translations, the morning brief, the trends board, the source report and the diagnostics, so a story that only G1 admits is display-only: **no Telegram post, no Gemini call, no brief place**. The **published list** goes to `news.json` / `news-more.json`. The brief's stories and the recently posted Telegram stories (next section) are added to the published list if G1 did not keep them, and the same number of the lowest-ranked non-Israeli G1 stories are given up, so the total stays exactly 1,200. A failure in the new code falls back to the legacy cap and logs `[cap-g1] failed`.
 
 Unchanged: the cap (1,200), story ids, summaries and Telegram inputs, corrections, the front end and its sorting controls, every ranking rule. No new model call.
+
+## Telegram access
+
+Telegram still reads the legacy list; the site can read a different one. The alert links to the source article and to the site's front page (not to the story), so an editor finds the story on the site by looking for it there. The replay (`scripts/bench-g1-telegram.mjs`, 49 runs 30 minutes apart over 24 hours, 66 stories posted by the channel's own rule) asked of each posted story whether it was still in the published files:
+
+| After the post | Posted stories checked | Old cap | G1 | G1 + pin |
+|---|---|---|---|---|
+| 0 h, 1 h, 3 h | 66, 58, 42 | 100% | 100% | 100% |
+| 6 h | 32 | 93.8% | 90.6% (3 lost that the old cap kept) | **100%** |
+| 11 h | 21 | 76.2% | 61.9% | 76.2% |
+| 12 h | 18 | 83.3% | 61.1% (5 lost) | **88.9%** |
+
+So the problem is real but late and small: for the first 3 hours nothing is lost; from about 6 hours some posted stories that the old cap still showed drop out under G1 (3 of 32, then 5 of 18). The samples are small. The rest at 11 h (24%) are not in any list, old cap included: those stories are no longer eligible.
+
+**The fix** (`telegramPinIds` in `src/capselect.js`, only when `CAP_G1=on`): a posted story is added to the published list while it is eligible, with a hard retention rule:
+- posted in the last **12 hours** (the channel's own memory of what it posted): it stays;
+- posted 12 to **36 hours** ago (the story window): it stays only while the old cap would still publish it, so G1 never hides a posted story the old cap still showed;
+- never more than **60** stories, the most recently posted first; nothing is kept after 36 hours, and nothing that is no longer an eligible story.
+
+The pinned stories take the places of the same number of the lowest-ranked non-Israeli G1 stories: the total stays exactly 1,200 (maximum in the replay: 1,200). Pinned stories per run: median 18, maximum 52; 158 additions over the 49 runs (about 3 a run) that G1 alone would not have kept. The story is matched by any of its articles, not only the earliest one, because a late-indexed older article can change a story's key (the first version of the fix matched only the key and recovered nothing). The pinned stories are display-only like the other G1 additions: no new post, no summary call.
+
+## Off and shadow change nothing
+
+Verified in the replay (13 runs, `identity` in `docs/g1-cap-bench.json`): with `CAP_G1` off or `shadow` the published list is exactly the legacy list (same story objects, same order) in 13 of 13 runs, and with `on` the list that Telegram, summaries, translations and the brief read is exactly the legacy list in 13 of 13 runs. With the flag off no editorial score is computed (the test makes the scoring function throw). Calls that can reach Gemini, a translator or Telegram take the legacy list in every mode (`aiSummaries(core, …)`, `fillSummaries`, `translateTexts` via `core.filter`, `telegramPost(core, …)`, checked by a test), so G1 adds **no** model calls: stories G1 adds get no summary. The saved state gets `capKept` only when the flag is not off.
 
 ## Measured (saved state of 2026-10-19 22:10 UTC; 13 consecutive 5-minute runs)
 
@@ -47,7 +71,7 @@ These recall numbers are slightly different from the audit's (95.3 against 94.8,
 - **The Israeli tier is unbounded, as today.** If Israeli stories ever fill 1,200 nothing else gets in; no floor was added because the requirement was to keep the priority as it is.
 - **The churn bonus is small** (+0.02): consecutive runs overlap 97.8%, a little better than before, but the cut boundary still moves by about 25 stories per run.
 - **Stories that G1 adds get no AI summary** unless one was cached earlier (summaries are limited to the legacy list by design); they show the feed's own description.
-- **Legacy-only stories that G1 drops** (255 at the last run) are still posted to Telegram and summarised, but are not in the data files if G1 dropped them and the brief did not name them: a Telegram link to a story that is absent from the page is possible for a story G1 judged low value. The page opens by id on the main list only.
+- **Telegram stories** are kept on the site by the pin above (12 hours, or 36 while the old cap would still show them, 60 at most). A posted story the old cap had already dropped, older than 12 hours, is not on the site, as before.
 - Memory and time on the real runner are not measured here.
 
 ## Enable, check, roll back

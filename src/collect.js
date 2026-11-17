@@ -52,7 +52,7 @@ import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candi
 import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
-import { capG1Mode, capStories, applyCap, pinInto } from './capselect.js';
+import { capG1Mode, capStories, applyCap, pinInto, telegramPinIds } from './capselect.js';
 import { loadStateStrict, stateAgeNote, survivorDiagnostic, StateError } from './statecheck.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -554,6 +554,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   const { ai, done: aiDone } = await aiSummaries(core, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
   const { tg, posted: tgPosted } = await telegramPost(core, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
+  // stories the channel posted in the last 12 hours stay in the published files (bounded: src/capselect.js telegramPinIds)
+  const tgPins = capMode === 'on' ? telegramPinIds(stories, tg.sent, (s) => s._members.map((m) => m.id), now, { core: new Set(core) }) : [];
   // 🔥 trends panel (sports only) + news searches for sports trends we have no story on yet
   const isAbroad = (text) => ctx.matchers.players(' ' + String(text).toLowerCase() + ' ').length > 0;
   const trends = trendBoard(signals, core, isAbroad, athletes, now);
@@ -616,8 +618,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   };
   // First screen: the newest 300 + everything Israeli / Israelis abroad + the night summary's stories (they're from
   // the night, so mostly not among the newest: the summary card waited for the second file); the rest loads right after
-  // the brief names stories from `core`: they must be in the files (G1 keeps the total at the cap by dropping its lowest-ranked others)
-  if (capMode === 'on' && cap.ranked) published = pinInto(cap, brief?.ids || [], MAX_STORIES);
+  // the brief and the Telegram channel name stories from `core`: they must be in the files (G1 keeps the total at the cap by dropping its lowest-ranked others)
+  if (capMode === 'on' && cap.ranked) published = pinInto(cap, [...(brief?.ids || []), ...tgPins], MAX_STORIES);
   const byNew = [...published].sort((a, b) => b.first - a.first);
   const briefIds = new Set(brief?.ids || []);
   const firstIds = new Set([...byNew.slice(0, 300), ...published.filter((s) => s.israel || s.abroad || briefIds.has(s.id))].map((s) => s.id));

@@ -13,70 +13,16 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { clusterItems, buildStory } from '../src/cluster.js';
-import { mergeSameEvent } from '../src/merge.js';
-import { bigEvent, editorialBoost, markLocal, markLow, memberLocal } from '../src/editorial.js';
-import { storyEvidence, storyCoverage } from '../src/roles.js';
-import { editorialRank, loadRankConfig, loadVocabulary } from '../src/rank.js';
-import { applyCap, capStories, mixValue, isIsraeli } from '../src/capselect.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+import { loadReplay, H } from './replay-lib.mjs';
+import { applyCap, capStories, isIsraeli } from '../src/capselect.js';
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const statePath = arg('--state');
 if (!statePath) throw new Error('--state <state.json> is required');
 const entitiesPath = arg('--entities', join(dirname(statePath), 'entities.json'));
 const RUNS = Number(arg('--runs', 13));
-const H = 3600e3;
 
-const state = JSON.parse(readFileSync(statePath, 'utf8'));
-const edb = JSON.parse(readFileSync(entitiesPath, 'utf8'));
-const items = state.items.map((it) => ({ ...it, tr: state.tr?.[it.id] ? { en: state.tr[it.id].en } : null, athletes: it.athletes || [], teams: it.teams || [], ents: it.ents || [] }));
-const end = Math.max(...items.map((i) => i.published));
-const rankCfg = loadRankConfig(join(ROOT, 'config', 'editorial-rank.json'));
-loadVocabulary(join(ROOT, 'config', 'vocabulary.json'));
-
-const entById = new Map();
-for (const [k, t] of Object.entries(edb.teams)) entById.set(`t${k}`, { k: 'team', id: `t${k}`, sport: t.sport });
-for (const [k, p] of Object.entries(edb.players)) entById.set(`p${k}`, { k: 'player', id: `p${k}`, team: `t${p.team}` });
-const COMP_OF_365 = { 42: 'c-ligat', 43: 'c-leumit', 7: 'c-epl', 11: 'c-laliga', 17: 'c-seriea', 25: 'c-bundes', 35: 'c-ligue1', 572: 'c-ucl', 573: 'c-uel', 7685: 'c-uecl', 47: 'c-winner', 569: 'c-euroleague', 329: 'c-eurocup', 103: 'c-nba' };
-const teamComps = (id) => (edb.teams?.[String(id).slice(1)]?.comps || []).map((c) => COMP_OF_365[c]).filter(Boolean);
-const compsOf = (members) => {
-  const set = new Set();
-  for (const m of members) for (const id of m.ents || []) {
-    if (id.startsWith('c-')) set.add(id);
-    const e = entById.get(id);
-    if (e?.k === 'team') teamComps(id).forEach((c) => set.add(c));
-    else if (e?.k === 'player' && e.team) teamComps(e.team).forEach((c) => set.add(c));
-  }
-  return [...set];
-};
-const tagsOf = (members) => {
-  const count = new Map();
-  for (const m of members) for (const id of new Set(m.ents || [])) count.set(id, (count.get(id) || 0) + 1);
-  const minShare = members.length > 5 ? Math.ceil(members.length * 0.2) : 1;
-  return [...count].filter(([id, n]) => n >= minShare && (id.startsWith('c-') || entById.get(id)?.k === 'team')).map(([id]) => ({ k: id.startsWith('c-') ? 'comp' : 'team', id }));
-};
-
-// the stories as the cap receives them at time T (the stages of src/collect.js before the cap), newest last article first
-function eligibleAt(T) {
-  const live = items.filter((i) => (i.seen ?? i.published) <= T && T - i.published <= 48 * H && !i.hidden);
-  const merged = mergeSameEvent(clusterItems(live.map((i) => ({ ...i }))), {});
-  const out = [];
-  for (const members of merged) {
-    let s = { ...buildStory(members, T), _members: members, comps: compsOf(members), tags: tagsOf(members) };
-    if (T - s.latest > 36 * H) continue;
-    s.big = s.sourceCount >= 3 || s.langs.length >= 3 || ((s.top || s.breaking) && s.sourceCount >= 2);
-    if (s.sport === 'other' && !(s.israel || s.abroad || (s.sourceCount >= 8 && s.langs.length >= 3) || bigEvent(s))) continue;
-    s = markLow(markLocal(editorialBoost(s), (m) => memberLocal(m, undefined)));
-    if (s._members.every((m) => m.assist) && !(s.israel || s.abroad || s.teams.length)) continue;
-    out.push(s);
-  }
-  return out.sort((a, b) => b.latest - a.latest);
-}
-const scoreOf = (s) => {
-  const { roles: _r, ...ev } = storyEvidence(s, () => ({}));
-  return editorialRank({ ...s, ev, cov: storyCoverage(s, { ok: false }, ev) }, { now: s._now, cfg: rankCfg }).score;
-};
+const { end, eligibleAt, scoreOf } = loadReplay(statePath, entitiesPath);
 
 // what the app shows on the Top tab for a slider position, from a list of stories (public/app.js visibleStories / rankMix)
 const topList = (list, T, mix, score) => {
@@ -91,6 +37,7 @@ const result = { state: statePath, runs: RUNS, replayed: [] };
 let prev = new Set(), prevNoBonus = new Set(), legacyPrev = new Set();
 const jac = (a, b) => { let i = 0; for (const x of a) if (b.has(x)) i++; return a.size + b.size - i ? i / (a.size + b.size - i) : 1; };
 const churn = { withBonus: [], withoutBonus: [], legacy: [] };
+const identity = { runs: 0, offSameAsLegacy: 0, shadowSameAsLegacy: 0, coreSameAsLegacyWhenOn: 0 }; // flag modes against the legacy cap, run by run
 for (let k = RUNS - 1; k >= 0; k--) {
   const T = end - k * 5 * 60e3;
   const stories = eligibleAt(T);
@@ -105,6 +52,13 @@ for (let k = RUNS - 1; k >= 0; k--) {
   const mem1 = process.memoryUsage();
   const gNo = applyCap(stories, { mode: 'on', max: 1200, now: T, scoreOf: cache, prevKept: new Set() });
   const legacy = capStories(stories, 1200);
+  {
+    const same = (list) => list.length === legacy.length && list.every((x, i) => x === legacy[i]);
+    identity.runs++;
+    if (same(applyCap(stories, { mode: 'off', max: 1200, now: T, scoreOf: () => { throw new Error('off must not score'); } }).published)) identity.offSameAsLegacy++;
+    if (same(applyCap(stories, { mode: 'shadow', max: 1200, now: T, scoreOf: cache }).published)) identity.shadowSameAsLegacy++;
+    if (same(g.core)) identity.coreSameAsLegacyWhenOn++;
+  }
   for (const s of stories) cache(s);
   const keptIds = new Set(g.published.map((s) => s.id));
   const noBonusIds = new Set(gNo.published.map((s) => s.id));
@@ -119,6 +73,7 @@ for (let k = RUNS - 1; k >= 0; k--) {
 }
 const avg = (a) => (a.length ? Math.round((a.reduce((x, y) => x + y, 0) / a.length) * 10000) / 10000 : null);
 result.churn = { note: 'Jaccard overlap of the published sets of consecutive 5-minute runs (1.0 = identical)', legacy: avg(churn.legacy), g1WithKeepBonus: avg(churn.withBonus), g1WithoutBonus: avg(churn.withoutBonus), minLegacy: Math.min(...churn.legacy), minG1WithBonus: Math.min(...churn.withBonus), minG1WithoutBonus: Math.min(...churn.withoutBonus) };
+result.identity = { note: 'runs in which the published list (off, shadow) and the list Telegram / summaries read (on) are exactly the legacy list: same stories, same order', ...identity };
 result.cost = { scoredStories: result.replayed.map((r) => r.eligible).reduce((a, b) => Math.max(a, b), 0), medianScoringMs: [...result.replayed.map((r) => r.scoredInMs)].sort((a, b) => a - b)[Math.floor(RUNS / 2)], maxScoringMs: Math.max(...result.replayed.map((r) => r.scoredInMs)), peakRssMB: Math.max(...result.replayed.filter((r) => r.rssMB).map((r) => r.rssMB)) };
 console.log(JSON.stringify(result, null, 1));
 if (arg('--json')) writeFileSync(arg('--json'), JSON.stringify(result, null, 1));
