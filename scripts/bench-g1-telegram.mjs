@@ -35,8 +35,9 @@ for (let T = start; T <= end + 1; T += STEP) {
   const now = Math.min(T, end);
   const stories = eligibleAt(now);
   const score = new Map();
-  for (const s of stories) { s._now = now; score.set(s, scoreOf(s)); }
-  const g = applyCap(stories, { mode: 'on', max: 1200, now, scoreOf: (s) => score.get(s), prevKept });
+  const full = new Map();
+  for (const s of stories) { s._now = now; const r = scoreOf(s); full.set(s, r); score.set(s, r.score); }
+  const g = applyCap(stories, { mode: 'on', max: 1200, now, scoreOf: (s) => full.get(s), prevKept });
   prevKept = new Set(g.published.map((s) => s.id));
   // Telegram reads the legacy list, with the editorial score on it
   const core = g.core;

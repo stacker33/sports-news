@@ -1,6 +1,6 @@
-# G1: an editorial-aware 1,200-story cap (flag, off by default)
+# The sorting-aware 1,200-story pool (flag `CAP_G1`, off by default)
 
-Background: `docs/missed-news-cap-verdict.md` (on the audit branch). The cap that decides which 1,200 stories are published used to look only at the age of a story's last article. G1 keeps the same total and the same Israeli-first rule and fills the other slots with the stories that score highest on the app's default sorting mix.
+Background: `docs/missed-news-cap-verdict.md` (audit branch) and `docs/sorting-aware.md`. The cap used to publish the Israeli stories and then the newest stories by last-article time, so every tab and slider position drew on the same last ~3.5 hours (the Basketball tab had 69 stories). The first version of this flag (a shared 50/50 editorial/freshness fill) fixed only the Top tab and is **replaced** by what is described here.
 
 ## What it does
 
@@ -9,75 +9,78 @@ Background: `docs/missed-news-cap-verdict.md` (on the audit branch). The cap tha
 | Value | Effect |
 |---|---|
 | unset / anything else | **off**: exactly today's behaviour (the same `capStories`, now living in `src/capselect.js` and still exported from `src/collect.js`) |
-| `shadow` | the G1 selection is computed and logged (`[cap-g1] shadow: {...}`) but the **legacy list is published**. Use this first: it runs on production's real inputs (watchlist, desk labels, Sport5 coverage) |
-| `1`, `true`, `on`, `yes` | the data files hold the G1 list |
+| `shadow` | the pool is computed and logged (`[cap-g1] shadow: {...}`) but the **legacy list is published**. Use this first: it runs on production's real inputs (watchlist, desk labels, Sport5 coverage) |
+| `1`, `true`, `on`, `yes` | the data files hold the pool |
 
-Selection with the flag on:
+The pool, with the flag on:
 
 1. **Israeli tier first**, unchanged: Israeli / abroad / watch-Israel stories, newest first, up to 1,200.
-2. The remaining slots go to the non-Israeli stories with the highest `0.5 x editorial score/100 + 0.5 x exp(-(now - first)/6h)`, the app's default slider mix (`public/app.js rankMix`, `mixF = 50`). The editorial score is the existing `editorialRank` (`src/rank.js`), computed before the cap from the same inputs as it is later, so a published story's score is the same number as before.
-3. **Deterministic**: ties break on the later last article, then the smaller story id. A story with a missing field (NaN) sorts last. Same input gives the same selection whatever the input order.
-4. **Little churn**: a story the previous run published gets a +0.02 bonus in the mix (`KEEP_BONUS`), remembered as `state.capKept.ids` (written only when the flag is not off).
-5. The published list keeps the legacy order (newest last article first), so the files and the front end's tie-breaks look the same.
+2. The other slots hold **what the slider can show**. The page sorts the published stories by the slider mix and shows the first 300 (120 from slider 70) of each tab. For the Top, Football and Basketball tabs at slider positions 0, 25, 50, 75 and 100, and for the Israeli monitoring tab at its default slider (40, popularity formula), the collector builds the same list the page would build, from **every eligible story** (about 9,000), and takes the lists in turn (best story of every list, then second best ...) until 1,200 are chosen. The formulas are the page's own: the existing `editorialRank` score, `w x score/100 + (1 - w) x exp(-(now - first)/6h)`, the tab rules, the local / low / minor collapse, and the stories only Israeli sites carry left out of the three tabs (`foreignOnly`). No new ranking rule.
+3. **Deterministic**: every list is a total order (mix, then the later last article, then the story id); the selection does not depend on the input order. A story with a missing field (NaN) sorts last.
+4. **Little churn**: a story the previous run published counts as 3 places better when the pool is trimmed (`STICKY_RANKS`); remembered as `state.capKept.ids` (written only when the flag is not off).
+5. The published list keeps the legacy order (newest last article first). It is exactly 1,200 stories whenever more are eligible, or the run falls back (below).
 
-What reads what (`src/collect.js`): the **legacy list** (`core`) still goes to Telegram, the summaries and their translations, the morning brief, the trends board, the source report and the diagnostics, so a story that only G1 admits is display-only: **no Telegram post, no Gemini call, no brief place**. The **published list** goes to `news.json` / `news-more.json`. The brief's stories and the recently posted Telegram stories (next section) are added to the published list if G1 did not keep them, and the same number of the lowest-ranked non-Israeli G1 stories are given up, so the total stays exactly 1,200. A failure in the new code falls back to the legacy cap and logs `[cap-g1] failed`.
+What reads what (`src/collect.js`): the **legacy list** (`core`) still goes to Telegram, the summaries and their translations, the morning brief, the trends board, the source report and the diagnostics, so a story that only the pool admits is display-only: **no Telegram post, no Gemini call, no brief place**. The **published list** goes to `news.json` / `news-more.json`. Nothing about the files' format, the front end, search, filters, story ids or corrections changes. No new model call.
 
-Unchanged: the cap (1,200), story ids, summaries and Telegram inputs, corrections, the front end and its sorting controls, every ranking rule. No new model call.
+**Failure is safe.** The selection runs inside a try/catch: if it throws, or the pool does not have exactly the expected number of stories, the run logs `[cap-g1] failed, the legacy cap is used` and publishes the legacy list.
+
+## Keeping the page and the collector in step
+
+The collector copies the page's ranking formulas. `test/pool-drift.test.js` extracts the page's **own functions** from `public/app.js` (`israeliAngle`, `foreignOnly`, `inTab`, `rankMix`, `mixVal`, `editorialTab`, the tab sets) and runs them in a sandbox against random stories, then compares with the collector: tab membership, the mix value at 9 slider positions in each tab, the full lists (filter, sort, slice) at every position including 69 and 70, the Israeli monitoring tab's popularity formula, and the constants (slider defaults 50 and 40, list sizes 300 / 120 from 70, freshness half-life, the off-beat rule). If the page changes any of these, a test fails and says which.
 
 ## Telegram access
 
-Telegram still reads the legacy list; the site can read a different one. The alert links to the source article and to the site's front page (not to the story), so an editor finds the story on the site by looking for it there. The replay (`scripts/bench-g1-telegram.mjs`, 49 runs 30 minutes apart over 24 hours, 66 stories posted by the channel's own rule) asked of each posted story whether it was still in the published files:
+Telegram still reads the legacy list. The alert links to the source article and the site's front page, not to the story. Replay (`scripts/bench-g1-telegram.mjs`: 49 runs 30 minutes apart over 24 hours, 66 stories posted by the channel's own rule), share of posted stories still in the published files:
 
-| After the post | Posted stories checked | Old cap | G1 | G1 + pin |
+| After the post | Stories checked | Old cap | Pool alone | **Pool + retention** |
 |---|---|---|---|---|
-| 0 h, 1 h, 3 h | 66, 58, 42 | 100% | 100% | 100% |
-| 6 h | 32 | 93.8% | 90.6% (3 lost that the old cap kept) | **100%** |
+| 0, 1, 3 h | 66, 58, 42 | 100% | 100% | 100% |
+| 6 h | 32 | 93.8% | 87.5% | **100%** |
 | 11 h | 21 | 76.2% | 61.9% | 76.2% |
-| 12 h | 18 | 83.3% | 61.1% (5 lost) | **88.9%** |
+| 12 h | 18 | 83.3% | 66.7% | **88.9%** |
 
-So the problem is real but late and small: for the first 3 hours nothing is lost; from about 6 hours some posted stories that the old cap still showed drop out under G1 (3 of 32, then 5 of 18). The samples are small. The rest at 11 h (24%) are not in any list, old cap included: those stories are no longer eligible.
+(The others at 11 h are no longer eligible stories, in any list.) The retention rule (`telegramPinIds`, only with the flag on): a posted story is added to the published list while it is eligible, if it was posted in the last **12 hours**, or in the last **36 hours** while the old cap would still publish it (so the pool never hides a posted story the old cap still showed), at most **60** stories, most recent first. Each takes the place of the lowest-priority non-Israeli pool story, so the total stays 1,200 (maximum in the replay: 1,200). Pinned per run: median 18, maximum 53. A story is matched by any of its articles (a late-indexed older article can change its key).
 
-**The fix** (`telegramPinIds` in `src/capselect.js`, only when `CAP_G1=on`): a posted story is added to the published list while it is eligible, with a hard retention rule:
-- posted in the last **12 hours** (the channel's own memory of what it posted): it stays;
-- posted 12 to **36 hours** ago (the story window): it stays only while the old cap would still publish it, so G1 never hides a posted story the old cap still showed;
-- never more than **60** stories, the most recently posted first; nothing is kept after 36 hours, and nothing that is no longer an eligible story.
+## Measured (saved state of 2026-10-19 22:10 UTC)
 
-The pinned stories take the places of the same number of the lowest-ranked non-Israeli G1 stories: the total stays exactly 1,200 (maximum in the replay: 1,200). Pinned stories per run: median 18, maximum 52; 158 additions over the 49 runs (about 3 a run) that G1 alone would not have kept. The story is matched by any of its articles, not only the earliest one, because a late-indexed older article can change a story's key (the first version of the fix matched only the key and recovered nothing). The pinned stories are display-only like the other G1 additions: no new post, no summary call.
+`node scripts/bench-sorting-aware.mjs --state <state.json>` (5 snapshots 3 hours apart, 13 five-minute runs for churn), `bench-g1.mjs`, `bench-g1-telegram.mjs`. "Recall" = share of the list the page would build from every eligible story that is in the published stories. The replay has no watchlist, desk labels or Sport5 check; it does use the source configuration for Israeli-only stories.
 
-## Off and shadow change nothing
+| | Today | Earlier fill (50/50 mix) | **Pool** |
+|---|---|---|---|
+| Stories published | 1,200 | 1,200 | **1,200** (+0 KB, the files keep their size) |
+| Worst list, any tab, any slider position | 18.6% | 20.6% | **85.9%** |
+| Top tab, mean over positions | 86.7% | 99.8% | **99.8%** |
+| Football tab, mean (positions 0 / 50 / 100) | 73.2% (67 / 68 / 65) | 97.8% | **92.7%** (88 / 90 / 100) |
+| Basketball tab, mean (0 / 50 / 100) | 24.2% (19 / 19 / 27) | 27.8% | **94.4%** (86 / 92 / 100) |
+| Israeli monitoring tab, default slider | 73.1% | 74.0% | **94.6%** |
+| Slider positions the pool was not built for (10, 35, 65, 85) | | | 88 to 100% |
+| Older high-value stories restored (the cut stories at the timeless top 10%) | 0% | 6.5% | **23.8%** |
+| Stories entering / leaving per 5-minute run | 17.3 / 17.3 | 14.3 / 14.3 | **9.2 / 9.2** |
+| Overlap of consecutive runs (Jaccard) | 0.972 (min 0.959) | | **0.985** (min 0.972) |
+| Top lists at the last run (newest / default / editorial slider) | 78 / 83 / 95% | | **100 / 100 / 100%** |
 
-Verified in the replay (13 runs, `identity` in `docs/g1-cap-bench.json`): with `CAP_G1` off or `shadow` the published list is exactly the legacy list (same story objects, same order) in 13 of 13 runs, and with `on` the list that Telegram, summaries, translations and the brief read is exactly the legacy list in 13 of 13 runs. With the flag off no editorial score is computed (the test makes the scoring function throw). Calls that can reach Gemini, a translator or Telegram take the legacy list in every mode (`aiSummaries(core, …)`, `fillSummaries`, `translateTexts` via `core.filter`, `telegramPost(core, …)`, checked by a test), so G1 adds **no** model calls: stories G1 adds get no summary. The saved state gets `capKept` only when the flag is not off.
+Every list the page can build at the positions tested is better covered than today. Filters (Top tab, slider 0 / 100, today -> pool): Premier League 26 -> 31% / 55 -> 75%; NBA 19 -> 71% / 28 -> 92%; Euroleague 16 -> 48% / 29 -> 69%; Champions League 43 -> 54% / 64 -> 90%; Hebrew articles 47 -> 73%.
 
-## Measured (saved state of 2026-10-19 22:10 UTC; 13 consecutive 5-minute runs)
+**The Israeli monitoring list is a trade.** Without it the pool measured Football 98.8% (positions 0 to 65: 97 to 99%), Basketball 98.6%, worst list 94.0% but the Israeli monitoring tab 65% (below today's 73%: 189 stories that only Israeli sites carry, 19 kept today, 0 kept). With it that tab is 94.6% and Football is 92.7%. No tab is worse than today either way; the second was chosen so the desk's Israeli view does not regress.
 
-`node --expose-gc scripts/bench-g1.mjs --state <state.json> --runs 13 --json docs/g1-cap-bench.json`
+**Cost of scoring every eligible story before the cap** (about 9,000): 0.74 to 0.78 s median, 0.96 s worst per run (scoring plus selection), +30 MB heap, 475 MB peak RSS for the whole replay (it holds the 78 MB state; the collector already does). Measured on this PC (Node 22), not on a GitHub runner: check `selectMs` in the shadow log there. A run is about 5 minutes and the existing stages take longer than this. Published size: the same 1,200 stories, the same files (about 1.04 MB gzipped), the same parse time and memory in the browser.
 
-| | Legacy | G1 |
-|---|---|---|
-| Newest list (top 300) contained in the published 1,200 | 91.0% | **99.7%** |
-| Default list (top 300) contained | 95.3% | **100%** |
-| Editorial-rank list (top 120) contained | 100% | 100% |
-| Stories swapped at the last run | – | 255 added, 255 dropped (of 1,200) |
-| Overlap of consecutive runs (Jaccard, 12 pairs) | 0.972 (min 0.959) | **0.978** (min 0.969); 0.977 without the keep bonus |
+**Flag modes** (13 replayed runs): with `off` or `shadow` the published list is exactly the legacy list (same stories, same order) in 13 of 13; with `on`, the list Telegram, summaries, translations and the brief read is exactly the legacy list in 13 of 13. With `off` no editorial score is computed (a test makes the scoring function throw). Every call that can reach Gemini, a translator or Telegram takes the legacy list in every mode (checked by a test), so there are **no new model calls**; stories only the pool adds get no summary unless one was cached.
 
-These recall numbers are slightly different from the audit's (95.3 against 94.8, 91.0 against 93.4) because this replay applies the cap's other filters in the order collect.js does.
+## Remaining weaknesses
 
-**Cost of scoring every eligible story before the cap** (about 9,000 stories): **0.65 s median, 0.89 s worst** per run, +27 MB of heap, 472 MB peak RSS for the whole replay (it holds the 78 MB state and all articles; the collector already holds the same). Measured on this PC (Node 22), not on a GitHub Actions runner: expect a similar order, check the `selectMs` in the shadow log there. A run is about 5 minutes and the existing stages take longer than this.
-
-## Remaining risks
-
-- **The replay score lacks the watchlist, desk labels and Sport5 check.** In production they are present before the cap and raise some scores, so the real list will differ somewhat from the replay. Hence `shadow` first; compare `added` / `dropped` with the figures above.
-- **Freshness is half the mix.** A day-old story rarely beats a fresh one, so G1 does not bring back old important stories (the audit measured 6.7% of them). That needs a separate decision (the audit's G2).
-- **The Israeli tier is unbounded, as today.** If Israeli stories ever fill 1,200 nothing else gets in; no floor was added because the requirement was to keep the priority as it is.
-- **The churn bonus is small** (+0.02): consecutive runs overlap 97.8%, a little better than before, but the cut boundary still moves by about 25 stories per run.
-- **Stories that G1 adds get no AI summary** unless one was cached earlier (summaries are limited to the legacy list by design); they show the feed's own description.
-- **Telegram stories** are kept on the site by the pin above (12 hours, or 36 while the old cap would still show them, 60 at most). A posted story the old cap had already dropped, older than 12 hours, is not on the site, as before.
-- Memory and time on the real runner are not measured here.
+- **Filters.** League and language filters apply before the sort; the pool is built without them, so filtered lists are served only in part (above). Adding the top 100 of each league would raise them (Premier League slider 0: 47%; Euroleague 70%) but needs about 390 more stories (+324 KB gzipped, +29% per download); not done.
+- **Football tab 88 to 90% at slider 0 to 65** (the price of the Israeli monitoring list).
+- **Replay inputs.** No watchlist, desk labels or Sport5 check, and one 48-hour window. Production's real scores differ somewhat: hence `shadow` first and the recall in its log (`recallLegacy` / `recallPool`, per tab).
+- **Older stories.** Freshness is half of the mix and part of the editorial score, so day-old stories are still mostly out (23.8% of the high-value ones come back).
+- **Tabs not listed:** the 'other sports' tab, 'my topics' and the Israeli tiers' own tabs are served by the Israeli tier or by chance, not by a list.
+- **The Israeli tier is unbounded, as today.** If Israeli stories fill 1,200, nothing else gets in.
+- **The tab rules are copies** guarded by `test/pool-drift.test.js`; a new tab or a new off-beat rule on the page needs the collector updated, and the test will say so.
+- Time and memory on the real runner are not measured here.
 
 ## Enable, check, roll back
 
-1. Review and merge `g1-editorial-cap` (you push).
-2. Set the repository variable `CAP_G1=shadow`. After one or two runs read the `[cap-g1] shadow` line in the Actions log: `selectMs`, `added` / `dropped` (about 250 expected), `jaccardWithLastRun` (about 0.97), `israeli` (same as the legacy count).
-3. When satisfied set `CAP_G1=on`. The first run after switching publishes the G1 list; Telegram and summaries are unaffected.
+1. Merge `g1-editorial-cap` into `main` (you push). The workflow already passes the variable (`CAP_G1: ${{ vars.CAP_G1 }}` in `.github/workflows/collect.yml`); unset is off.
+2. Set the repository variable `CAP_G1=shadow`. After one or two runs read the `[cap-g1] shadow` line in the Actions log: `selectMs` (well under 2 s), `israeli` (the legacy count), `added` / `dropped` (about 400 each), `recallLegacy` against `recallPool` (mean and worst, per tab: expect the pool's worst near 85% and the legacy's near 20%), `jaccardWithLastRun` (about 0.98).
+3. When satisfied set `CAP_G1=on`. The first run after switching publishes the pool; Telegram and summaries are unaffected. Check that the Telegram volume and the Gemini request count did not change.
 4. Rollback: set `CAP_G1` to empty or delete it (the next run, 5 minutes, is the legacy cap again; `state.capKept` is ignored). To remove the code, `git revert` the merge commit.
-5. The workflow passes the variable to the collector (`CAP_G1: ${{ vars.CAP_G1 }}` in `.github/workflows/collect.yml`, next to `AI_RICH_SUMMARIES`); an unset variable is an empty string, which is off.

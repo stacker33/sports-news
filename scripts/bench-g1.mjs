@@ -1,4 +1,4 @@
-// Benchmark of the editorial-aware cap (CAP_G1, src/capselect.js) on a saved radar state. OFFLINE: no network, no model, nothing written to
+// Benchmark of the sorting-aware pool cap (CAP_G1, src/capselect.js; 'g1' in the output names means the pool) on a saved radar state. OFFLINE: no network, no model, nothing written to
 // the radar's data. Replays consecutive 5-minute collector runs (grouping, story filters, the cap) and reports
 //   - time and memory of scoring every eligible story with editorialRank BEFORE the cap (the new cost),
 //   - the time of the selection itself,
@@ -25,10 +25,10 @@ const RUNS = Number(arg('--runs', 13));
 const { end, eligibleAt, scoreOf } = loadReplay(statePath, entitiesPath);
 
 // what the app shows on the Top tab for a slider position, from a list of stories (public/app.js visibleStories / rankMix)
-const topList = (list, T, mix, score) => {
+const topList = (list, T, mix, score, full) => {
   const w = mix / 100;
   const v = (s) => w * (score.get(s) / 100) + (1 - w) * Math.exp(-(T - s.first) / (6 * H));
-  return list.filter((s) => (s.sport !== 'other' || s.big) && !s.local && !s.low && !s.minor).sort((a, b) => v(b) - v(a)).slice(0, mix >= 70 ? 120 : 300);
+  return list.filter((s) => (s.sport !== 'other' || s.big) && !full.get(s)?.israeliOnly && !s.local && !s.low && !s.minor).sort((a, b) => v(b) - v(a)).slice(0, mix >= 70 ? 120 : 300);
 };
 const pct = (n, d) => (d ? Math.round((1000 * n) / d) / 10 : null);
 const mb = (b) => Math.round(b / 1048576);
@@ -46,7 +46,8 @@ for (let k = RUNS - 1; k >= 0; k--) {
   const mem0 = process.memoryUsage();
   const t0 = process.hrtime.bigint();
   const score = new Map();
-  const cache = (s) => { if (!score.has(s)) score.set(s, scoreOf(s)); return score.get(s); };
+  const full = new Map();
+  const cache = (s) => { if (!full.has(s)) { const r = scoreOf(s); full.set(s, r); score.set(s, r.score); } return full.get(s); };
   const g = applyCap(stories, { mode: 'on', max: 1200, now: T, scoreOf: cache, prevKept: prev });
   const totalMs = Number(process.hrtime.bigint() - t0) / 1e6;
   const mem1 = process.memoryUsage();
@@ -66,9 +67,9 @@ for (let k = RUNS - 1; k >= 0; k--) {
   if (prev.size) { churn.withBonus.push(jac(keptIds, prev)); churn.withoutBonus.push(jac(noBonusIds, prevNoBonus)); churn.legacy.push(jac(legacyIds, legacyPrev)); }
   prev = keptIds; prevNoBonus = noBonusIds; legacyPrev = legacyIds;
   if (k === 0 || k === RUNS - 1) {
-    const recall = (mix, set) => { const want = topList(stories, T, mix, score); return pct(want.filter((s) => set.has(s)).length, want.length); };
+    const recall = (mix, set) => { const want = topList(stories, T, mix, score, full); return pct(want.filter((s) => set.has(s)).length, want.length); };
     const L = new Set(legacy), G = new Set(g.published);
-    result.replayed.push({ at: new Date(T).toISOString(), eligible: stories.length, israeli: stories.filter(isIsraeli).length, scoredInMs: Math.round(totalMs), heapUsedDeltaMB: mb(mem1.heapUsed - mem0.heapUsed), rssMB: mb(mem1.rss), selectionMs: g.stats.selectMs, overlapWithLegacy: g.stats.overlap, added: g.stats.added, dropped: g.stats.dropped, recallNewestTop300: { legacy: recall(0, L), g1: recall(0, G) }, recallDefaultTop300: { legacy: recall(50, L), g1: recall(50, G) }, recallEditorialTop120: { legacy: recall(100, L), g1: recall(100, G) } });
+    result.replayed.push({ at: new Date(T).toISOString(), eligible: stories.length, israeli: stories.filter(isIsraeli).length, scoredInMs: Math.round(totalMs), heapUsedDeltaMB: mb(mem1.heapUsed - mem0.heapUsed), rssMB: mb(mem1.rss), selectionMs: g.stats.selectMs, overlapWithLegacy: g.stats.overlap, added: g.stats.added, dropped: g.stats.dropped, recallNewestTop300: { legacy: recall(0, L), g1: recall(0, G) }, recallDefaultTop300: { legacy: recall(50, L), g1: recall(50, G) }, recallEditorialTop120: { legacy: recall(100, L), g1: recall(100, G) }, listRecallAllTabsAllPositions: { legacy: g.stats.recallLegacy, pool: g.stats.recallPool } });
   } else result.replayed.push({ at: new Date(T).toISOString(), eligible: stories.length, scoredInMs: Math.round(totalMs), selectionMs: g.stats.selectMs, overlapWithLegacy: g.stats.overlap });
 }
 const avg = (a) => (a.length ? Math.round((a.reduce((x, y) => x + y, 0) / a.length) * 10000) / 10000 : null);

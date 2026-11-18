@@ -52,7 +52,7 @@ import { loadWatchlist, loadVocabulary, buildWatchMatchers, annotateWatch, candi
 import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
-import { capG1Mode, capStories, applyCap, pinInto, telegramPinIds } from './capselect.js';
+import { capG1Mode, capStories, applyCap, pinInto, telegramPinIds, israeliOnlyStory } from './capselect.js';
 import { loadStateStrict, stateAgeNote, survivorDiagnostic, StateError } from './statecheck.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -470,8 +470,10 @@ export async function collect({ log = console.log, force = false } = {}) {
   // to choose the stories is the radar's own editorialRank, computed here from the same inputs as in the loop below.
   const capMode = capG1Mode();
   const editorialScoreOf = (s) => {
-    const { roles: _roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
-    return editorialRank({ ...s, ev, cov: storyCoverage(s, s5check, ev) }, { now, cfg: rankCfg, votes: state.feedback?.votes?.[s.id], heName }).score;
+    const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
+    const score = editorialRank({ ...s, ev, cov: storyCoverage(s, s5check, ev) }, { now, cfg: rankCfg, votes: state.feedback?.votes?.[s.id], heName }).score;
+    // the page leaves a story only Israeli sites carry out of the Top / Football / Basketball tabs (public/app.js foreignOnly)
+    return { score, israeliOnly: israeliOnlyStory(ev, s._members, roles), ilmon: storyViews(s, ev).includes('i') };
   };
   let cap;
   try {

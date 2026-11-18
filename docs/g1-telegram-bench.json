@@ -38,11 +38,11 @@
   "6 h after the post": {
    "observed": 32,
    "legacy": 30,
-   "g1": 29,
+   "g1": 28,
    "g1WithPin": 32,
-   "onlyG1Lost": 3,
+   "onlyG1Lost": 4,
    "legacyPct": 93.8,
-   "g1Pct": 90.6,
+   "g1Pct": 87.5,
    "g1WithPinPct": 100
   },
   "11 h after the post": {
@@ -58,11 +58,11 @@
   "12 h after the post": {
    "observed": 18,
    "legacy": 15,
-   "g1": 11,
+   "g1": 12,
    "g1WithPin": 16,
-   "onlyG1Lost": 5,
+   "onlyG1Lost": 4,
    "legacyPct": 83.3,
-   "g1Pct": 61.1,
+   "g1Pct": 66.7,
    "g1WithPinPct": 88.9
   },
   "24 h after the post": {
@@ -77,9 +77,9 @@
   }
  },
  "pin": {
-  "maxStoriesPinned": 52,
+  "maxStoriesPinned": 53,
   "medianStoriesPinned": 18,
   "maxPublishedSize": 1200,
-  "pinnedThatG1WouldNotHaveKept": 158
+  "pinnedThatG1WouldNotHaveKept": 154
  }
 }

@@ -5,34 +5,44 @@
    "at": "2026-10-19T22:09:40.000Z",
    "eligible": 9011,
    "israeli": 493,
-   "olderHighValueCutByToday": 332
+   "unionBeforeTrim": 1226,
+   "israeliOnlyStories": 525,
+   "olderHighValueCutByToday": 330
   },
   {
    "at": "2026-10-19T19:09:40.000Z",
    "eligible": 8832,
    "israeli": 513,
-   "olderHighValueCutByToday": 368
+   "unionBeforeTrim": 1241,
+   "israeliOnlyStories": 558,
+   "olderHighValueCutByToday": 374
   },
   {
    "at": "2026-10-19T16:09:40.000Z",
    "eligible": 8374,
    "israeli": 516,
-   "olderHighValueCutByToday": 289
+   "unionBeforeTrim": 1241,
+   "israeliOnlyStories": 584,
+   "olderHighValueCutByToday": 269
   },
   {
    "at": "2026-10-19T13:09:40.000Z",
    "eligible": 7645,
    "israeli": 500,
-   "olderHighValueCutByToday": 326
+   "unionBeforeTrim": 1222,
+   "israeliOnlyStories": 565,
+   "olderHighValueCutByToday": 319
   },
   {
    "at": "2026-10-19T10:09:40.000Z",
    "eligible": 6962,
    "israeli": 457,
-   "olderHighValueCutByToday": 390
+   "unionBeforeTrim": 1160,
+   "israeliOnlyStories": 513,
+   "olderHighValueCutByToday": 382
   }
  ],
- "perAppoach": {
+ "perApproach": {
   "A": {
    "publishedStories": 1200,
    "extraOver1200": 0,
@@ -40,36 +50,39 @@
    "extraGzipKB": 0,
    "extraParseMs": 0,
    "extraHeapMB": 0,
-   "minimumRecallAnyTabAnyPosition": 19.3,
-   "meanRecallTopTab": 96.6,
+   "minimumRecallAnyTabAnyPosition": 18.6,
+   "meanRecallTopTab": 86.7,
+   "meanRecallFootball": 73.2,
+   "meanRecallBasketball": 24.2,
    "recall": {
-    "top@0": 94,
-    "top@10 (not used to build C)": 94.4,
-    "top@25": 95.2,
-    "top@35 (not used to build C)": 95.2,
-    "top@50": 95.4,
-    "top@65 (not used to build C)": 95.3,
-    "top@75": 100,
-    "top@85 (not used to build C)": 100,
-    "top@100": 100,
-    "football@0": 71.9,
-    "football@10 (not used to build C)": 72.1,
-    "football@25": 72.5,
-    "football@35 (not used to build C)": 72.7,
-    "football@50": 73.5,
-    "football@65 (not used to build C)": 72.7,
-    "football@75": 96.8,
-    "football@85 (not used to build C)": 93.3,
-    "football@100": 65.3,
-    "basketball@0": 19.8,
-    "basketball@10 (not used to build C)": 19.8,
-    "basketball@25": 19.5,
-    "basketball@35 (not used to build C)": 19.5,
-    "basketball@50": 19.5,
-    "basketball@65 (not used to build C)": 19.3,
-    "basketball@75": 40.7,
-    "basketball@85 (not used to build C)": 39.8,
-    "basketball@100": 26.7
+    "top@0": 80.2,
+    "top@10 (not used to build the pool)": 80.5,
+    "top@25": 81.5,
+    "top@35 (not used to build the pool)": 81.8,
+    "top@50": 82,
+    "top@65 (not used to build the pool)": 81.5,
+    "top@75": 98.8,
+    "top@85 (not used to build the pool)": 98.2,
+    "top@100": 95.5,
+    "football@0": 66.8,
+    "football@10 (not used to build the pool)": 67.1,
+    "football@25": 67.2,
+    "football@35 (not used to build the pool)": 67.7,
+    "football@50": 68.4,
+    "football@65 (not used to build the pool)": 68.6,
+    "football@75": 96.3,
+    "football@85 (not used to build the pool)": 92.3,
+    "football@100": 64.6,
+    "basketball@0": 19.2,
+    "basketball@10 (not used to build the pool)": 19.1,
+    "basketball@25": 19,
+    "basketball@35 (not used to build the pool)": 18.8,
+    "basketball@50": 18.7,
+    "basketball@65 (not used to build the pool)": 18.6,
+    "basketball@75": 39.2,
+    "basketball@85 (not used to build the pool)": 38.5,
+    "basketball@100": 26.8,
+    "ilmon@40 (Israeli monitoring, default slider)": 73.1
    },
    "olderHighValueStoriesRestored": 0
   },
@@ -80,305 +93,223 @@
    "extraGzipKB": 0,
    "extraParseMs": 0,
    "extraHeapMB": 0,
-   "minimumRecallAnyTabAnyPosition": 21.8,
-   "meanRecallTopTab": 100,
+   "minimumRecallAnyTabAnyPosition": 20.6,
+   "meanRecallTopTab": 99.8,
+   "meanRecallFootball": 97.8,
+   "meanRecallBasketball": 27.8,
    "recall": {
     "top@0": 99.9,
-    "top@10 (not used to build C)": 99.9,
-    "top@25": 100,
-    "top@35 (not used to build C)": 100,
+    "top@10 (not used to build the pool)": 99.9,
+    "top@25": 99.9,
+    "top@35 (not used to build the pool)": 100,
     "top@50": 100,
-    "top@65 (not used to build C)": 100,
+    "top@65 (not used to build the pool)": 100,
     "top@75": 100,
-    "top@85 (not used to build C)": 100,
-    "top@100": 100,
-    "football@0": 99.7,
-    "football@10 (not used to build C)": 99.9,
+    "top@85 (not used to build the pool)": 100,
+    "top@100": 98.7,
+    "football@0": 99.3,
+    "football@10 (not used to build the pool)": 99.5,
     "football@25": 100,
-    "football@35 (not used to build C)": 100,
+    "football@35 (not used to build the pool)": 100,
     "football@50": 100,
-    "football@65 (not used to build C)": 100,
+    "football@65 (not used to build the pool)": 100,
     "football@75": 100,
-    "football@85 (not used to build C)": 100,
-    "football@100": 81.7,
-    "basketball@0": 21.8,
-    "basketball@10 (not used to build C)": 21.8,
-    "basketball@25": 21.8,
-    "basketball@35 (not used to build C)": 21.8,
-    "basketball@50": 21.8,
-    "basketball@65 (not used to build C)": 21.8,
-    "basketball@75": 53.7,
-    "basketball@85 (not used to build C)": 48.7,
-    "basketball@100": 30.2
+    "football@85 (not used to build the pool)": 100,
+    "football@100": 81,
+    "basketball@0": 20.6,
+    "basketball@10 (not used to build the pool)": 20.6,
+    "basketball@25": 20.6,
+    "basketball@35 (not used to build the pool)": 20.6,
+    "basketball@50": 20.6,
+    "basketball@65 (not used to build the pool)": 20.6,
+    "basketball@75": 50.7,
+    "basketball@85 (not used to build the pool)": 46.8,
+    "basketball@100": 29.5,
+    "ilmon@40 (Israeli monitoring, default slider)": 74
    },
-   "olderHighValueStoriesRestored": 6.2
+   "olderHighValueStoriesRestored": 6.5
   },
-  "C": {
-   "publishedStories": 1225.8,
-   "extraOver1200": 26,
-   "extraRawKB": 76,
-   "extraGzipKB": 21,
-   "extraParseMs": 0.5,
-   "extraHeapMB": 0.1,
-   "minimumRecallAnyTabAnyPosition": 96,
-   "meanRecallTopTab": 100,
-   "recall": {
-    "top@0": 100,
-    "top@10 (not used to build C)": 100,
-    "top@25": 100,
-    "top@35 (not used to build C)": 100,
-    "top@50": 100,
-    "top@65 (not used to build C)": 100,
-    "top@75": 100,
-    "top@85 (not used to build C)": 100,
-    "top@100": 100,
-    "football@0": 100,
-    "football@10 (not used to build C)": 99.9,
-    "football@25": 100,
-    "football@35 (not used to build C)": 100,
-    "football@50": 100,
-    "football@65 (not used to build C)": 98.7,
-    "football@75": 100,
-    "football@85 (not used to build C)": 100,
-    "football@100": 100,
-    "basketball@0": 100,
-    "basketball@10 (not used to build C)": 100,
-    "basketball@25": 100,
-    "basketball@35 (not used to build C)": 100,
-    "basketball@50": 100,
-    "basketball@65 (not used to build C)": 96,
-    "basketball@75": 100,
-    "basketball@85 (not used to build C)": 100,
-    "basketball@100": 100
-   },
-   "olderHighValueStoriesRestored": 19.7
-  },
-  "C+": {
-   "publishedStories": 1232.8,
-   "extraOver1200": 33,
-   "extraRawKB": 97,
-   "extraGzipKB": 27,
-   "extraParseMs": 0.7,
-   "extraHeapMB": 0.2,
-   "minimumRecallAnyTabAnyPosition": 96,
-   "meanRecallTopTab": 100,
-   "recall": {
-    "top@0": 100,
-    "top@10 (not used to build C)": 100,
-    "top@25": 100,
-    "top@35 (not used to build C)": 100,
-    "top@50": 100,
-    "top@65 (not used to build C)": 100,
-    "top@75": 100,
-    "top@85 (not used to build C)": 100,
-    "top@100": 100,
-    "football@0": 100,
-    "football@10 (not used to build C)": 99.9,
-    "football@25": 100,
-    "football@35 (not used to build C)": 100,
-    "football@50": 100,
-    "football@65 (not used to build C)": 98.7,
-    "football@75": 100,
-    "football@85 (not used to build C)": 100,
-    "football@100": 100,
-    "basketball@0": 100,
-    "basketball@10 (not used to build C)": 100,
-    "basketball@25": 100,
-    "basketball@35 (not used to build C)": 100,
-    "basketball@50": 100,
-    "basketball@65 (not used to build C)": 96,
-    "basketball@75": 100,
-    "basketball@85 (not used to build C)": 100,
-    "basketball@100": 100
-   },
-   "olderHighValueStoriesRestored": 19.7
-  },
-  "C1200": {
+  "POOL": {
    "publishedStories": 1200,
    "extraOver1200": 0,
    "extraRawKB": 0,
    "extraGzipKB": 0,
    "extraParseMs": 0,
    "extraHeapMB": 0,
-   "minimumRecallAnyTabAnyPosition": 93.1,
-   "meanRecallTopTab": 100,
+   "minimumRecallAnyTabAnyPosition": 85.9,
+   "meanRecallTopTab": 99.8,
+   "meanRecallFootball": 92.7,
+   "meanRecallBasketball": 94.4,
    "recall": {
-    "top@0": 100,
-    "top@10 (not used to build C)": 100,
-    "top@25": 100,
-    "top@35 (not used to build C)": 100,
-    "top@50": 100,
-    "top@65 (not used to build C)": 100,
+    "top@0": 99.9,
+    "top@10 (not used to build the pool)": 99.9,
+    "top@25": 99.9,
+    "top@35 (not used to build the pool)": 99.9,
+    "top@50": 99.7,
+    "top@65 (not used to build the pool)": 98.7,
     "top@75": 100,
-    "top@85 (not used to build C)": 100,
+    "top@85 (not used to build the pool)": 100,
     "top@100": 100,
-    "football@0": 96.9,
-    "football@10 (not used to build C)": 97.3,
-    "football@25": 97.9,
-    "football@35 (not used to build C)": 98.3,
-    "football@50": 97.8,
-    "football@65 (not used to build C)": 96.9,
+    "football@0": 87.7,
+    "football@10 (not used to build the pool)": 88.3,
+    "football@25": 89.1,
+    "football@35 (not used to build the pool)": 89.7,
+    "football@50": 89.7,
+    "football@65 (not used to build the pool)": 90.1,
     "football@75": 100,
-    "football@85 (not used to build C)": 100,
+    "football@85 (not used to build the pool)": 100,
     "football@100": 100,
-    "basketball@0": 96.2,
-    "basketball@10 (not used to build C)": 99.3,
-    "basketball@25": 99.7,
-    "basketball@35 (not used to build C)": 99.4,
-    "basketball@50": 97.2,
-    "basketball@65 (not used to build C)": 93.1,
+    "basketball@0": 86.2,
+    "basketball@10 (not used to build the pool)": 92.1,
+    "basketball@25": 96.1,
+    "basketball@35 (not used to build the pool)": 95.3,
+    "basketball@50": 91.5,
+    "basketball@65 (not used to build the pool)": 88.1,
     "basketball@75": 100,
-    "basketball@85 (not used to build C)": 100,
-    "basketball@100": 100
+    "basketball@85 (not used to build the pool)": 100,
+    "basketball@100": 100,
+    "ilmon@40 (Israeli monitoring, default slider)": 94.6
    },
-   "olderHighValueStoriesRestored": 19.7
+   "olderHighValueStoriesRestored": 23.8
   },
   "CL": {
-   "publishedStories": 1566,
-   "extraOver1200": 366,
-   "extraRawKB": 1082,
-   "extraGzipKB": 301,
-   "extraParseMs": 7.3,
-   "extraHeapMB": 2.1,
-   "minimumRecallAnyTabAnyPosition": 96.1,
+   "publishedStories": 1593.2,
+   "extraOver1200": 393,
+   "extraRawKB": 1163,
+   "extraGzipKB": 324,
+   "extraParseMs": 7.9,
+   "extraHeapMB": 2.2,
+   "minimumRecallAnyTabAnyPosition": 71.1,
    "meanRecallTopTab": 100,
+   "meanRecallFootball": 100,
+   "meanRecallBasketball": 99.8,
    "recall": {
     "top@0": 100,
-    "top@10 (not used to build C)": 100,
+    "top@10 (not used to build the pool)": 100,
     "top@25": 100,
-    "top@35 (not used to build C)": 100,
+    "top@35 (not used to build the pool)": 100,
     "top@50": 100,
-    "top@65 (not used to build C)": 100,
+    "top@65 (not used to build the pool)": 100,
     "top@75": 100,
-    "top@85 (not used to build C)": 100,
+    "top@85 (not used to build the pool)": 100,
     "top@100": 100,
     "football@0": 100,
-    "football@10 (not used to build C)": 100,
+    "football@10 (not used to build the pool)": 100,
     "football@25": 100,
-    "football@35 (not used to build C)": 100,
+    "football@35 (not used to build the pool)": 100,
     "football@50": 100,
-    "football@65 (not used to build C)": 99.9,
+    "football@65 (not used to build the pool)": 99.9,
     "football@75": 100,
-    "football@85 (not used to build C)": 100,
+    "football@85 (not used to build the pool)": 100,
     "football@100": 100,
     "basketball@0": 100,
-    "basketball@10 (not used to build C)": 100,
+    "basketball@10 (not used to build the pool)": 99.9,
     "basketball@25": 100,
-    "basketball@35 (not used to build C)": 100,
+    "basketball@35 (not used to build the pool)": 100,
     "basketball@50": 100,
-    "basketball@65 (not used to build C)": 96.1,
+    "basketball@65 (not used to build the pool)": 98.2,
     "basketball@75": 100,
-    "basketball@85 (not used to build C)": 100,
-    "basketball@100": 100
+    "basketball@85 (not used to build the pool)": 100,
+    "basketball@100": 100,
+    "ilmon@40 (Israeli monitoring, default slider)": 71.1
    },
-   "olderHighValueStoriesRestored": 49.5
+   "olderHighValueStoriesRestored": 53.4
   }
+ },
+ "unionBeforeTrim": {
+  "mean": 1218,
+  "note": "stories in the Israeli tier plus every list, before the cap trims to 1,200"
  },
  "filteredViews": {
   "league: Premier League @0": {
-   "A": 29.6,
-   "B": 44.3,
-   "C": 36.3,
-   "C1200": 35.1,
-   "CL": 47
+   "A": 26,
+   "B": 39.5,
+   "POOL": 30.6,
+   "CL": 46.7
   },
   "league: Premier League @50": {
-   "A": 38.7,
-   "B": 53.4,
-   "C": 46.8,
-   "C1200": 45.6,
-   "CL": 59
+   "A": 29.8,
+   "B": 42.9,
+   "POOL": 36.5,
+   "CL": 55.9
   },
   "league: Premier League @100": {
-   "A": 70.7,
-   "B": 81.7,
-   "C": 88.2,
-   "C1200": 87.8,
-   "CL": 96.3
+   "A": 55.2,
+   "B": 66.3,
+   "POOL": 74.5,
+   "CL": 94.2
   },
   "league: NBA @0": {
-   "A": 22.3,
-   "B": 23,
-   "C": 78.8,
-   "C1200": 76.3,
-   "CL": 78.8
+   "A": 18.5,
+   "B": 19.2,
+   "POOL": 70.5,
+   "CL": 79.6
   },
   "league: NBA @50": {
-   "A": 22.3,
-   "B": 23,
-   "C": 78.8,
-   "C1200": 76.3,
-   "CL": 78.8
+   "A": 18.5,
+   "B": 19.2,
+   "POOL": 70.5,
+   "CL": 79.6
   },
   "league: NBA @100": {
-   "A": 35.3,
-   "B": 36.5,
-   "C": 98.7,
-   "C1200": 96.8,
+   "A": 28.2,
+   "B": 30,
+   "POOL": 91.6,
    "CL": 98.7
   },
   "league: Euroleague @0": {
-   "A": 27.5,
-   "B": 26.8,
-   "C": 61.1,
-   "C1200": 59.1,
-   "CL": 63.9
+   "A": 16.3,
+   "B": 15.4,
+   "POOL": 48.1,
+   "CL": 69.7
   },
   "league: Euroleague @50": {
-   "A": 27.5,
-   "B": 26.8,
-   "C": 61.1,
-   "C1200": 59.1,
-   "CL": 63.9
+   "A": 16.3,
+   "B": 15.4,
+   "POOL": 48.1,
+   "CL": 69.7
   },
   "league: Euroleague @100": {
-   "A": 56.5,
-   "B": 55.8,
-   "C": 92.3,
-   "C1200": 90.3,
-   "CL": 95.9
+   "A": 28.5,
+   "B": 27.2,
+   "POOL": 68.8,
+   "CL": 91.6
   },
   "league: Champions League @0": {
-   "A": 44.6,
-   "B": 81.7,
-   "C": 60.9,
-   "C1200": 58.4,
-   "CL": 84.7
+   "A": 42.6,
+   "B": 78.5,
+   "POOL": 54.3,
+   "CL": 86.5
   },
   "league: Champions League @50": {
-   "A": 47.6,
-   "B": 84.5,
-   "C": 64.8,
-   "C1200": 62.3,
-   "CL": 87.6
+   "A": 45.9,
+   "B": 81.1,
+   "POOL": 58.3,
+   "CL": 89.7
   },
   "league: Champions League @100": {
-   "A": 66.8,
-   "B": 81.5,
-   "C": 91.8,
-   "C1200": 91.3,
-   "CL": 98.8
+   "A": 64.3,
+   "B": 79,
+   "POOL": 89.8,
+   "CL": 99.7
   },
   "language: Hebrew @0": {
-   "A": 70.1,
-   "B": 71.6,
-   "C": 76,
-   "C1200": 75.4,
-   "CL": 79.3
+   "A": 46.9,
+   "B": 36.5,
+   "POOL": 72.8,
+   "CL": 65.3
   },
   "language: Hebrew @50": {
-   "A": 88.6,
-   "B": 92,
-   "C": 91.9,
-   "C1200": 91.4,
-   "CL": 93.3
+   "A": 46.9,
+   "B": 36.5,
+   "POOL": 72.8,
+   "CL": 65.3
   },
   "language: Hebrew @100": {
-   "A": 100,
-   "B": 100,
-   "C": 100,
-   "C1200": 100,
-   "CL": 100
+   "A": 47.2,
+   "B": 36.7,
+   "POOL": 73.1,
+   "CL": 65.7
   }
  },
  "churnPerRun": {
@@ -387,24 +318,16 @@
    "leaving": 17.3
   },
   "B": {
-   "entering": 14.2,
-   "leaving": 14.2
+   "entering": 14.3,
+   "leaving": 14.3
   },
-  "C": {
-   "entering": 8.6,
-   "leaving": 8.5
-  },
-  "C+": {
-   "entering": 8.6,
-   "leaving": 8.5
-  },
-  "C1200": {
-   "entering": 9.3,
-   "leaving": 9.3
+  "POOL": {
+   "entering": 9.2,
+   "leaving": 9.2
   },
   "CL": {
-   "entering": 10.3,
-   "leaving": 9.8
+   "entering": 10.6,
+   "leaving": 10.1
   }
  }
 }

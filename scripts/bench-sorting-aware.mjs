@@ -1,30 +1,23 @@
-// Can the "Newest <-> Editorial rank" slider control which stories are AVAILABLE, not only how the same preselected 1,200 are ordered?
+// Benchmark of the sorting-aware pool (src/capselect.js selectPool, CAP_G1) against today's cap and the earlier G1 fill.
 // OFFLINE replay on a saved state (see scripts/replay-lib.mjs); no network, no model, nothing written to the radar's data.
 //
 //   node scripts/bench-sorting-aware.mjs --state <state.json> [--json out.json]
 //
-// What the front end does (public/app.js): it loads news.json (newest 300 + Israeli) and news-more.json, puts them in one array
-// (state.data.stories), and every tab, filter, search and slider position works on that array. The slider re-sorts by
-// val = w * editorialScore/100 + (1 - w) * exp(-(now - first)/6h) (rankMix) and shows the first 300 (120 when the slider is 70 or more).
-// The Top / football / basketball tabs first take out local, low and minor stories (OFFBEAT_TABS).
-//
-// Approaches compared, all with the same Israeli-first tier:
-//   A  today: the newest non-Israeli stories up to 1,200
-//   B  G1: the non-Israeli stories with the best mix at slider 50, up to 1,200 (src/capselect.js)
-//   C  sorting-aware: the union of the lists the slider can show at positions 0, 25, 50, 75, 100 on the Top, football and basketball
-//      tabs (the existing formulas, no new rule); its size is whatever the union is
-//   C+ C topped up to 1,200 with B's next-best stories when it is smaller (a pool of exactly 1,200 that contains C)
-//   CL  C plus, for each league the app can filter on (Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Champions League,
-//       Europa League, NBA, Euroleague), the top 100 of that league at slider 0, 50 and 100 (size is whatever the union is)
-//   C1200 C trimmed to exactly 1,200 when it is larger: the same lists taken in turn, best story of each list first, until the cap is reached
-// Each is scored on how much of the TRUE list (built from every eligible story) it contains, at positions it was built for
-// and at positions it was not (10, 35, 65, 85), so the pool is not just fitted to the test.
+// Approaches, all with the same Israeli-first tier and a total of 1,200:
+//   A     today: the newest non-Israeli stories
+//   B     the earlier G1 fill: the non-Israeli stories with the best 50/50 mix (kept here only for comparison)
+//   POOL  the production selection: the union of the lists the slider can show on the Top, Football and Basketball tabs at slider
+//         positions 0, 25, 50, 75, 100, taken in turn (src/capselect.js)
+//   CL    POOL's lists plus the top 100 of each league the app can filter on (an uncapped comparison: its size is whatever the union is)
+// Each is scored on how much of the TRUE list (built from every eligible story, with the page's own formulas) it contains, at the
+// positions the pool is built for and at positions it is not (10, 35, 65, 85), so it is not just fitted to the test.
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { loadReplay, H } from './replay-lib.mjs';
-import { applyCap, capStories, isIsraeli } from '../src/capselect.js';
-import { storyEvidence, storyCoverage } from '../src/roles.js';
+import { israeliOnlyStory, applyCap, capStories, isIsraeli, listFor, listForIlmon, mixAt, freshness, tabAccepts, offbeat, POOL_TABS, SLIDER_POSITIONS, listSize } from '../src/capselect.js';
+import { storyEvidence, storyCoverage, storyViews } from '../src/roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary } from '../src/rank.js';
+import { SOURCES } from '../config/sources.js';
 
 const ROOT = join(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
@@ -33,98 +26,93 @@ if (!statePath) throw new Error('--state <state.json> is required');
 const { end, eligibleAt } = loadReplay(statePath, arg('--entities', join(dirname(statePath), 'entities.json')));
 const rankCfg = loadRankConfig(join(ROOT, 'config', 'editorial-rank.json'));
 loadVocabulary(join(ROOT, 'config', 'vocabulary.json'));
-
+const srcById = new Map(SOURCES.map((x) => [x.id, x]));
 // measured on the live site 2026-11-18 (1,200 stories): see docs/sorting-aware.md
 const BYTES_RAW = 3028, BYTES_GZ = 843, PARSE_MS = 24 / 1200, HEAP_KB = 5.8;
 
 const edOf = (s, T) => {
-  const { roles: _r, ...ev } = storyEvidence(s, () => ({}));
-  return editorialRank({ ...s, ev, cov: storyCoverage(s, { ok: false }, ev) }, { now: T, cfg: rankCfg });
+  const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
+  const r = editorialRank({ ...s, ev, cov: storyCoverage(s, { ok: false }, ev) }, { now: T, cfg: rankCfg });
+  return { score: r.score, dims: r.dims, israeliOnly: israeliOnlyStory(ev, s._members, roles), ilmon: storyViews(s, ev).includes('i') };
 };
-const BUILD = [0, 25, 50, 75, 100];
+const BUILD = SLIDER_POSITIONS;
 const TEST = [0, 10, 25, 35, 50, 65, 75, 85, 100];
-const TABS = {
-  top: (s) => s.sport !== 'other' || s.big,
-  football: (s) => !isIsraeli(s) && s.sport === 'football',
-  basketball: (s) => !isIsraeli(s) && s.sport === 'basketball',
-};
-const offbeat = (s) => !s.local && !s.low && !s.minor;
-const list = (stories, T, tab, p, ed) => {
-  const w = p / 100;
-  const v = (s) => w * (ed.get(s).score / 100) + (1 - w) * Math.exp(-(T - s.first) / (6 * H));
-  return stories.filter((s) => TABS[tab](s) && offbeat(s)).sort((a, b) => v(b) - v(a) || (a.id < b.id ? -1 : 1)).slice(0, p >= 70 ? 120 : 300);
-};
 const pct = (n, d) => (d ? Math.round((1000 * n) / d) / 10 : null);
 const mean = (a) => Math.round((a.reduce((x, y) => x + y, 0) / a.length) * 10) / 10;
+const infoOf = (stories, ed, T) => new Map(stories.map((s) => [s, { ed: ed.get(s).score, fresh: freshness(s, T), israeliOnly: ed.get(s).israeliOnly, ilmon: ed.get(s).ilmon }]));
 
-function approaches(stories, T, ed) {
+const LEAGUES = ['c-epl', 'c-laliga', 'c-seriea', 'c-bundes', 'c-ligue1', 'c-ucl', 'c-uel', 'c-nba', 'c-euroleague'];
+function approaches(stories, T, ed, info) {
   const A = new Set(capStories(stories, 1200));
-  const g = applyCap(stories, { mode: 'on', max: 1200, now: T, scoreOf: (s) => ed.get(s).score });
-  const B = new Set(g.published);
   const israeli = new Set(stories.filter(isIsraeli));
-  const C = new Set(israeli);
-  for (const tab of Object.keys(TABS)) for (const p of BUILD) for (const s of list(stories, T, tab, p, ed)) C.add(s);
-  const Cplus = new Set(C);
-  for (const r of g.ranked) if (Cplus.size < 1200) Cplus.add(r.s);
-  // C trimmed to the cap: the Israeli tier, then the lists in turn (rank 1 of every list, rank 2 of every list ...) until 1,200
-  const lists = [];
-  for (const tab of Object.keys(TABS)) for (const p of BUILD) lists.push(list(stories, T, tab, p, ed).filter((s) => !israeli.has(s)));
-  const C1200 = new Set([...israeli].slice(0, 1200));
-  for (let r = 0; r < 300 && C1200.size < 1200; r++) for (const l of lists) if (r < l.length && C1200.size < 1200) C1200.add(l[r]);
-  for (const r of g.ranked) if (C1200.size < 1200) C1200.add(r.s);
-  const CL = new Set(C);
-  for (const comp of ['c-epl', 'c-laliga', 'c-seriea', 'c-bundes', 'c-ligue1', 'c-ucl', 'c-uel', 'c-nba', 'c-euroleague']) for (const p of [0, 50, 100]) {
+  // B: the earlier G1 fill
+  const B = new Set([...israeli].slice(0, 1200));
+  for (const s of [...stories].filter((s) => !B.has(s)).sort((a, b) => mixAt(50, ed.get(b).score, freshness(b, T)) - mixAt(50, ed.get(a).score, freshness(a, T)) || b.latest - a.latest || (a.id < b.id ? -1 : 1))) if (B.size < 1200) B.add(s);
+  const g = applyCap(stories, { mode: 'on', max: 1200, now: T, scoreOf: (s) => ed.get(s) });
+  const POOL = new Set(g.published);
+  // the untrimmed union (what the lists hold before the cap trims it) and CL
+  const union = new Set(israeli);
+  for (const tab of POOL_TABS) for (const p of BUILD) for (const s of listFor(stories, info, tab, p)) union.add(s);
+  const CL = new Set(union);
+  for (const comp of LEAGUES) for (const p of [0, 50, 100]) {
     const w = p / 100;
-    const v = (s) => w * (ed.get(s).score / 100) + (1 - w) * Math.exp(-(T - s.first) / (6 * H));
-    for (const s of stories.filter((s) => s.comps?.includes(comp) && TABS.top(s) && offbeat(s)).sort((a, b) => v(b) - v(a) || (a.id < b.id ? -1 : 1)).slice(0, 100)) CL.add(s);
+    const v = (s) => w * (ed.get(s).score / 100) + (1 - w) * freshness(s, T);
+    for (const s of stories.filter((s) => s.comps?.includes(comp) && tabAccepts('top', s, ed.get(s).israeliOnly) && offbeat(s)).sort((a, b) => v(b) - v(a) || (a.id < b.id ? -1 : 1)).slice(0, 100)) CL.add(s);
   }
-  return { A, B, C, 'C+': Cplus, C1200, CL, ranked: g.ranked };
+  return { A, B, POOL, CL, unionSize: union.size, stats: g.stats };
 }
 
-// editors also filter (league, language) before sorting; the pool is built without knowing the filters, so this is the honest test of them
+const NAMES = ['A', 'B', 'POOL', 'CL'];
 const FILTERS = { 'league: Premier League': (s) => s.comps?.includes('c-epl'), 'league: NBA': (s) => s.comps?.includes('c-nba'), 'league: Euroleague': (s) => s.comps?.includes('c-euroleague'), 'league: Champions League': (s) => s.comps?.includes('c-ucl'), 'language: Hebrew': (s) => s.langs.includes('he') };
+const acc = Object.fromEntries(NAMES.map((n) => [n, { size: [], recall: {}, minRecall: [], older: [] }]));
 const filtered = {};
-const out = { state: statePath, snapshots: [], perAppoach: {} };
+const unionSizes = [];
 const SNAPS = [0, 3, 6, 9, 12].map((h) => end - h * H);
-const acc = {};
-const old = {};
+const out = { state: statePath, snapshots: [], perApproach: {} };
 for (const T of SNAPS) {
   const stories = eligibleAt(T);
   const ed = new Map(stories.map((s) => [s, edOf(s, T)]));
-  const set = approaches(stories, T, ed);
-  for (const name of ['A', 'B', 'C', 'C+', 'C1200', 'CL']) {
-    const a = (acc[name] ||= { size: [], recall: {}, minRecall: [] });
-    a.size.push(set[name].size);
+  const info = infoOf(stories, ed, T);
+  const set = approaches(stories, T, ed, info);
+  unionSizes.push(set.unionSize);
+  for (const name of NAMES) {
+    acc[name].size.push(set[name].size);
     const all = [];
-    for (const tab of Object.keys(TABS)) for (const p of TEST) {
-      const want = list(stories, T, tab, p, ed);
+    for (const tab of POOL_TABS) for (const p of TEST) {
+      const want = listFor(stories, info, tab, p);
       const r = pct(want.filter((s) => set[name].has(s)).length, want.length);
-      (a.recall[`${tab}@${p}${BUILD.includes(p) ? '' : ' (not used to build C)'}`] ||= []).push(r);
+      (acc[name].recall[`${tab}@${p}${BUILD.includes(p) ? '' : ' (not used to build the pool)'}`] ||= []).push(r);
       all.push(r);
     }
-    a.minRecall.push(Math.min(...all));
+    {
+      const want = listForIlmon(stories, info);
+      const r = pct(want.filter((s) => set[name].has(s)).length, want.length);
+      (acc[name].recall['ilmon@40 (Israeli monitoring, default slider)'] ||= []).push(r);
+      all.push(r);
+    }
+    acc[name].minRecall.push(Math.min(...all));
   }
   for (const [fname, f] of Object.entries(FILTERS)) for (const p of [0, 50, 100]) {
     const w = p / 100;
-    const v = (s) => w * (ed.get(s).score / 100) + (1 - w) * Math.exp(-(T - s.first) / (6 * H));
-    const want = stories.filter((s) => TABS.top(s) && offbeat(s) && f(s)).sort((a, b) => v(b) - v(a) || (a.id < b.id ? -1 : 1)).slice(0, p >= 70 ? 120 : 300);
+    const v = (s) => w * (ed.get(s).score / 100) + (1 - w) * freshness(s, T);
+    const want = stories.filter((s) => tabAccepts('top', s, ed.get(s).israeliOnly) && offbeat(s) && f(s)).sort((a, b) => v(b) - v(a) || (a.id < b.id ? -1 : 1)).slice(0, listSize(p));
     if (!want.length) continue;
-    for (const name of ['A', 'B', 'C', 'C1200', 'CL']) ((filtered[`${fname} @${p}`] ||= {})[name] ||= []).push(pct(want.filter((s) => set[name].has(s)).length, want.length));
+    for (const name of NAMES) ((filtered[`${fname} @${p}`] ||= {})[name] ||= []).push(pct(want.filter((s) => set[name].has(s)).length, want.length));
   }
-  // older high-value stories: the ones the old cap cut whose timeless editorial score (no freshness, no Sport5 check) reaches the shown top 10%
+  // older high-value stories: the ones today's cap cut whose timeless editorial score (no freshness, no Sport5 check) reaches the shown top 10%
   const KEYS = ['israel', 'importance', 'news', 'attention', 'evidence'];
   const tw = KEYS.reduce((x, k) => x + rankCfg.weights[k], 0);
   const timeless = (s) => (100 * KEYS.reduce((x, k) => x + rankCfg.weights[k] * (ed.get(s).dims[k] ?? 0), 0)) / tw * (s.local || s.minor ? 0.5 : s.routine ? 0.75 : 1);
   const shownA = [...set.A].filter((s) => !isIsraeli(s)).map(timeless).sort((x, y) => x - y);
   const p90 = shownA[Math.floor(shownA.length * 0.9)];
   const cutA = stories.filter((s) => !set.A.has(s) && !s.low && timeless(s) >= p90);
-  for (const name of ['A', 'B', 'C', 'C+', 'C1200', 'CL']) (old[name] ||= []).push(pct(cutA.filter((s) => set[name].has(s)).length, cutA.length));
-  out.snapshots.push({ at: new Date(T).toISOString(), eligible: stories.length, israeli: stories.filter(isIsraeli).length, olderHighValueCutByToday: cutA.length });
+  for (const name of NAMES) acc[name].older.push(pct(cutA.filter((s) => set[name].has(s)).length, cutA.length));
+  out.snapshots.push({ at: new Date(T).toISOString(), eligible: stories.length, israeli: stories.filter(isIsraeli).length, unionBeforeTrim: set.unionSize, israeliOnlyStories: stories.filter((s) => ed.get(s).israeliOnly).length, olderHighValueCutByToday: cutA.length });
 }
 for (const [name, a] of Object.entries(acc)) {
   const recall = Object.fromEntries(Object.entries(a.recall).map(([k, v]) => [k, mean(v)]));
   const size = mean(a.size);
-  out.perAppoach[name] = {
+  out.perApproach[name] = {
     publishedStories: size,
     extraOver1200: Math.round(size - 1200),
     extraRawKB: Math.round(((size - 1200) * BYTES_RAW) / 1024),
@@ -133,30 +121,37 @@ for (const [name, a] of Object.entries(acc)) {
     extraHeapMB: Math.round(((size - 1200) * HEAP_KB) / 1024 * 10) / 10,
     minimumRecallAnyTabAnyPosition: mean(a.minRecall),
     meanRecallTopTab: mean(Object.entries(recall).filter(([k]) => k.startsWith('top@')).map(([, v]) => v)),
+    meanRecallFootball: mean(Object.entries(recall).filter(([k]) => k.startsWith('football@')).map(([, v]) => v)),
+    meanRecallBasketball: mean(Object.entries(recall).filter(([k]) => k.startsWith('basketball@')).map(([, v]) => v)),
     recall,
-    olderHighValueStoriesRestored: mean(old[name] || [0]),
+    olderHighValueStoriesRestored: mean(a.older),
   };
 }
-
+out.unionBeforeTrim = { mean: mean(unionSizes), note: 'stories in the Israeli tier plus every list, before the cap trims to 1,200' };
 out.filteredViews = Object.fromEntries(Object.entries(filtered).map(([k, v]) => [k, Object.fromEntries(Object.entries(v).map(([n, a]) => [n, mean(a)]))]));
-// churn between consecutive 5-minute runs, as a proxy for the size of data/delta.json (stories entering or leaving the published set)
+
+// churn between consecutive 5-minute runs (the production chain: each run remembers the previous run's pool)
 {
-  const chain = [];
+  const chain = Object.fromEntries(NAMES.map((n) => [n, []]));
+  let prev = new Set();
   for (let k = 12; k >= 0; k--) {
     const T = end - k * 5 * 60e3;
     const stories = eligibleAt(T);
     const ed = new Map(stories.map((s) => [s, edOf(s, T)]));
-    const set = approaches(stories, T, ed);
-    chain.push(Object.fromEntries(['A', 'B', 'C', 'C+', 'C1200', 'CL'].map((n) => [n, new Set([...set[n]].map((s) => s.id))])));
+    const info = infoOf(stories, ed, T);
+    const g = applyCap(stories, { mode: 'on', max: 1200, now: T, scoreOf: (s) => ed.get(s), prevKept: prev });
+    prev = new Set(g.published.map((s) => s.id));
+    const set = approaches(stories, T, ed, info);
+    for (const n of NAMES) chain[n].push(n === 'POOL' ? prev : new Set([...set[n]].map((s) => s.id)));
   }
   out.churnPerRun = {};
-  for (const n of ['A', 'B', 'C', 'C+', 'C1200', 'CL']) {
+  for (const n of NAMES) {
     let enter = 0, leave = 0;
-    for (let i = 1; i < chain.length; i++) {
-      for (const id of chain[i][n]) if (!chain[i - 1][n].has(id)) enter++;
-      for (const id of chain[i - 1][n]) if (!chain[i][n].has(id)) leave++;
+    for (let i = 1; i < chain[n].length; i++) {
+      for (const id of chain[n][i]) if (!chain[n][i - 1].has(id)) enter++;
+      for (const id of chain[n][i - 1]) if (!chain[n][i].has(id)) leave++;
     }
-    out.churnPerRun[n] = { entering: Math.round((enter / (chain.length - 1)) * 10) / 10, leaving: Math.round((leave / (chain.length - 1)) * 10) / 10 };
+    out.churnPerRun[n] = { entering: Math.round((enter / (chain[n].length - 1)) * 10) / 10, leaving: Math.round((leave / (chain[n].length - 1)) * 10) / 10 };
   }
 }
 console.log(JSON.stringify(out, null, 1));

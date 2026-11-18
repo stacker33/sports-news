@@ -5,8 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { clusterItems, buildStory } from '../src/cluster.js';
 import { mergeSameEvent } from '../src/merge.js';
 import { bigEvent, editorialBoost, markLocal, markLow, memberLocal } from '../src/editorial.js';
-import { storyEvidence, storyCoverage } from '../src/roles.js';
+import { storyEvidence, storyCoverage, storyViews } from '../src/roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary } from '../src/rank.js';
+import { SOURCES } from '../config/sources.js';
+import { israeliOnlyStory } from '../src/capselect.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const H = 3600e3;
@@ -56,9 +58,13 @@ export function loadReplay(statePath, entitiesPath = join(dirname(statePath), 'e
     }
     return out.sort((a, b) => b.latest - a.latest);
   }
+  // the source configuration gives each article's origin (Israeli / foreign), as in src/collect.js (user-added and per-athlete sources are not in it)
+  const srcById = new Map(SOURCES.map((x) => [x.id, x]));
+  // -> { score, israeliOnly } as src/collect.js editorialScoreOf: israeliOnly = only Israeli sites carry the story (the page's foreignOnly)
   const scoreOf = (s) => {
-    const { roles: _r, ...ev } = storyEvidence(s, () => ({}));
-    return editorialRank({ ...s, ev, cov: storyCoverage(s, { ok: false }, ev) }, { now: s._now, cfg: rankCfg }).score;
+    const { roles, ...ev } = storyEvidence(s, (m) => srcById.get(m.sourceId));
+    const score = editorialRank({ ...s, ev, cov: storyCoverage(s, { ok: false }, ev) }, { now: s._now, cfg: rankCfg }).score;
+    return { score, israeliOnly: israeliOnlyStory(ev, s._members, roles), ilmon: storyViews(s, ev).includes('i') };
   };
 
 

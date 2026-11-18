@@ -1,5 +1,7 @@
 # Can the slider control which stories are available?
 
+> **Implemented** as the pool in `src/capselect.js` (see `docs/g1-cap.md`, which has the final measurements). The tables below are the investigation that led to it, from the earlier `bench-sorting-aware` run; the implementation also lists the Israeli monitoring tab, which this investigation had not measured.
+
 Investigation only. Nothing here changes production; `CAP_G1` stays off or `shadow`. Offline replay on the saved state of 2026-10-19 22:10 UTC (5 snapshots 3 hours apart, 13 consecutive 5-minute runs for churn). Reproduce: `node scripts/bench-sorting-aware.mjs --state <state.json> --json docs/sorting-aware-bench.json` (about 4 minutes). File sizes were measured on the live site (public GET requests only), 2026-11-18.
 
 ## 1. How the front end gets and uses the stories

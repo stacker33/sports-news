@@ -6,136 +6,172 @@
    "at": "2026-10-19T21:09:40.000Z",
    "eligible": 9014,
    "israeli": 500,
-   "scoredInMs": 842,
-   "heapUsedDeltaMB": 22,
-   "rssMB": 293,
-   "selectionMs": 833,
-   "overlapWithLegacy": 928,
-   "added": 272,
-   "dropped": 272,
+   "scoredInMs": 960,
+   "heapUsedDeltaMB": 29,
+   "rssMB": 296,
+   "selectionMs": 950,
+   "overlapWithLegacy": 770,
+   "added": 430,
+   "dropped": 430,
    "recallNewestTop300": {
-    "legacy": 87.7,
+    "legacy": 72.3,
     "g1": 100
    },
    "recallDefaultTop300": {
-    "legacy": 94,
+    "legacy": 77,
     "g1": 100
    },
    "recallEditorialTop120": {
-    "legacy": 100,
+    "legacy": 95,
     "g1": 100
+   },
+   "listRecallAllTabsAllPositions": {
+    "legacy": {
+     "mean": 58.9,
+     "min": 20.3,
+     "top": 83.7,
+     "football": 64.1,
+     "basketball": 26.8,
+     "ilmon": 69.3
+    },
+    "pool": {
+     "mean": 95.5,
+     "min": 84,
+     "top": 100,
+     "football": 92.4,
+     "basketball": 94.4,
+     "ilmon": 93.3
+    }
    }
   },
   {
    "at": "2026-10-19T21:14:40.000Z",
    "eligible": 9015,
-   "scoredInMs": 672,
-   "selectionMs": 665,
-   "overlapWithLegacy": 932
+   "scoredInMs": 719,
+   "selectionMs": 713,
+   "overlapWithLegacy": 773
   },
   {
    "at": "2026-10-19T21:19:40.000Z",
    "eligible": 9081,
-   "scoredInMs": 650,
-   "selectionMs": 643,
-   "overlapWithLegacy": 931
+   "scoredInMs": 845,
+   "selectionMs": 838,
+   "overlapWithLegacy": 768
   },
   {
    "at": "2026-10-19T21:24:40.000Z",
    "eligible": 9091,
-   "scoredInMs": 673,
-   "selectionMs": 664,
-   "overlapWithLegacy": 936
+   "scoredInMs": 741,
+   "selectionMs": 735,
+   "overlapWithLegacy": 775
   },
   {
    "at": "2026-10-19T21:29:40.000Z",
    "eligible": 9072,
-   "scoredInMs": 655,
-   "selectionMs": 645,
-   "overlapWithLegacy": 936
+   "scoredInMs": 813,
+   "selectionMs": 802,
+   "overlapWithLegacy": 774
   },
   {
    "at": "2026-10-19T21:34:40.000Z",
    "eligible": 9075,
-   "scoredInMs": 676,
-   "selectionMs": 666,
-   "overlapWithLegacy": 937
+   "scoredInMs": 907,
+   "selectionMs": 899,
+   "overlapWithLegacy": 779
   },
   {
    "at": "2026-10-19T21:39:40.000Z",
    "eligible": 9087,
-   "scoredInMs": 671,
-   "selectionMs": 663,
-   "overlapWithLegacy": 941
+   "scoredInMs": 814,
+   "selectionMs": 804,
+   "overlapWithLegacy": 782
   },
   {
    "at": "2026-10-19T21:44:40.000Z",
    "eligible": 9095,
-   "scoredInMs": 652,
-   "selectionMs": 642,
-   "overlapWithLegacy": 941
+   "scoredInMs": 748,
+   "selectionMs": 740,
+   "overlapWithLegacy": 785
   },
   {
    "at": "2026-10-19T21:49:40.000Z",
    "eligible": 9081,
-   "scoredInMs": 670,
-   "selectionMs": 662,
-   "overlapWithLegacy": 938
+   "scoredInMs": 795,
+   "selectionMs": 784,
+   "overlapWithLegacy": 785
   },
   {
    "at": "2026-10-19T21:54:40.000Z",
    "eligible": 9078,
-   "scoredInMs": 664,
-   "selectionMs": 657,
-   "overlapWithLegacy": 944
+   "scoredInMs": 777,
+   "selectionMs": 770,
+   "overlapWithLegacy": 786
   },
   {
    "at": "2026-10-19T21:59:40.000Z",
    "eligible": 9070,
-   "scoredInMs": 656,
-   "selectionMs": 649,
-   "overlapWithLegacy": 942
+   "scoredInMs": 712,
+   "selectionMs": 705,
+   "overlapWithLegacy": 784
   },
   {
    "at": "2026-10-19T22:04:40.000Z",
    "eligible": 9038,
-   "scoredInMs": 660,
-   "selectionMs": 652,
-   "overlapWithLegacy": 946
+   "scoredInMs": 730,
+   "selectionMs": 723,
+   "overlapWithLegacy": 788
   },
   {
    "at": "2026-10-19T22:09:40.000Z",
    "eligible": 9011,
    "israeli": 493,
-   "scoredInMs": 669,
-   "heapUsedDeltaMB": 27,
+   "scoredInMs": 741,
+   "heapUsedDeltaMB": 30,
    "rssMB": 475,
-   "selectionMs": 662,
-   "overlapWithLegacy": 945,
-   "added": 255,
-   "dropped": 255,
+   "selectionMs": 735,
+   "overlapWithLegacy": 789,
+   "added": 411,
+   "dropped": 411,
    "recallNewestTop300": {
-    "legacy": 91,
-    "g1": 99.7
+    "legacy": 78.3,
+    "g1": 100
    },
    "recallDefaultTop300": {
-    "legacy": 95.3,
+    "legacy": 83,
     "g1": 100
    },
    "recallEditorialTop120": {
-    "legacy": 100,
+    "legacy": 95,
     "g1": 100
+   },
+   "listRecallAllTabsAllPositions": {
+    "legacy": {
+     "mean": 62.2,
+     "min": 22.3,
+     "top": 87.5,
+     "football": 68.7,
+     "basketball": 28.9,
+     "ilmon": 70
+    },
+    "pool": {
+     "mean": 95.6,
+     "min": 85,
+     "top": 100,
+     "football": 92.5,
+     "basketball": 94.5,
+     "ilmon": 94.7
+    }
    }
   }
  ],
  "churn": {
   "note": "Jaccard overlap of the published sets of consecutive 5-minute runs (1.0 = identical)",
   "legacy": 0.9716,
-  "g1WithKeepBonus": 0.978,
-  "g1WithoutBonus": 0.9767,
+  "g1WithKeepBonus": 0.9849,
+  "g1WithoutBonus": 0.9846,
   "minLegacy": 0.9591836734693877,
-  "minG1WithBonus": 0.9688269073010665,
-  "minG1WithoutBonus": 0.9672131147540983
+  "minG1WithBonus": 0.9720624486442071,
+  "minG1WithoutBonus": 0.9720624486442071
  },
  "identity": {
   "note": "runs in which the published list (off, shadow) and the list Telegram / summaries read (on) are exactly the legacy list: same stories, same order",
@@ -146,8 +182,8 @@
  },
  "cost": {
   "scoredStories": 9095,
-  "medianScoringMs": 669,
-  "maxScoringMs": 842,
+  "medianScoringMs": 777,
+  "maxScoringMs": 960,
   "peakRssMB": 475
  }
 }
