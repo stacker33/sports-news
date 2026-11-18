@@ -31,9 +31,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -41,13 +41,13 @@ jobs:
       - run: npm ci
 
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # The radar's memory (state.json, entities.json) lives in GitHub's Actions cache: free, not counted against
       # GitHub Pages' ~100 GB/month bandwidth, and not public (the site no longer publishes state.json).
       # Order: the newest saved copy → the daily backup copy → stop. Never an empty or unverified state.
       - name: Restore previous state from the Actions cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .state-cache
           key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
@@ -68,7 +68,7 @@ jobs:
 
       - name: Restore the daily backup from the Actions cache
         if: steps.main.outputs.ok != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .state-backup
           key: radar-backup-none
@@ -153,7 +153,7 @@ jobs:
 
       - name: Save the new state in the Actions cache
         continue-on-error: true
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .state-cache
           key: radar-state-${{ github.run_id }}-${{ github.run_attempt }}
@@ -164,9 +164,23 @@ jobs:
         id: day
         run: echo "key=radar-backup-$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
 
-      - name: Save the daily backup in the Actions cache
+      # A cache key can be saved only once. From the second run of the day on the key is taken, and cache/save then ends
+      # with the warning "Cache save failed." (actions/cache saveOnlyRun: cacheId -1). So ask first, without downloading
+      # anything (lookup-only), and save only when today's backup does not exist yet.
+      - name: Is today's backup already saved?
+        id: backup-today
         continue-on-error: true
-        uses: actions/cache/save@v4
+        uses: actions/cache/restore@v6
+        with:
+          path: .state-cache
+          key: ${{ steps.day.outputs.key }}
+          lookup-only: true
+
+      - name: Save the daily backup in the Actions cache
+        # an unanswered lookup (a failed step) counts as "not saved yet": then the save is tried, as before
+        if: steps.backup-today.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v6
         with:
           path: .state-cache
           key: ${{ steps.day.outputs.key }}
@@ -181,7 +195,8 @@ jobs:
           gh cache list --repo "${{ github.repository }}" --key radar-state- --sort created_at --order desc --limit 100 --json id --jq '.[5:][].id' \
             | xargs -r -n1 gh cache delete --repo "${{ github.repository }}"
           # daily backups: the newest 3
-          gh cache list --repo "${{ github.repository }}" --key radar-backup- --sort created_at --order desc --limit 50 --json id --jq '.[3:][].id' \n            | xargs -r -n1 gh cache delete --repo "${{ github.repository }}"
+          gh cache list --repo "${{ github.repository }}" --key radar-backup- --sort created_at --order desc --limit 50 --json id --jq '.[3:][].id' \
+            | xargs -r -n1 gh cache delete --repo "${{ github.repository }}"
 
       - name: Tell the admin if the collection failed
         if: failure()
@@ -202,14 +217,14 @@ jobs:
       - name: Keep the memory off the public site
         run: rm -f public/data/state.json public/data/*.download
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: public
 
       # GitHub Pages sometimes fails on its side ("status: 500", or the artifact it was just given "not found",
       # 2026-10-14): one more try 30 seconds later before the run counts as failed (and emails the owner)
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         continue-on-error: true
         timeout-minutes: 6
 
@@ -219,7 +234,7 @@ jobs:
 
       - id: deploy-retry
         if: steps.deploy.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         timeout-minutes: 6
 
       # GitHub pauses scheduled workflows after 60 days without repo activity; re-enabling resets that.

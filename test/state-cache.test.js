@@ -56,7 +56,7 @@ test('workflow: newest copy → daily backup → stop; the memory is not publish
   const steps = yml.split(/\n {6}- /).slice(1);
   const i = (re) => steps.findIndex((s) => re.test(s));
   const restoreCache = steps[i(/name: Restore previous state from the Actions cache/)];
-  assert.match(restoreCache, /actions\/cache\/restore@v4/);
+  assert.match(restoreCache, /actions\/cache\/restore@v6/);
   assert.match(restoreCache, /restore-keys: radar-state-/);
   assert.match(steps[i(/name: Use the cached state/)], /pick-state\.mjs \.state-cache\/state\.json \.site-version\.json public\/data\/state\.json --allow-older/);
   const backupRestore = steps[i(/name: Restore the daily backup from the Actions cache/)];
@@ -65,7 +65,7 @@ test('workflow: newest copy → daily backup → stop; the memory is not publish
   assert.match(fallback, /if: steps\.main\.outputs\.ok != 'true'/);
   assert.match(fallback, /pick-state\.mjs \.state-backup\/state\.json[\s\S]*state:missing[\s\S]*exit 1/);
   const save = steps[i(/name: Save the new state in the Actions cache/)];
-  assert.match(save, /actions\/cache\/save@v4/);
+  assert.match(save, /actions\/cache\/save@v6/);
   assert.match(save, /continue-on-error: true/);
   assert.match(steps[i(/name: Save the daily backup/)], /continue-on-error: true[\s\S]*key: \$\{\{ steps\.day\.outputs\.key \}\}/);
   const cleanup = steps[i(/name: Delete older state copies/)];
