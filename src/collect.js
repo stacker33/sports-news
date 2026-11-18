@@ -573,8 +573,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   }
   // today's Sport5 homepage headlines: the style the editors write in
   const styleHeads = items.filter((i) => i.sourceId === 'sport5-home' && i.title.length > 20).sort((a, b) => b.published - a.published).slice(0, 10).map((i) => i.title);
-  const { ai, done: aiDone } = await aiSummaries(core, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
+  const { ai, done: aiDone, stats: aiStats } = await aiSummaries(core, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
   timer.mark('ai');
+  if (aiStats && (aiStats.requests || aiStats.paused.length)) log(`[ai] ${aiStats.requests} requests (${aiStats.failed} failed) in ${aiStats.ms} ms, failed ones ${aiStats.failedMs} ms${aiStats.paused.length ? ` · paused after repeated 5xx/timeouts: ${aiStats.paused.join(', ')}` : ''}`);
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
   const { tg, posted: tgPosted } = await telegramPost(core, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
   // stories the channel posted in the last 12 hours stay in the published files (bounded: src/capselect.js telegramPinIds)

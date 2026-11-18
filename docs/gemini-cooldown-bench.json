@@ -1,0 +1,733 @@
+{
+ "state": "C:/Users/avrah/sports-radar-backups/2026-10-20-prerelease/state.json",
+ "pool": {
+  "stories": 10792,
+  "foreign": 10419,
+  "window": [
+   "2026-10-18T22:10:33.242Z",
+   "2026-10-19T22:10:33.242Z"
+  ]
+ },
+ "scenarios": {
+  "healthy": {
+   "baseline": {
+    "requests": 902,
+    "failed": 0,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 286,
+    "runsZeroNewSummaries": 4,
+    "top100": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 902,
+    "failed": 0,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 286,
+    "runsZeroNewSummaries": 4,
+    "top100": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 902,
+    "failed": 0,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 286,
+    "runsZeroNewSummaries": 4,
+    "top100": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "changeAfter2": {
+    "failedRequests": 0,
+    "totalRequests": 0,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "changeAfter3": {
+    "failedRequests": 0,
+    "totalRequests": 0,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 0,
+     "after2": 0,
+     "after3": 0,
+     "savedPerRunMeanAfter2": 0,
+     "savedPerRunMeanAfter3": 0
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 0,
+     "after2": 0,
+     "after3": 0,
+     "savedPerRunMeanAfter2": 0,
+     "savedPerRunMeanAfter3": 0
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 0,
+     "after2": 0,
+     "after3": 0,
+     "savedPerRunMeanAfter2": 0,
+     "savedPerRunMeanAfter3": 0
+    }
+   }
+  },
+  "strong model 503 all day (light answers)": {
+   "baseline": {
+    "requests": 913,
+    "failed": 290,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 282,
+    "runsZeroNewSummaries": 143,
+    "top100": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 913,
+    "failed": 290,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 282,
+    "runsZeroNewSummaries": 143,
+    "top100": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 913,
+    "failed": 290,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 282,
+    "runsZeroNewSummaries": 143,
+    "top100": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "counterEndOfDay": 400
+   },
+   "changeAfter2": {
+    "failedRequests": 0,
+    "totalRequests": 0,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "changeAfter3": {
+    "failedRequests": 0,
+    "totalRequests": 0,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 870,
+     "after2": 870,
+     "after3": 870,
+     "savedPerRunMeanAfter2": 0,
+     "savedPerRunMeanAfter3": 0
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 3770,
+     "after2": 3770,
+     "after3": 3770,
+     "savedPerRunMeanAfter2": 0,
+     "savedPerRunMeanAfter3": 0
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 8700,
+     "after2": 8700,
+     "after3": 8700,
+     "savedPerRunMeanAfter2": 0,
+     "savedPerRunMeanAfter3": 0
+    }
+   }
+  },
+  "all models 503 all day": {
+   "baseline": {
+    "requests": 731,
+    "failed": 731,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 288,
+    "top100": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "counterEndOfDay": 402
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 388,
+    "failed": 388,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runsWithAnyRequest": 97,
+    "runsZeroNewSummaries": 288,
+    "top100": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "counterEndOfDay": 267
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 388,
+    "failed": 388,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runsWithAnyRequest": 97,
+    "runsZeroNewSummaries": 288,
+    "top100": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "counterEndOfDay": 264
+   },
+   "changeAfter2": {
+    "failedRequests": -47,
+    "totalRequests": -47,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "changeAfter3": {
+    "failedRequests": -47,
+    "totalRequests": -47,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 2193,
+     "after2": 1164,
+     "after3": 1164,
+     "savedPerRunMeanAfter2": 3.6,
+     "savedPerRunMeanAfter3": 3.6
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 9503,
+     "after2": 5044,
+     "after3": 5044,
+     "savedPerRunMeanAfter2": 15.5,
+     "savedPerRunMeanAfter3": 15.5
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 21930,
+     "after2": 11640,
+     "after3": 11640,
+     "savedPerRunMeanAfter2": 35.7,
+     "savedPerRunMeanAfter3": 35.7
+    }
+   }
+  },
+  "all models 503 in 3 bursts of 2 h": {
+   "baseline": {
+    "requests": 875,
+    "failed": 197,
+    "outputs": {
+     "summaries": 930,
+     "headlines": 3065,
+     "cards": 7342
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 102,
+    "top100": {
+     "withASummaryByEndOfDay": 87,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 61
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 810,
+    "failed": 108,
+    "outputs": {
+     "summaries": 1005,
+     "headlines": 3528,
+     "cards": 7253
+    },
+    "runsWithAnyRequest": 255,
+    "runsZeroNewSummaries": 87,
+    "top100": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 61
+    },
+    "counterEndOfDay": 384
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 812,
+    "failed": 113,
+    "outputs": {
+     "summaries": 1005,
+     "headlines": 3499,
+     "cards": 7182
+    },
+    "runsWithAnyRequest": 257,
+    "runsZeroNewSummaries": 87,
+    "top100": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 60
+    },
+    "counterEndOfDay": 387
+   },
+   "changeAfter2": {
+    "failedRequests": -45,
+    "totalRequests": -7,
+    "summaries": 8,
+    "headlines": 15,
+    "cards": -1
+   },
+   "changeAfter3": {
+    "failedRequests": -43,
+    "totalRequests": -7,
+    "summaries": 8,
+    "headlines": 14,
+    "cards": -2
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 591,
+     "after2": 324,
+     "after3": 339,
+     "savedPerRunMeanAfter2": 0.9,
+     "savedPerRunMeanAfter3": 0.9
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 2561,
+     "after2": 1404,
+     "after3": 1469,
+     "savedPerRunMeanAfter2": 4,
+     "savedPerRunMeanAfter3": 3.8
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 5910,
+     "after2": 3240,
+     "after3": 3390,
+     "savedPerRunMeanAfter2": 9.3,
+     "savedPerRunMeanAfter3": 8.8
+    }
+   }
+  },
+  "only the card path fails (503) all day": {
+   "baseline": {
+    "requests": 724,
+    "failed": 287,
+    "outputs": {
+     "summaries": 1305,
+     "headlines": 4785,
+     "cards": 0
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 27,
+    "top100": {
+     "withASummaryByEndOfDay": 84,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 534,
+    "failed": 97,
+    "outputs": {
+     "summaries": 1305,
+     "headlines": 4785,
+     "cards": 0
+    },
+    "runsWithAnyRequest": 269,
+    "runsZeroNewSummaries": 27,
+    "top100": {
+     "withASummaryByEndOfDay": 84,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 534,
+    "failed": 97,
+    "outputs": {
+     "summaries": 1305,
+     "headlines": 4785,
+     "cards": 0
+    },
+    "runsWithAnyRequest": 271,
+    "runsZeroNewSummaries": 27,
+    "top100": {
+     "withASummaryByEndOfDay": 84,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "changeAfter2": {
+    "failedRequests": -66,
+    "totalRequests": -26,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "changeAfter3": {
+    "failedRequests": -66,
+    "totalRequests": -26,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 861,
+     "after2": 291,
+     "after3": 291,
+     "savedPerRunMeanAfter2": 2,
+     "savedPerRunMeanAfter3": 2
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 3731,
+     "after2": 1261,
+     "after3": 1261,
+     "savedPerRunMeanAfter2": 8.6,
+     "savedPerRunMeanAfter3": 8.6
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 8610,
+     "after2": 2910,
+     "after3": 2910,
+     "savedPerRunMeanAfter2": 19.8,
+     "savedPerRunMeanAfter3": 19.8
+    }
+   }
+  },
+  "only summaries+headlines fail (503) all day": {
+   "baseline": {
+    "requests": 917,
+    "failed": 444,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 282,
+    "runsZeroNewSummaries": 288,
+    "top100": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "counterEndOfDay": 402
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 764,
+    "failed": 291,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 278,
+    "runsZeroNewSummaries": 288,
+    "top100": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "counterEndOfDay": 267
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 764,
+    "failed": 291,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 9159
+    },
+    "runsWithAnyRequest": 276,
+    "runsZeroNewSummaries": 288,
+    "top100": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "counterEndOfDay": 264
+   },
+   "changeAfter2": {
+    "failedRequests": -34,
+    "totalRequests": -17,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "changeAfter3": {
+    "failedRequests": -34,
+    "totalRequests": -17,
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 1332,
+     "after2": 873,
+     "after3": 873,
+     "savedPerRunMeanAfter2": 1.6,
+     "savedPerRunMeanAfter3": 1.6
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 5772,
+     "after2": 3783,
+     "after3": 3783,
+     "savedPerRunMeanAfter2": 6.9,
+     "savedPerRunMeanAfter3": 6.9
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 13320,
+     "after2": 8730,
+     "after3": 8730,
+     "savedPerRunMeanAfter2": 15.9,
+     "savedPerRunMeanAfter3": 15.9
+    }
+   }
+  },
+  "intermittent: 15% of all requests 503": {
+   "baseline": {
+    "requests": 886,
+    "failed": 134,
+    "outputs": {
+     "summaries": 1225,
+     "headlines": 2930,
+     "cards": 7609
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 43,
+    "top100": {
+     "withASummaryByEndOfDay": 89,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 862,
+    "failed": 128,
+    "outputs": {
+     "summaries": 1330,
+     "headlines": 2539,
+     "cards": 7127
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 22,
+    "top100": {
+     "withASummaryByEndOfDay": 89,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 886,
+    "failed": 134,
+    "outputs": {
+     "summaries": 1265,
+     "headlines": 2819,
+     "cards": 7545
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 35,
+    "top100": {
+     "withASummaryByEndOfDay": 89,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "changeAfter2": {
+    "failedRequests": -4,
+    "totalRequests": -3,
+    "summaries": 9,
+    "headlines": -13,
+    "cards": -6
+   },
+   "changeAfter3": {
+    "failedRequests": 0,
+    "totalRequests": 0,
+    "summaries": 3,
+    "headlines": -4,
+    "cards": -1
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 402,
+     "after2": 384,
+     "after3": 402,
+     "savedPerRunMeanAfter2": 0.1,
+     "savedPerRunMeanAfter3": 0
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 1742,
+     "after2": 1664,
+     "after3": 1742,
+     "savedPerRunMeanAfter2": 0.3,
+     "savedPerRunMeanAfter3": 0
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 4020,
+     "after2": 3840,
+     "after3": 4020,
+     "savedPerRunMeanAfter2": 0.6,
+     "savedPerRunMeanAfter3": 0
+    }
+   }
+  },
+  "intermittent: 30% of all requests 503": {
+   "baseline": {
+    "requests": 875,
+    "failed": 258,
+    "outputs": {
+     "summaries": 1105,
+     "headlines": 2242,
+     "cards": 6085
+    },
+    "runsWithAnyRequest": 287,
+    "runsZeroNewSummaries": 67,
+    "top100": {
+     "withASummaryByEndOfDay": 87,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 10
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter2FailingRuns": {
+    "requests": 787,
+    "failed": 228,
+    "outputs": {
+     "summaries": 1115,
+     "headlines": 2232,
+     "cards": 4942
+    },
+    "runsWithAnyRequest": 269,
+    "runsZeroNewSummaries": 65,
+    "top100": {
+     "withASummaryByEndOfDay": 86,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "counterEndOfDay": 400
+   },
+   "pauseAfter3FailingRuns": {
+    "requests": 838,
+    "failed": 247,
+    "outputs": {
+     "summaries": 1145,
+     "headlines": 2002,
+     "cards": 5565
+    },
+    "runsWithAnyRequest": 282,
+    "runsZeroNewSummaries": 59,
+    "top100": {
+     "withASummaryByEndOfDay": 86,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 7
+    },
+    "counterEndOfDay": 400
+   },
+   "changeAfter2": {
+    "failedRequests": -12,
+    "totalRequests": -10,
+    "summaries": 1,
+    "headlines": 0,
+    "cards": -19
+   },
+   "changeAfter3": {
+    "failedRequests": -4,
+    "totalRequests": -4,
+    "summaries": 4,
+    "headlines": -11,
+    "cards": -9
+   },
+   "wastedWaitSecondsPerDay": {
+    "if a failing request takes 3 s": {
+     "baseline": 774,
+     "after2": 684,
+     "after3": 741,
+     "savedPerRunMeanAfter2": 0.3,
+     "savedPerRunMeanAfter3": 0.1
+    },
+    "if a failing request takes 13 s": {
+     "baseline": 3354,
+     "after2": 2964,
+     "after3": 3211,
+     "savedPerRunMeanAfter2": 1.4,
+     "savedPerRunMeanAfter3": 0.5
+    },
+    "if a failing request takes 30 s": {
+     "baseline": 7740,
+     "after2": 6840,
+     "after3": 7410,
+     "savedPerRunMeanAfter2": 3.1,
+     "savedPerRunMeanAfter3": 1.1
+    }
+   }
+  }
+ }
+}

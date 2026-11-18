@@ -36,6 +36,14 @@ const PER_HOUR = Math.ceil(DAILY_CAP / 20); // spread the day's budget
 export const aiCap = () => DAILY_CAP;
 let lastUsage = null; // tokens of the last call (for metering)
 const KEEP_DAYS = 3;
+// A bounded pause for a request path that keeps failing with a 5xx or a timeout (the model overloaded): after COOL_5XX_AFTER (3) failing runs in a row
+// that path asks nothing for COOL_5XX_MS, then tries once again (one success lifts it at once). Each path pauses on its own: cards (light model),
+// summaries (strong -> backup -> light) and headlines (light) never hold each other back. A call that ends in an answer from ANY model is not a
+// failure, so an isolated 503 that the next model covers never counts. 429 and every limit work as before (cooldownUntil / clsCooldown).
+export const COOL_5XX_MS = 15 * 60000;
+export const COOL_5XX_AFTER = 3; // 2 would also pause a path that is only flaky (benchmark: up to -19% cards at 30% failures); 3 keeps that to -9%
+const STREAK_MS = 45 * 60000; // a failure older than this (nine runs ago) does not count as "in a row"
+const transient = (m) => !/HTTP 4\d\d/.test(String(m || '')) && /HTTP 5\d\d|abort|timeout/i.test(String(m || ''));
 const VERSION = 4; // results from older prompts are redone gradually, most important first
 // The multi-source summaries (src/storysum.js) are OFF unless the repository variable AI_RICH_SUMMARIES is 1 / true / on. Off = the summary
 // request, its input, its prompt, its refresh rule and what is saved are exactly what they were before this feature; on = see docs/multisource-summaries.md.
@@ -227,11 +235,37 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     ? `\n\nToday's real Sport5 headlines — imitate this STYLE (length, tone, word order), never their content:\n${styleHeads.slice(0, 10).map((h) => `- ${h}`).join('\n')}`
     : '';
   const day = new Date(now).toISOString().slice(0, 10);
-  const st = { ...prev, res: { ...(prev.res || {}) }, heads: { ...(prev.heads || {}) }, hourly: (prev.hourly || []).filter((t) => now - t < 3600e3) };
+  const st = { ...prev, res: { ...(prev.res || {}) }, heads: { ...(prev.heads || {}) }, hourly: (prev.hourly || []).filter((t) => now - t < 3600e3), pause: Object.fromEntries(Object.entries(prev.pause || {}).map(([k, v]) => [k, { ...v }])) };
   if (st.day !== day) Object.assign(st, { day, used: 0, tokens: 0 });
   for (const k of ['res', 'heads']) for (const [key, r] of Object.entries(st[k])) if (now - r.at > KEEP_DAYS * 864e5) delete st[k][key];
 
   const keyOf = new Map(stories.map((s) => [s, storyKey(s)]));
+  // what this run asked of the model (logged by collect.js): requests, failures and the time spent in them
+  const stats = { requests: 0, failed: 0, ms: 0, failedMs: 0, paused: [] };
+  async function cm(...a) {
+    const t0 = Date.now();
+    stats.requests++;
+    try {
+      return await callModel(...a);
+    } catch (e) {
+      stats.failed++;
+      stats.failedMs += Date.now() - t0;
+      throw e;
+    } finally {
+      stats.ms += Date.now() - t0;
+    }
+  }
+  const paused = (p) => (st.pause[p]?.until || 0) > now;
+  const pathOk = (p) => { delete st.pause[p]; };
+  const pathFailed = (p, e) => {
+    if (!transient(e?.message)) return;
+    const z = (st.pause[p] ||= { n: 0, at: 0, until: 0 });
+    if (now - z.at > STREAK_MS) z.n = 0;
+    z.n++;
+    z.at = now;
+    if (z.n >= COOL_5XX_AFTER) z.until = now + COOL_5XX_MS;
+  };
+  const tracked = (p, fn) => fn().then((v) => { pathOk(p); return v; }, (e) => { pathFailed(p, e); throw e; });
   // The sources of a multi-outlet story are first cleaned (src/storysum.js): pages of another match or sport are never sent to a model
   // (summaries or cards), and a story whose sources are too mixed to be one development is left as it is (its earlier summary stays).
   const sels = new Map();
@@ -251,12 +285,12 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     try {
       let out;
       try {
-        out = await callModel(token, m, system, user, opts);
+        out = await cm(token, m, system, user, opts);
       } catch (e) {
         // a provider that doesn't know reasoning_effort: never send it again, retry once without it
         if (!(opts.quick && reasoningParamOk() && /HTTP 400/.test(e.message) && /reasoning|thinking|budget/i.test(e.message))) throw e;
         reasoningLevel++; // this level is not allowed for this model: try the next one
-        out = await callModel(token, m, system, user, opts);
+        out = await cm(token, m, system, user, opts);
       }
       st.model = m;
       if (m === MODEL) st.strong = { ok: true, ms: Date.now() - t0, at: now, effort: REASONING[reasoningLevel] || 'default', tokens: lastUsage?.total_tokens || null };
@@ -274,7 +308,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
           st.used++;
           st.hourly.push(now);
           try {
-            const out = await callModel(token, ALT, system, user, { quick: true, timeout: STRONG_TIMEOUT });
+            const out = await cm(token, ALT, system, user, { quick: true, timeout: STRONG_TIMEOUT });
             st.model = ALT;
             st.strong = { ...st.strong, alt: ALT, altOk: true };
             return out;
@@ -285,7 +319,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         }
         st.used++;
         st.hourly.push(now);
-        const out = await callModel(token, FALLBACK, system, user);
+        const out = await cm(token, FALLBACK, system, user);
         st.model = FALLBACK;
         return out;
       }
@@ -310,12 +344,12 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         // the visible ones first, then the newest
         .sort((a, b) => (a.local || a.minor || a.low ? 1 : 0) - (b.local || b.minor || b.low ? 1 : 0) || b.first - a.first)
     : [];
-  for (let c = 0; c < CARD_CALLS_PER_RUN && pending.length && cday.used < CLASSIFY_CAP && !(st.clsCooldown > now); c++) {
+  for (let c = 0; c < CARD_CALLS_PER_RUN && pending.length && cday.used < CLASSIFY_CAP && !(st.clsCooldown > now) && !paused('cards'); c++) {
     if (c > 0 && pending.length < CARDS_PER_REQUEST) break; // a second call only for a backlog
     const batch = pending.splice(0, CARDS_PER_REQUEST);
     cday.used++;
     try {
-      const out = await callModel(token, FALLBACK, DESK_SYSTEM, batch.map((s, i) => `### id: ${i}\n${storyInput({ ...s, _members: cleanMembers(s) }, sums, heName)}`).join('\n\n'));
+      const out = await cm(token, FALLBACK, DESK_SYSTEM, batch.map((s, i) => `### id: ${i}\n${storyInput({ ...s, _members: cleanMembers(s) }, sums, heName)}`).join('\n\n'));
       cday.tokens = (cday.tokens || 0) + (lastUsage?.total_tokens || 0); // for the daily usage / cost estimate
       for (const r of out.items || out.stories || []) {
         const s = batch[Number(String(r.id).replace(/\D/g, ''))];
@@ -335,15 +369,17 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
         };
       }
       st.clsError = null;
+      pathOk('cards');
     } catch (e) {
       st.clsError = String(e.message).slice(0, 160);
       if (/HTTP 429/.test(e.message)) st.clsCooldown = now + 30 * 60000;
+      else pathFailed('cards', e);
       break;
     }
   }
   try {
     // 1) summaries: new / grown stories, and results from older prompts
-    if (room()) {
+    if (room() && !paused('summaries')) {
       // Who needs a (new) summary: stories without one, results of an older prompt, and stories whose facts moved (a new
       // official source, a new amount, a status step, a denial: src/storysum.js). More outlets alone is no reason.
       // Then, last, the earlier summaries of stories that now have 3+ outlets, once (they get the multi-source form).
@@ -372,7 +408,7 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
       if (RICH) for (const s of need) if (s.sourceCount >= RICH_MIN_SOURCES) { const x = selOf(s); if (x.sel.length >= 2) sel.set(s, x); }
       const updated = new Set(); // stories whose summary was really replaced in this run
       if (need.length) {
-        const out = await call(SYSTEM + (RICH ? WORDING : '') + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput(RICH ? { ...s, _members: cleanMembers(s) } : s, sums, heName)}`).join('\n\n'), true);
+        const out = await tracked('summaries', () => call(SYSTEM + (RICH ? WORDING : '') + (sel.size ? RICH_ADDON : '') + style, need.map((s, i) => `### id: s${i}\n${sel.has(s) ? richInput(s, sel.get(s), heName) : storyInput(RICH ? { ...s, _members: cleanMembers(s) } : s, sums, heName)}`).join('\n\n'), true));
         for (const r of out.stories || []) for (const k of ['title_he', 'summary_he', 'summary_en']) if (r[k]) r[k] = clean(r[k]);
         for (const r of out.stories || []) {
           const s = need[Number(String(r.id).replace(/\D/g, ''))];
@@ -413,14 +449,14 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
       }
     }
     // 2) headlines: foreign stories without a (current) summary still get a real Hebrew headline
-    if (room()) {
+    if (room() && !paused('headlines') && !paused('summaries')) { // the headline request goes to the light model, the last link of the summaries chain: while that chain is paused it would only fail too
       const heads = stories
         .filter((s) => s.lang !== 'he' && now - s.first < 18 * 3600e3 && !s.local && !s.minor && !s.low) // not the collapsed ones
         .filter((s) => !st.res[keyOf.get(s)] && !st.heads[keyOf.get(s)] && !st.desk[keyOf.get(s)]?.title_he) // no AI text at all yet
         .sort((a, b) => b.score - a.score)
         .slice(0, HEADLINES_PER_REQUEST);
       if (heads.length >= 5) {
-        const out = await call(HEAD_SYSTEM + style, heads.map((s, i) => `${i}. ${clip(s.title, 200)}${namesLine(s, heName)}`).join('\n'));
+        const out = await tracked('headlines', () => call(HEAD_SYSTEM + style, heads.map((s, i) => `${i}. ${clip(s.title, 200)}${namesLine(s, heName)}`).join('\n')));
         for (const r of out.titles || []) if (r.title_he) r.title_he = clean(r.title_he);
         for (const r of out.titles || []) {
           const s = heads[Number(String(r.id).replace(/\D/g, ''))];
@@ -443,5 +479,6 @@ export async function aiSummaries(stories, sums, prev = {}, now = Date.now(), he
     else if (c?.title_he) s.ai = { he: { title: c.title_he, ...(c.sum_he ? { sum: c.sum_he } : {}) } };
     else if (h) s.ai = { he: { title: h.title_he } };
   }
-  return { ai: st, done };
+  stats.paused = Object.keys(st.pause).filter(paused);
+  return { ai: st, done, stats };
 }
