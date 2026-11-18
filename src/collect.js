@@ -411,6 +411,7 @@ export async function collect({ log = console.log, force = false } = {}) {
 
   // Popularity signals (Google Trends + Reddit), refreshed every 15 min
   const signals = await loadSignals(state.signals, now).catch(() => state.signals || {});
+  const sigTokens = signalTokenizer(); // a fresh cache for this run: the signals are read once per run and never change inside it
   const wiki = await loadWikipedia(state.wiki, athletes, now).catch(() => state.wiki || {});
   signals.wiki = wiki;
 
@@ -454,7 +455,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     })
     .map((s) => ({ ...s, s5: sport5Coverage(s) })) // did Sport5 already cover it? (for the Sport5 editors)
     .filter((s) => now - s.latest <= KEEP_STORIES_H * 3600000)
-    .map((s) => applySignals(s, signals))
+    .map((s) => applySignals(s, signals, sigTokens))
     .map((s) => ({ ...s, big: s.sourceCount >= 3 || s.langs.length >= 3 || !!s.trending || ((s.top || s.breaking) && s.sourceCount >= 2) }))
     // watchlist people / clubs named in the story (only verified entries may carry an Israel link)
     .map((s) => annotateWatch(s, watchMatch))
@@ -784,7 +785,18 @@ export async function collect({ log = console.log, force = false } = {}) {
 // Ranking boosts from real-world attention:
 //   covered in several languages/countries, trending on Google searches, hot on Reddit
 const GENERIC = new Set(['football', 'soccer', 'nba', 'basketball', 'live', 'score', 'scores', 'game', 'match', 'today', 'news', 'tv', 'israel', 'ישראל', 'weather', 'מזג אוויר']);
-function applySignals(s, signals) {
+// tokens() of the trend / Reddit headlines is a pure function of the string, and the same few hundred headlines are compared with every story
+// (about 21,000 per run): cache the result per string. One cache per collector run (made by the caller), so nothing outlives a run or goes stale
+// when the signals change between runs; the key is the headline text itself, so a changed headline is a different key.
+export function signalTokenizer() {
+  const cache = new Map();
+  return (h) => {
+    let v = cache.get(h);
+    if (v === undefined) cache.set(h, (v = tokens(h)));
+    return v;
+  };
+}
+export function applySignals(s, signals, tokOf = tokens) {
   const text = ' ' + [s.t?.en?.title, s.title, s.t?.he?.title].filter(Boolean).join(' ').toLowerCase() + ' ';
   const tok = tokens(s.t?.en?.title || s.title);
   let boost = 1 + 0.2 * Math.max(0, s.langs.length - 1);
@@ -795,7 +807,7 @@ function applySignals(s, signals) {
     // skip vague terms: single short words and generic ones ("Israel" would match everything)
     if (GENERIC.has(tr.term) || (!tr.term.includes(' ') && tr.term.length < 7)) continue;
     const inText = text.includes(' ' + tr.term + ' ') || text.includes(' ' + tr.term);
-    const viaNews = !inText && tr.news.some((h) => overlap(tokens(h), tok) >= 4);
+    const viaNews = !inText && tr.news.some((h) => overlap(tokOf(h), tok) >= 4);
     if ((inText || viaNews) && (!trending || tr.traffic > trending.traffic)) trending = { term: tr.term, traffic: tr.traffic, geo: tr.geo };
   }
   if (trending) boost *= 1 + Math.min(0.6, Math.log10(Math.max(trending.traffic, 10)) / 8);
@@ -803,7 +815,7 @@ function applySignals(s, signals) {
   // Reddit hot lists: similar headline near the top
   let reddit = null;
   for (const r of signals.reddit || []) {
-    const t2 = tokens(r.title);
+    const t2 = tokOf(r.title);
     const shared = overlap(t2, tok);
     if (shared >= 3 && shared / Math.min(t2.size, tok.size) >= 0.5 && (!reddit || r.rank < reddit.rank)) reddit = { rank: r.rank, sub: r.sub };
   }

@@ -1,0 +1,10 @@
+{
+ "stories": 21055,
+ "signalHeadlines": 327,
+ "beforeMs": 40569,
+ "afterMs": 3188,
+ "speedup": 12.7,
+ "identicalOutput": true,
+ "storiesWithTrendOrReddit": 144,
+ "cacheHeapKB": 3350
+}
