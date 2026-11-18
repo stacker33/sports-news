@@ -1,0 +1,1380 @@
+{
+ "state": "C:/Users/avrah/sports-radar-backups/2026-10-20-prerelease/state.json",
+ "savedAt": "2026-10-19T22:10:33.242Z",
+ "saved": {
+  "day": "2026-10-19",
+  "counterUsed": 358,
+  "tokens": 799621,
+  "cardCounter": {
+   "day": "2026-10-19",
+   "used": 277,
+   "tokens": 1670256
+  },
+  "strong": {
+   "ok": false,
+   "ms": 134,
+   "at": 1792447833242,
+   "err": "HTTP 429 [{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and bi"
+  },
+  "altOff": true,
+  "mainOffDay": null,
+  "model": "gemini-flash-lite-latest",
+  "cooldownUntil": "2026-10-19T07:05:25.701Z",
+  "outputsPerDay": {
+   "summaries": {
+    "2026-10-17": 791,
+    "2026-10-16": 73,
+    "2026-10-18": 849,
+    "2026-10-19": 734
+   },
+   "headlines": {
+    "2026-10-17": 234,
+    "2026-10-18": 139,
+    "2026-10-19": 182
+   },
+   "cards": {
+    "2026-10-16": 200,
+    "2026-10-17": 4331,
+    "2026-10-18": 4763,
+    "2026-10-19": 4138
+   }
+  },
+  "outputsPerHourOnDay": {
+   "summaries": {
+    "10": 47,
+    "11": 28,
+    "12": 42,
+    "13": 30,
+    "14": 25,
+    "15": 27,
+    "16": 14,
+    "17": 20,
+    "18": 40,
+    "19": 37,
+    "20": 35,
+    "21": 33,
+    "22": 12,
+    "01": 45,
+    "05": 17,
+    "08": 54,
+    "07": 50,
+    "09": 41,
+    "00": 47,
+    "02": 44,
+    "03": 23,
+    "04": 19,
+    "06": 4
+   },
+   "headlines": {
+    "13": 5,
+    "16": 87,
+    "17": 37,
+    "18": 8,
+    "04": 30,
+    "05": 15
+   },
+   "cards": {
+    "10": 257,
+    "11": 242,
+    "12": 273,
+    "13": 254,
+    "14": 253,
+    "15": 120,
+    "16": 101,
+    "17": 391,
+    "18": 270,
+    "19": 216,
+    "20": 175,
+    "21": 261,
+    "22": 37,
+    "00": 74,
+    "01": 67,
+    "02": 66,
+    "03": 47,
+    "04": 58,
+    "05": 38,
+    "06": 132,
+    "07": 363,
+    "08": 222,
+    "09": 221
+   }
+  },
+  "hourlyWindow": {
+   "entries": 20,
+   "paceLimit": 20,
+   "entriesSharingATimestamp": 18,
+   "note": "two entries with the same timestamp are two attempts of ONE call (the strong model failed, the light one answered)"
+  },
+  "requestsPerOutput": {
+   "counterAttempts": 358,
+   "summariesAndHeadlines": 916,
+   "summaryCallsAtLeast": 154,
+   "cardCallsAtLeast": 207,
+   "cardCounter": 277
+  }
+ },
+ "pool": {
+  "stories": 10792,
+  "foreign": 10419,
+  "window": [
+   "2026-10-18T22:10:33.242Z",
+   "2026-10-19T22:10:33.242Z"
+  ]
+ },
+ "replayCurrentCode": {
+  "healthy": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 473,
+     "fail": 0
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 284,
+     "fail": 0
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 145,
+     "fail": 0
+    }
+   },
+   "totalRequests": 902,
+   "failedRequests": 0,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 450,
+   "outputs": {
+    "summaries": 1420,
+    "headlines": 3378,
+    "cards": 9159
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 286,
+    "summaryPathBlockedByPacingOrCap": 143,
+    "zeroNewSummaries": 4,
+    "zeroNewSummariesDespiteARequest": 2
+   },
+   "waitSecondsAssumed": {
+    "perDay": 10624,
+    "perRunMean": 36.9
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 99,
+    "medianMinutesToSummary": 0,
+    "p90Minutes": 5
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "strong model 503 all day": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 473,
+     "fail": 0
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 0,
+     "fail": 145
+    },
+    "summaries gemini-2.5-flash": {
+     "ok": 0,
+     "fail": 145
+    },
+    "summaries gemini-flash-lite-latest": {
+     "ok": 145,
+     "fail": 0
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 5,
+     "fail": 0
+    }
+   },
+   "totalRequests": 913,
+   "failedRequests": 290,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 450,
+   "outputs": {
+    "summaries": 725,
+    "headlines": 68,
+    "cards": 9159
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 282,
+    "summaryPathBlockedByPacingOrCap": 279,
+    "zeroNewSummaries": 143,
+    "zeroNewSummariesDespiteARequest": 137
+   },
+   "waitSecondsAssumed": {
+    "perDay": 8754,
+    "perRunMean": 30.4
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 76,
+    "medianMinutesToSummary": 5,
+    "p90Minutes": 20
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "all models 503 all day": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 0,
+     "fail": 287
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 0,
+     "fail": 148
+    },
+    "summaries gemini-2.5-flash": {
+     "ok": 0,
+     "fail": 148
+    },
+    "summaries gemini-flash-lite-latest": {
+     "ok": 0,
+     "fail": 148
+    }
+   },
+   "totalRequests": 731,
+   "failedRequests": 731,
+   "counterEndOfDay": 402,
+   "cardCounterEndOfDay": 266,
+   "outputs": {
+    "summaries": 0,
+    "headlines": 0,
+    "cards": 0
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 287,
+    "summaryPathBlockedByPacingOrCap": 281,
+    "zeroNewSummaries": 288,
+    "zeroNewSummariesDespiteARequest": 287
+   },
+   "waitSecondsAssumed": {
+    "perDay": 9503,
+    "perRunMean": 33
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 0,
+    "medianMinutesToSummary": null,
+    "p90Minutes": null
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "all models 503, 3 bursts of 2 h": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 375,
+     "fail": 71
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 186,
+     "fail": 42
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 117,
+     "fail": 0
+    },
+    "summaries gemini-2.5-flash": {
+     "ok": 0,
+     "fail": 42
+    },
+    "summaries gemini-flash-lite-latest": {
+     "ok": 0,
+     "fail": 42
+    }
+   },
+   "totalRequests": 875,
+   "failedRequests": 197,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 423,
+   "outputs": {
+    "summaries": 930,
+    "headlines": 3065,
+    "cards": 7342
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 287,
+    "summaryPathBlockedByPacingOrCap": 190,
+    "zeroNewSummaries": 102,
+    "zeroNewSummariesDespiteARequest": 101
+   },
+   "waitSecondsAssumed": {
+    "perDay": 10217,
+    "perRunMean": 35.5
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 87,
+    "medianMinutesToSummary": 5,
+    "p90Minutes": 61
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "strong model 429 (not \"per day\" in the text), all day": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 473,
+     "fail": 0
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 0,
+     "fail": 218
+    },
+    "summaries gemini-2.5-flash": {
+     "ok": 218,
+     "fail": 0
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 4,
+     "fail": 0
+    }
+   },
+   "totalRequests": 913,
+   "failedRequests": 218,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 450,
+   "outputs": {
+    "summaries": 1090,
+    "headlines": 48,
+    "cards": 9159
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 285,
+    "summaryPathBlockedByPacingOrCap": 275,
+    "zeroNewSummaries": 70,
+    "zeroNewSummariesDespiteARequest": 67
+   },
+   "waitSecondsAssumed": {
+    "perDay": 8220,
+    "perRunMean": 28.5
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 84,
+    "medianMinutesToSummary": 0,
+    "p90Minutes": 10
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "strong model 429 \"per day\"": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 473,
+     "fail": 0
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 0,
+     "fail": 2
+    },
+    "summaries gemini-flash-lite-latest": {
+     "ok": 283,
+     "fail": 0
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 145,
+     "fail": 0
+    }
+   },
+   "totalRequests": 903,
+   "failedRequests": 2,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 450,
+   "outputs": {
+    "summaries": 1415,
+    "headlines": 3378,
+    "cards": 9159
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 286,
+    "summaryPathBlockedByPacingOrCap": 143,
+    "zeroNewSummaries": 5,
+    "zeroNewSummariesDespiteARequest": 3
+   },
+   "waitSecondsAssumed": {
+    "perDay": 7208,
+    "perRunMean": 25
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 99,
+    "medianMinutesToSummary": 0,
+    "p90Minutes": 5
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": "2026-10-19",
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "strong model 429 and altOff already true (the saved state)": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 473,
+     "fail": 0
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 0,
+     "fail": 218
+    },
+    "summaries gemini-flash-lite-latest": {
+     "ok": 218,
+     "fail": 0
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 4,
+     "fail": 0
+    }
+   },
+   "totalRequests": 913,
+   "failedRequests": 218,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 450,
+   "outputs": {
+    "summaries": 1090,
+    "headlines": 48,
+    "cards": 9159
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 285,
+    "summaryPathBlockedByPacingOrCap": 275,
+    "zeroNewSummaries": 70,
+    "zeroNewSummariesDespiteARequest": 67
+   },
+   "waitSecondsAssumed": {
+    "perDay": 5604,
+    "perRunMean": 19.5
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 84,
+    "medianMinutesToSummary": 0,
+    "p90Minutes": 10
+   },
+   "stateEnd": {
+    "altOff": true,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  },
+  "3 stories whose answers are always rejected": {
+   "requests": {
+    "cards gemini-flash-lite-latest": {
+     "ok": 473,
+     "fail": 0
+    },
+    "summaries gemini-flash-latest": {
+     "ok": 284,
+     "fail": 0
+    },
+    "headlines gemini-flash-lite-latest": {
+     "ok": 145,
+     "fail": 0
+    }
+   },
+   "totalRequests": 902,
+   "failedRequests": 0,
+   "counterEndOfDay": 400,
+   "cardCounterEndOfDay": 450,
+   "outputs": {
+    "summaries": 1272,
+    "headlines": 3381,
+    "cards": 9159
+   },
+   "runs": {
+    "total": 288,
+    "withAnyRequest": 286,
+    "summaryPathBlockedByPacingOrCap": 143,
+    "zeroNewSummaries": 4,
+    "zeroNewSummariesDespiteARequest": 2
+   },
+   "waitSecondsAssumed": {
+    "perDay": 10624,
+    "perRunMean": 36.9
+   },
+   "top100ForeignStories": {
+    "withASummaryByEndOfDay": 96,
+    "medianMinutesToSummary": 0,
+    "p90Minutes": 5
+   },
+   "alwaysRejectedStories": {
+    "count": 3,
+    "timesSentToTheModel": 148
+   },
+   "stateEnd": {
+    "altOff": false,
+    "mainOffDay": null,
+    "cooldownUntilSet": false,
+    "clsCooldownSet": false
+   }
+  }
+ },
+ "replayCooldown5xx": {
+  "5 min": {
+   "all models 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 287
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 148
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 148
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 148
+     }
+    },
+    "totalRequests": 731,
+    "failedRequests": 731,
+    "counterEndOfDay": 402,
+    "cardCounterEndOfDay": 266,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 287,
+     "summaryPathBlockedByPacingOrCap": 281,
+     "zeroNewSummaries": 288,
+     "zeroNewSummariesDespiteARequest": 287
+    },
+    "waitSecondsAssumed": {
+     "perDay": 9503,
+     "perRunMean": 33
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "all models 503, 3 bursts of 2 h": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 375,
+      "fail": 71
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 186,
+      "fail": 42
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 117,
+      "fail": 0
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 42
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 42
+     }
+    },
+    "totalRequests": 875,
+    "failedRequests": 197,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 423,
+    "outputs": {
+     "summaries": 930,
+     "headlines": 3065,
+     "cards": 7342
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 287,
+     "summaryPathBlockedByPacingOrCap": 190,
+     "zeroNewSummaries": 102,
+     "zeroNewSummariesDespiteARequest": 101
+    },
+    "waitSecondsAssumed": {
+     "perDay": 10217,
+     "perRunMean": 35.5
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 87,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 61
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "strong model 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 5,
+      "fail": 0
+     }
+    },
+    "totalRequests": 913,
+    "failedRequests": 290,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 282,
+     "summaryPathBlockedByPacingOrCap": 279,
+     "zeroNewSummaries": 143,
+     "zeroNewSummariesDespiteARequest": 137
+    },
+    "waitSecondsAssumed": {
+     "perDay": 8754,
+     "perRunMean": 30.4
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   },
+   "healthy": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 284,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     }
+    },
+    "totalRequests": 902,
+    "failedRequests": 0,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 286,
+     "summaryPathBlockedByPacingOrCap": 143,
+     "zeroNewSummaries": 4,
+     "zeroNewSummariesDespiteARequest": 2
+    },
+    "waitSecondsAssumed": {
+     "perDay": 10624,
+     "perRunMean": 36.9
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   }
+  },
+  "10 min": {
+   "all models 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 144
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 144
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 144
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 144
+     }
+    },
+    "totalRequests": 576,
+    "failedRequests": 576,
+    "counterEndOfDay": 399,
+    "cardCounterEndOfDay": 133,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 144,
+     "summaryPathBlockedByPacingOrCap": 0,
+     "zeroNewSummaries": 288,
+     "zeroNewSummariesDespiteARequest": 144
+    },
+    "waitSecondsAssumed": {
+     "perDay": 7488,
+     "perRunMean": 26
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "all models 503, 3 bursts of 2 h": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 374,
+      "fail": 36
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 205,
+      "fail": 36
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 116,
+      "fail": 0
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 36
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 36
+     }
+    },
+    "totalRequests": 839,
+    "failedRequests": 144,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 387,
+    "outputs": {
+     "summaries": 1025,
+     "headlines": 3061,
+     "cards": 7340
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 263,
+     "summaryPathBlockedByPacingOrCap": 132,
+     "zeroNewSummaries": 83,
+     "zeroNewSummariesDespiteARequest": 58
+    },
+    "waitSecondsAssumed": {
+     "perDay": 9892,
+     "perRunMean": 34.3
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 98,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 51
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "strong model 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 5,
+      "fail": 0
+     }
+    },
+    "totalRequests": 913,
+    "failedRequests": 290,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 282,
+     "summaryPathBlockedByPacingOrCap": 279,
+     "zeroNewSummaries": 143,
+     "zeroNewSummariesDespiteARequest": 137
+    },
+    "waitSecondsAssumed": {
+     "perDay": 8754,
+     "perRunMean": 30.4
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   },
+   "healthy": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 284,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     }
+    },
+    "totalRequests": 902,
+    "failedRequests": 0,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 286,
+     "summaryPathBlockedByPacingOrCap": 143,
+     "zeroNewSummaries": 4,
+     "zeroNewSummariesDespiteARequest": 2
+    },
+    "waitSecondsAssumed": {
+     "perDay": 10624,
+     "perRunMean": 36.9
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   }
+  },
+  "15 min": {
+   "all models 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 96
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 96
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 96
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 96
+     }
+    },
+    "totalRequests": 384,
+    "failedRequests": 384,
+    "counterEndOfDay": 267,
+    "cardCounterEndOfDay": 89,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 96,
+     "summaryPathBlockedByPacingOrCap": 0,
+     "zeroNewSummaries": 288,
+     "zeroNewSummariesDespiteARequest": 96
+    },
+    "waitSecondsAssumed": {
+     "perDay": 4992,
+     "perRunMean": 17.3
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "all models 503, 3 bursts of 2 h": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 374,
+      "fail": 24
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 205,
+      "fail": 24
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 135,
+      "fail": 0
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 24
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 24
+     }
+    },
+    "totalRequests": 810,
+    "failedRequests": 96,
+    "counterEndOfDay": 383,
+    "cardCounterEndOfDay": 375,
+    "outputs": {
+     "summaries": 1025,
+     "headlines": 3625,
+     "cards": 7340
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 247,
+     "summaryPathBlockedByPacingOrCap": 120,
+     "zeroNewSummaries": 83,
+     "zeroNewSummariesDespiteARequest": 42
+    },
+    "waitSecondsAssumed": {
+     "perDay": 9420,
+     "perRunMean": 32.7
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 51
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "strong model 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 5,
+      "fail": 0
+     }
+    },
+    "totalRequests": 913,
+    "failedRequests": 290,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 282,
+     "summaryPathBlockedByPacingOrCap": 279,
+     "zeroNewSummaries": 143,
+     "zeroNewSummariesDespiteARequest": 137
+    },
+    "waitSecondsAssumed": {
+     "perDay": 8754,
+     "perRunMean": 30.4
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   },
+   "healthy": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 284,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     }
+    },
+    "totalRequests": 902,
+    "failedRequests": 0,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 286,
+     "summaryPathBlockedByPacingOrCap": 143,
+     "zeroNewSummaries": 4,
+     "zeroNewSummariesDespiteARequest": 2
+    },
+    "waitSecondsAssumed": {
+     "perDay": 10624,
+     "perRunMean": 36.9
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   }
+  },
+  "30 min": {
+   "all models 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 48
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 48
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 48
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 48
+     }
+    },
+    "totalRequests": 192,
+    "failedRequests": 192,
+    "counterEndOfDay": 132,
+    "cardCounterEndOfDay": 44,
+    "outputs": {
+     "summaries": 0,
+     "headlines": 0,
+     "cards": 0
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 48,
+     "summaryPathBlockedByPacingOrCap": 0,
+     "zeroNewSummaries": 288,
+     "zeroNewSummariesDespiteARequest": 48
+    },
+    "waitSecondsAssumed": {
+     "perDay": 2496,
+     "perRunMean": 8.7
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 0,
+     "medianMinutesToSummary": null,
+     "p90Minutes": null
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "all models 503, 3 bursts of 2 h": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 374,
+      "fail": 12
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 195,
+      "fail": 12
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 144,
+      "fail": 0
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 12
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 0,
+      "fail": 12
+     }
+    },
+    "totalRequests": 761,
+    "failedRequests": 48,
+    "counterEndOfDay": 346,
+    "cardCounterEndOfDay": 363,
+    "outputs": {
+     "summaries": 975,
+     "headlines": 3893,
+     "cards": 7340
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 231,
+     "summaryPathBlockedByPacingOrCap": 117,
+     "zeroNewSummaries": 93,
+     "zeroNewSummariesDespiteARequest": 36
+    },
+    "waitSecondsAssumed": {
+     "perDay": 8668,
+     "perRunMean": 30.1
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 51
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": true,
+     "clsCooldownSet": true
+    }
+   },
+   "strong model 503 all day": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-2.5-flash": {
+      "ok": 0,
+      "fail": 145
+     },
+     "summaries gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 5,
+      "fail": 0
+     }
+    },
+    "totalRequests": 913,
+    "failedRequests": 290,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 725,
+     "headlines": 68,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 282,
+     "summaryPathBlockedByPacingOrCap": 279,
+     "zeroNewSummaries": 143,
+     "zeroNewSummariesDespiteARequest": 137
+    },
+    "waitSecondsAssumed": {
+     "perDay": 8754,
+     "perRunMean": 30.4
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 76,
+     "medianMinutesToSummary": 5,
+     "p90Minutes": 20
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   },
+   "healthy": {
+    "requests": {
+     "cards gemini-flash-lite-latest": {
+      "ok": 473,
+      "fail": 0
+     },
+     "summaries gemini-flash-latest": {
+      "ok": 284,
+      "fail": 0
+     },
+     "headlines gemini-flash-lite-latest": {
+      "ok": 145,
+      "fail": 0
+     }
+    },
+    "totalRequests": 902,
+    "failedRequests": 0,
+    "counterEndOfDay": 400,
+    "cardCounterEndOfDay": 450,
+    "outputs": {
+     "summaries": 1420,
+     "headlines": 3378,
+     "cards": 9159
+    },
+    "runs": {
+     "total": 288,
+     "withAnyRequest": 286,
+     "summaryPathBlockedByPacingOrCap": 143,
+     "zeroNewSummaries": 4,
+     "zeroNewSummariesDespiteARequest": 2
+    },
+    "waitSecondsAssumed": {
+     "perDay": 10624,
+     "perRunMean": 36.9
+    },
+    "top100ForeignStories": {
+     "withASummaryByEndOfDay": 99,
+     "medianMinutesToSummary": 0,
+     "p90Minutes": 5
+    },
+    "stateEnd": {
+     "altOff": false,
+     "mainOffDay": null,
+     "cooldownUntilSet": false,
+     "clsCooldownSet": false
+    }
+   }
+  }
+ }
+}
