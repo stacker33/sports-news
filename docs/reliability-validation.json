@@ -1,0 +1,129 @@
+{
+ "state": "C:/Users/avrah/sports-radar-backups/2026-10-20-prerelease/state.json",
+ "savedAt": "2026-10-19T22:10:33.242Z",
+ "articles": 52106,
+ "clock": {
+  "flaggedSources": [
+   "voetbalkrant",
+   "walfoot"
+  ],
+  "perSource": {
+   "voetbalkrant": {
+    "articles": 105,
+    "lagBeforeMin": {
+     "median": 720.6,
+     "p90": 729.5
+    },
+    "lagAfterMin": {
+     "median": 0.7,
+     "p90": 10.5,
+     "max": 825.7
+    },
+    "correctedArticles": 67,
+    "articlesThatLookedTwelveHoursEarly": 67,
+    "ofThoseCorrected": 67,
+    "correctArticlesTouched": 0,
+    "stillOver11hAfter": 2,
+    "correctedLagAfterMin": 0.7
+   },
+   "walfoot": {
+    "articles": 85,
+    "lagBeforeMin": {
+     "median": 720.6,
+     "p90": 732.2
+    },
+    "lagAfterMin": {
+     "median": 0.7,
+     "p90": 610.9,
+     "max": 856.1
+    },
+    "correctedArticles": 51,
+    "articlesThatLookedTwelveHoursEarly": 54,
+    "ofThoseCorrected": 51,
+    "correctArticlesTouched": 0,
+    "stillOver11hAfter": 8,
+    "correctedLagAfterMin": 0.7
+   }
+  },
+  "ifAppliedToEveryOtherFeed": {
+   "articles": 49421,
+   "wouldBeChanged": 295,
+   "per10000": 59.7,
+   "note": "these are genuinely 12 to 12.5 hours old when first collected (mostly the first read of a new source); the rule is only enabled on the two feeds with the measured fault, and never on a first read"
+  },
+  "clarinDep": {
+   "note": "not corrected: its lag is spread (p10 44, median 54, p90 62 minutes), which is a feed delay, not an exact clock offset",
+   "stats": {
+    "articles": 40,
+    "p10": 44.1,
+    "median": 54.4,
+    "p90": 61.9
+   }
+  }
+ },
+ "backoff": {
+  "persistent403RequestsIn7Days": {
+   "before": 672,
+   "after": 14
+  },
+  "persistent404RequestsIn7Days": {
+   "before": 672,
+   "after": 14
+  },
+  "rateLimit429RequestsIn7Days": {
+   "before": 672,
+   "after": 59,
+   "note": "a rate limit keeps being tried at least every 3 hours"
+  },
+  "rateLimit429WithRetryAfter2h": {
+   "after": 18
+  },
+  "transient503RequestsIn7Days": {
+   "before": 672,
+   "after": 672,
+   "note": "unchanged: 5xx and timeouts keep the flat 15 minutes"
+  },
+  "savedFailingSources": [
+   {
+    "id": "nortecastilla",
+    "error": "HTTP 502",
+    "failStreak": 1,
+    "newCooldownMin": 15
+   }
+  ],
+  "savedFailingAllKeepFlat15": true,
+  "healthySources": {
+   "count": 2059,
+   "withACooldown": 0,
+   "note": "recordFailure is only called after a failure; a healthy record has no cooldown and is never touched"
+  }
+ },
+ "cleanup": {
+  "entriesBefore": 2075,
+  "removed": 805,
+  "entriesAfter": 1270,
+  "metaBytesBefore": 250518,
+  "metaBytesAfter": 151970,
+  "pruneMs": 0.63,
+  "removedAreAllTrendSearches": true,
+  "anySourcePolledInTheLast48hRemoved": false,
+  "anyActiveSourceRemoved": false,
+  "articlesKept": 52106,
+  "articlesWhoseFirstFinderEntryWasRemoved": 16,
+  "note": "the articles keep their provenance (via, paths) whether or not the schedule entry of a dormant trend search exists"
+ },
+ "coverage": {
+  "articlesWithCorrectedDate": 118,
+  "storiesBefore": 21055,
+  "storiesAfter": 21062,
+  "correctedArticlesThatChangedStory": 30,
+  "correctedArticlesInAStoryOfSeveralOutlets": 60,
+  "articlesInOtherStoriesWhoseStoryChanged": 63,
+  "note": "stories whose membership differs after the correction (a story that gained or lost an article); the correction only moves the dates of the evening articles of two feeds"
+ },
+ "cost": {
+  "clockCorrectionPerRunMs": 2.18,
+  "backoff400FailuresMs": 2.94,
+  "note": "per collector run; a run takes about 2.4 minutes"
+ }
+}

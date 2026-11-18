@@ -19,6 +19,7 @@ import { ytFeed } from '../src/youtube.js';
 //   parser  special reader for sites without RSS (e.g. 'sport5' reads the homepage)
 //   reporter  a reporter's own channel or site (Telegram / Bluesky posts count by default; outlets' accounts: false)
 //   official  a club / league / federation channel
+//   clock12 a time zone: the feed dates on a 12-hour clock that loses the PM (an evening article comes out 12 h early); see src/feedtime.js
 //   country + assist  a national outlet: its local-only stories show only with a known team/player or an Israeli angle
 
 // Google News locales: [hl, gl, ceid]
@@ -235,8 +236,8 @@ export const SOURCES = [
   { id: 'sporza', name: 'Sporza', url: 'https://sporza.be/nl.rss.xml', lang: 'nl', country: 'Belgium', weight: 2, assist: true, every: 3 },
   { id: 'hln-sport', name: 'HLN', url: 'https://www.hln.be/sport/rss.xml', lang: 'nl', country: 'Belgium', weight: 2, assist: true, every: 3 },
   { id: 'dhnet', name: 'La DH', url: 'https://www.dhnet.be/rss/section/sports.xml', lang: 'fr', country: 'Belgium', weight: 2, assist: true, every: 3, max: 60 },
-  { id: 'voetbalkrant', name: 'Voetbalkrant', url: 'https://www.voetbalkrant.com/nl/rss', lang: 'nl', country: 'Belgium', weight: 1, sport: 'football', assist: true, every: 5, max: 60 },
-  { id: 'walfoot', name: 'Walfoot', url: 'https://www.walfoot.be/rss', lang: 'fr', country: 'Belgium', weight: 1, sport: 'football', assist: true, every: 5, max: 60 },
+  { id: 'voetbalkrant', name: 'Voetbalkrant', url: 'https://www.voetbalkrant.com/nl/rss', lang: 'nl', country: 'Belgium', weight: 1, sport: 'football', assist: true, every: 5, max: 60, clock12: 'Europe/Brussels' },
+  { id: 'walfoot', name: 'Walfoot', url: 'https://www.walfoot.be/rss', lang: 'fr', country: 'Belgium', weight: 1, sport: 'football', assist: true, every: 5, max: 60, clock12: 'Europe/Brussels' },
   // Turkey, Greece, Cyprus, Serbia
   { id: 'aspor', name: 'A Spor', url: 'https://www.aspor.com.tr/rss/anasayfa.xml', lang: 'tr', country: 'Turkey', weight: 2, assist: true, every: 3, max: 60 },
   { id: 'athletiko', name: 'Athletiko', url: 'https://www.athletiko.gr/feed', lang: 'el', country: 'Greece', weight: 1, assist: true, every: 3 },

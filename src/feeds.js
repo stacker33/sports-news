@@ -2,6 +2,10 @@
 import { officialName } from '../config/official.js';
 import { XMLParser } from 'fast-xml-parser';
 import { videoKind, ytPage, parseChannelPage } from './youtube.js';
+import { parseRetryAfter } from './backoff.js';
+
+// an HTTP answer that is not OK: the message stays "HTTP 403" (the health list shows it); the status and Retry-After let the collector back off (src/backoff.js)
+const httpError = (res, text = `HTTP ${res.status}`) => Object.assign(new Error(text), { status: res.status, retryAfter: parseRetryAfter(res.headers?.get?.('retry-after')) });
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -199,7 +203,7 @@ async function fetchYouTubePage(source, timeoutMs) {
     headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.8', cookie: 'CONSENT=YES+1' },
     signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status} (feed 404)`);
+  if (!res.ok) throw httpError(res, `HTTP ${res.status} (feed 404)`);
   const videos = parseChannelPage(await res.text());
   if (!videos.length) throw new Error('HTTP 404, page backup empty');
   return videos
@@ -234,12 +238,12 @@ function parseTelegram(html, source) {
 export async function fetchFeed(source, timeoutMs = 15000) {
   if (source.parser === 'sport5') {
     const res = await fetch(source.url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw httpError(res);
     return parseSport5(await res.text());
   }
   if (['espn', 'wordpress', 'bluesky', 'telegram'].includes(source.parser)) {
     const res = await fetch(source.url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw httpError(res);
     if (source.parser === 'telegram') return parseTelegram(await res.text(), source);
     const j = await res.json();
     return source.parser === 'espn' ? parseEspn(j, source) : source.parser === 'wordpress' ? parseWordPress(j, source) : parseBluesky(j, source);
@@ -250,7 +254,7 @@ export async function fetchFeed(source, timeoutMs = 15000) {
     redirect: 'follow',
   });
   if (source.parser === 'youtube' && res.status === 404) return fetchYouTubePage(source, timeoutMs);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw httpError(res);
   const xml = await readText(res);
   const doc = parser.parse(xml);
 

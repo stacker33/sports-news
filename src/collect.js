@@ -53,6 +53,10 @@ import { setTracked } from './youtube.js';
 import { storyEvidence, storyCoverage, storyViews, sport5Check } from './roles.js';
 import { editorialRank, loadRankConfig, loadVocabulary as loadRankVocabulary } from './rank.js';
 import { capG1Mode, capStories, applyCap, pinInto, telegramPinIds, israeliOnlyStory } from './capselect.js';
+import { settleClock12 } from './feedtime.js';
+import { recordFailure } from './backoff.js';
+import { pruneMeta } from './metaprune.js';
+import { stageTimer } from './timing.js';
 import { loadStateStrict, stateAgeNote, survivorDiagnostic, StateError } from './statecheck.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -60,7 +64,7 @@ const DATA = process.env.RADAR_DATA_DIR || join(ROOT, 'public', 'data'); // the 
 const KEEP_ITEMS_H = 48; // raw items remembered between runs
 const KEEP_STORIES_H = 36; // stories shown in the app
 const MAX_STORIES = 1200;
-const COOLDOWN_MIN = 15; // after a source errors (e.g. Google rate-limit)
+// the cooldown after a source errors (15 minutes, longer for 429 / 403 / 404) is in src/backoff.js
 const WATCH_BUDGET = 6; // watchlist / discovery queries per run (src/watchlist.js)
 
 
@@ -93,6 +97,7 @@ export { capStories }; // moved to src/capselect.js (with the optional editorial
 // force = fetch every source regardless of its interval (used after editing the athlete list)
 export async function collect({ log = console.log, force = false } = {}) {
   const started = Date.now();
+  const timer = stageTimer(); // one [timing] line at the end of the run (src/timing.js)
   await mkdir(DATA, { recursive: true });
 
   const statePath = join(DATA, 'state.json');
@@ -154,6 +159,9 @@ export async function collect({ log = console.log, force = false } = {}) {
   // userSources: sites editors added from the page and the admin approved (src/usersources.js)
   const sources = [...SOURCES, ...userSources(state.userSources), ...athleteSources(athletes, teamCache), ...rivalSources(rivals.games), ...trendSources(state.trendSearch), ...userSearchSources(state.userSearch), ...watchSources(watchPlan.run)];
   const srcById = new Map(sources.map((s) => [s.id, s]));
+  // trend searches that stopped being run more than 48 h ago: their schedule entry is dead weight (src/metaprune.js)
+  const prunedMeta = pruneMeta(meta, new Set(sources.map((s) => s.id)), now);
+  if (prunedMeta) log(`[meta] removed ${prunedMeta} stale trend-search entries`);
   const due = sources.filter((s) => {
     const m = meta[s.id];
     if (!m || force) return true;
@@ -162,7 +170,9 @@ export async function collect({ log = console.log, force = false } = {}) {
     return now - (m.last || 0) >= every * 60000 - 15000;
   });
 
+  timer.mark('setup');
   const results = await pool(due, 12, (s) => fetchFeed(s));
+  timer.mark('fetch');
   // watch query schedule: success resets, failure backs off; queries no longer generated are forgotten
   const watchRun = watchPlan.run.filter((c) => due.some((d) => d.id === c.id));
   const watchSched = recordQueries(state.watchSched, watchRun, watchRun.map((c) => {
@@ -178,8 +188,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   results.forEach((r, idx) => {
     const src = due[idx];
     if (!r.ok) {
-      const error = String(r.error?.message || r.error).slice(0, 120);
-      meta[src.id] = { ...meta[src.id], last: now, ok: false, error, cooldownUntil: now + COOLDOWN_MIN * 60000, failStreak: (meta[src.id]?.failStreak || 0) + 1 };
+      // the wait depends on what the server said: 429 and 403 / 404 back off, everything else keeps the flat cooldown (src/backoff.js)
+      meta[src.id] = recordFailure(meta[src.id], r.error, now);
       return;
     }
     const firstRead = !meta[src.id]?.okOnce; // never read this source successfully before
@@ -196,6 +206,10 @@ export async function collect({ log = console.log, force = false } = {}) {
       const id = itemId(raw.link, raw.title);
       if (dropped[id] > now) continue; // trimmed from the memory earlier (src/trim.js)
       const prev = known.get(id);
+      // a feed whose clock loses the PM (src/feedtime.js): only a NEW article of a source already read once is corrected, from the feed's date and
+      // the run's time; an article seen before keeps the time it was given then. The feed's own date is kept on the article.
+      let feedPublished = null;
+      if (src.clock12) ({ published: raw.published, feedPublished } = settleClock12({ published: raw.published, now, tz: src.clock12, prev, firstRead }));
       // Dates: trust the feed; if missing (or in the future) use the time we first saw it.
       // On the first read of a source we can't know when its existing articles appeared → "unknown".
       let published = raw.published && raw.published <= now + 5 * 60000 ? Math.min(raw.published, now) : null;
@@ -231,6 +245,7 @@ export async function collect({ log = console.log, force = false } = {}) {
         published,
         dateUnknown,
         seen: prev?.seen ?? now, // when we first collected it
+        ...(feedPublished != null ? { feedPublished } : {}), // the feed's own date, when the time above is a correction (feeds that lose the PM)
         sport: tags.sport,
         israel: tags.israel,
         israelOther: tags.israelOther,
@@ -250,6 +265,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   });
 
   const items = [...known.values()].filter((it) => now - it.published <= KEEP_ITEMS_H * 3600000);
+  timer.mark('parse');
 
   // Translate non-English headlines (newest first; cached per article)
   const tr = state.tr || {};
@@ -426,6 +442,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     return [...comps, ...teams.map((e) => ({ ...e, il: isIl(e) || undefined })), ...players].filter((e) => !seenName.has(e.k + e.en) && seenName.add(e.k + e.en)).map(({ k, id, en, he, il }) => ({ k, id, en, he, ...(il ? { il: true } : {}) }));
   }
 
+  timer.mark('enrich');
   // stable story ids across runs (see src/storyids.js)
   // + the same event across languages, once the language model has written its card (src/merge.js)
   const clusters = mergeSameEvent(clusterItems(items.filter((i) => !i.hidden)), state.ai?.desk);
@@ -459,6 +476,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     .sort((a, b) => b.latest - a.latest);
   // The cap keeps the newest stories, but an Israeli-angle story inside the 36-hour window is never cut for space
   // (found by the evaluation set: a day-old Spanish story about Roy Revivo was dropped for space)
+  timer.mark('cluster');
   // Source roles, evidence, truthful coverage, views and the editorial rank (src/roles.js, src/rank.js).
   // Votes come from the previous run's feedback (loaded later in this run).
   const s5check = sport5Check(meta, now);
@@ -523,6 +541,7 @@ export async function collect({ log = console.log, force = false } = {}) {
     low: lowRankReasons(core, rejectedNow),
   };
 
+  timer.mark('rank');
   // Summaries: feed descriptions + article pages, most important stories first (Israeli / abroad, then popular & fresh)
   const sums = state.sums || {};
   const priority = [...core]
@@ -554,6 +573,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   // today's Sport5 homepage headlines: the style the editors write in
   const styleHeads = items.filter((i) => i.sourceId === 'sport5-home' && i.title.length > 20).sort((a, b) => b.published - a.published).slice(0, 10).map((i) => i.title);
   const { ai, done: aiDone } = await aiSummaries(core, sums, state.ai, now, heOfAthlete, { styleHeads }).catch((e) => ({ ai: { ...(state.ai || {}), error: String(e.message) }, done: 0 }));
+  timer.mark('ai');
   // Telegram channel: morning briefing + alerts (only when the bot token and channel are configured)
   const { tg, posted: tgPosted } = await telegramPost(core, { athletes, cards: cards.cards || {}, gameInfo: gameInfo.games || {}, siteUrl: 'https://stacker33.github.io/sports-news/', translate: (texts) => translateTexts(texts, 'auto', 'he') }, state.tg, now).catch((e) => ({ tg: { ...(state.tg || {}), error: String(e.message) }, posted: 0 }));
   // stories the channel posted in the last 12 hours stay in the published files (bounded: src/capselect.js telegramPinIds)
@@ -567,6 +587,7 @@ export async function collect({ log = console.log, force = false } = {}) {
   // Weekly source report to the admin (src/sourcereport.js): yesterday's tally once a day (while the stories still
   // have their articles), the report on Sunday; sent with the other admin messages below
   const { srcReport, message: srcMsg } = sourceReportStep(now, state.srcReport, { stories: core, items, nameOf: (id) => srcById.get(id)?.name, votes: state.feedback?.votes });
+  timer.mark('notify');
   const shownIds = new Set(); // articles in a published story (for the save-time trim)
   for (const s of stories) {
     for (const m of s._members) shownIds.add(m.id);
@@ -748,6 +769,8 @@ export async function collect({ log = console.log, force = false } = {}) {
   });
   await writeJson(statePath, { savedAt: now, meta, teamCache, rivals, ilSquad, gameInfo, cards, sums, signals: { ...signals, wiki: undefined }, wiki, tr, corrections, ...(cap.keptIds ? { capKept: { at: now, ids: cap.keptIds } } : {}), ai, tg, brief, trendSearch, userSearch, watchSched, storyIds, rejected: rejectedList.slice(0, 300), healthAlerts, adminGreeted, feedback, mail, userSources: userSourcesSt, userAthletes: userAthletesSt, dropped, selfAlerts, srcReport, items: keepItems.map(({ tr: _t, _tok, _key, _fix, _match, ...rest }) => rest) });
 
+  timer.mark('publish');
+  log(timer.line());
   log(
     `[collect] fetched ${due.length}/${sources.length} sources (${results.filter((r) => !r.ok).length} failed) · ${fresh} new items · ${items.length} items · ${translated} translated · ${summarized} summaries fetched · ${published.length} stories · ${Date.now() - started}ms`
   );
