@@ -43,7 +43,7 @@ const MARKS = [
   ['  const stories = clusters\n', 'cluster.storyIds'],
   ['  // foreign-language summaries → Hebrew + English (cached with the summary)', 'ai.fillSummaries'],
   ['  // Hebrew headline + 2–3 sentence summary by a language model', 'ai.translateSummaries'],
-  ['  const { ai, done: aiDone } = await aiSummaries(', 'ai.prepareNames'],
+  ['  const { ai, done: aiDone, stats: aiStats } = await aiSummaries(', 'ai.prepareNames'],
 ];
 
 function instrument(src) {
